@@ -219,9 +219,41 @@
             color: #ffffff;
         }
 
-        .input-row-spacer {
-            width: 100%;
-            height: 0;
+        /* View Toggle */
+        .view-toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .view-btn {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            background: transparent;
+            color: #525252;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn:hover {
+            color: #737373;
+        }
+
+        .view-btn.active {
+            background: #262626;
+            color: #e5e5e5;
         }
 
         /* Weekly Calendar */
@@ -229,18 +261,34 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 0.5rem;
+            transition: all 0.3s ease;
         }
 
-        @media (max-width: 900px) {
-            .week-container {
-                grid-template-columns: repeat(4, 1fr);
-            }
+        .week-container.day-view {
+            grid-template-columns: 1fr;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
-        @media (max-width: 600px) {
-            .week-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .week-container.week-view {
+            display: flex;
+            overflow-x: auto;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .week-container.week-view .day-column {
+            min-width: 140px;
+            flex-shrink: 0;
+        }
+
+        .week-container.day-view .day-column {
+            display: none;
+        }
+
+        .week-container.day-view .day-column.today {
+            display: flex;
         }
 
         .day-column {
@@ -249,9 +297,13 @@
             border-radius: 12px;
             padding: 0.875rem;
             min-height: 280px;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
+        }
+
+        .week-container.day-view .day-column.today {
+            min-height: 400px;
         }
 
         .day-column.today {
@@ -302,10 +354,14 @@
             align-content: flex-start;
         }
 
+        .week-container.day-view .day-tasks {
+            gap: 0.5rem;
+        }
+
         /* Task Items */
         .task-item {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 0.5rem;
             background: #141414;
             border: 1px solid #1a1a1a;
@@ -314,6 +370,16 @@
             transition: all 0.2s ease;
             animation: slideIn 0.25s ease;
             position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .week-container.day-view .task-item {
+            padding: 0.75rem 1rem;
+        }
+
+        .task-item.completed {
+            background: #181818;
         }
 
         @keyframes slideIn {
@@ -331,22 +397,26 @@
             border-color: #262626;
         }
 
+        .task-item:active {
+            background: #1a1a1a;
+        }
+
         .task-checkbox {
             width: 16px;
             height: 16px;
-            margin-top: 1px;
             border: 1.5px solid #404040;
             border-radius: 4px;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
             flex-shrink: 0;
+            pointer-events: none;
         }
 
-        .task-checkbox:hover {
-            border-color: #525252;
+        .week-container.day-view .task-checkbox {
+            width: 20px;
+            height: 20px;
         }
 
         .task-checkbox.checked {
@@ -364,9 +434,16 @@
             transform: rotate(-45deg) translateY(-1px);
         }
 
+        .week-container.day-view .task-checkbox.checked::after {
+            width: 10px;
+            height: 6px;
+            border-width: 2px;
+        }
+
         .task-content {
             flex: 1;
             min-width: 0;
+            pointer-events: none;
         }
 
         .task-name {
@@ -378,9 +455,13 @@
             line-height: 1.4;
         }
 
+        .week-container.day-view .task-name {
+            font-size: 0.95rem;
+        }
+
         .task-name.completed {
-            text-decoration: line-through;
             color: #525252;
+            opacity: 0.6;
         }
 
         .task-badge {
@@ -412,6 +493,14 @@
             justify-content: center;
             flex-shrink: 0;
             opacity: 0;
+            pointer-events: auto;
+        }
+
+        .week-container.day-view .delete-button {
+            width: 28px;
+            height: 28px;
+            font-size: 1rem;
+            opacity: 0.5;
         }
 
         .task-item:hover .delete-button {
@@ -420,6 +509,7 @@
 
         .delete-button:hover {
             color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
         }
 
         /* Empty State */
@@ -428,6 +518,11 @@
             padding: 0.5rem;
             color: #333333;
             font-size: 0.75rem;
+        }
+
+        .week-container.day-view .empty-day {
+            padding: 2rem;
+            font-size: 0.9rem;
         }
 
         /* XP Popup Animation */
@@ -612,6 +707,13 @@
             <button class="day-toggle" data-day="6">Sun</button>
         </div>
 
+        <div class="view-toggle-container">
+            <div class="view-toggle">
+                <button class="view-btn" id="dayViewBtn" onclick="setView('day')">Day</button>
+                <button class="view-btn" id="weekViewBtn" onclick="setView('week')">Week</button>
+            </div>
+        </div>
+
         <div class="week-container" id="weekContainer"></div>
     </div>
 
@@ -641,13 +743,17 @@
         const currentXpEl = document.getElementById('currentXp');
         const xpToNextEl = document.getElementById('xpToNext');
         const progressBar = document.getElementById('progressBar');
+        const dayViewBtn = document.getElementById('dayViewBtn');
+        const weekViewBtn = document.getElementById('weekViewBtn');
 
         let totalXp = 0;
         let dailyTaskCounter = 0;
         let taskIdCounter = 0;
         let pendingDeleteTask = null;
+        let currentView = 'day';
 
         const STORAGE_KEY = 'lifeGamifiedData';
+        const VIEW_STORAGE_KEY = 'lifeGamifiedView';
         const XP_PER_LEVEL = 100;
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         const dayAbbrev = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -660,6 +766,29 @@
                 btn.classList.toggle('selected');
             });
         });
+
+        // View Toggle
+        function setView(view) {
+            currentView = view;
+            weekContainer.classList.remove('day-view', 'week-view');
+            weekContainer.classList.add(view + '-view');
+
+            dayViewBtn.classList.toggle('active', view === 'day');
+            weekViewBtn.classList.toggle('active', view === 'week');
+
+            localStorage.setItem(VIEW_STORAGE_KEY, view);
+        }
+
+        function loadView() {
+            const savedView = localStorage.getItem(VIEW_STORAGE_KEY);
+            const isMobile = window.innerWidth < 600;
+
+            if (savedView) {
+                setView(savedView);
+            } else {
+                setView(isMobile ? 'day' : 'week');
+            }
+        }
 
         // Level System
         function getLevel(xp) {
@@ -796,22 +925,18 @@
 
             const indices = pattern.split(',').map(Number);
 
-            // Check if all days selected
             if (indices.length === 7) return 'Daily';
 
-            // Check for weekdays (Mon-Fri)
             if (indices.length === 5 &&
                 indices.join(',') === '0,1,2,3,4') {
                 return 'Weekdays';
             }
 
-            // Check for weekends (Sat-Sun)
             if (indices.length === 2 &&
                 indices.join(',') === '5,6') {
                 return 'Weekends';
             }
 
-            // Return abbreviated days
             return indices.map(i => dayAbbrev[i]).join(', ');
         }
 
@@ -829,6 +954,7 @@
             days.forEach((day, index) => {
                 const column = document.createElement('div');
                 column.className = 'day-column' + (index === todayIndex ? ' today' : '');
+                column.dataset.dayIndex = index;
                 column.innerHTML = `
                     <div class="day-header">
                         <div class="day-name">${day.slice(0, 3)}</div>
@@ -842,6 +968,7 @@
             });
 
             loadData();
+            loadView();
             updateLevelDisplay();
         }
 
@@ -870,7 +997,7 @@
 
         function createTaskElement(taskName, isRepeating, dailyId = null, pattern = null, taskId = null, isCompleted = false) {
             const taskItem = document.createElement('div');
-            taskItem.className = 'task-item';
+            taskItem.className = 'task-item' + (isCompleted ? ' completed' : '');
 
             if (!taskId) {
                 taskId = 'task-' + (++taskIdCounter);
@@ -894,13 +1021,20 @@
             const completedClass = isCompleted ? ' completed' : '';
 
             taskItem.innerHTML = `
-                <div class="task-checkbox${checkedClass}" onclick="toggleTask(this)"></div>
+                <div class="task-checkbox${checkedClass}"></div>
                 <div class="task-content">
                     <span class="task-name${completedClass}">${escapeHtml(taskName)}</span>
                     ${badge}
                 </div>
-                <button class="delete-button" onclick="deleteTask(this)">×</button>
+                <button class="delete-button" onclick="deleteTask(event, this)">×</button>
             `;
+
+            // Click on row to toggle (except delete button)
+            taskItem.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('delete-button')) {
+                    toggleTask(this);
+                }
+            });
 
             return taskItem;
         }
@@ -912,7 +1046,6 @@
             const type = typeSelect.value;
 
             if (type === 'daily') {
-                // Daily task - all 7 days
                 const dailyId = 'daily-' + (++dailyTaskCounter);
 
                 for (let i = 0; i < 7; i++) {
@@ -924,7 +1057,6 @@
                     taskList.appendChild(taskItem);
                 }
             } else if (type === 'custom') {
-                // Custom pattern
                 const selectedDays = getSelectedCustomDays();
                 if (selectedDays.length === 0) {
                     alert('Please select at least one day');
@@ -945,7 +1077,6 @@
 
                 clearCustomDays();
             } else {
-                // One-time task
                 const dayIndex = daySelect.value;
                 const taskList = document.getElementById(`tasks-${dayIndex}`);
 
@@ -961,19 +1092,20 @@
             saveData();
         }
 
-        function toggleTask(checkbox) {
-            const taskItem = checkbox.parentElement;
-            const taskContent = taskItem.querySelector('.task-content');
-            const taskName = taskContent.querySelector('.task-name');
+        function toggleTask(taskItem) {
+            const checkbox = taskItem.querySelector('.task-checkbox');
+            const taskName = taskItem.querySelector('.task-name');
             const isCompleting = !checkbox.classList.contains('checked');
 
             checkbox.classList.toggle('checked');
             taskName.classList.toggle('completed');
+            taskItem.classList.toggle('completed');
 
             updateXp(isCompleting ? 10 : -10, taskItem);
         }
 
-        function deleteTask(button) {
+        function deleteTask(event, button) {
+            event.stopPropagation();
             const taskItem = button.parentElement;
             const dailyId = taskItem.dataset.dailyId;
 
