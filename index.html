@@ -171,10 +171,12 @@
             justify-content: center;
         }
 
-        .add-button:hover {
-            border-color: #404040;
-            color: #a3a3a3;
-            background: #1a1a1a;
+        @media (hover: hover) {
+            .add-button:hover {
+                border-color: #404040;
+                color: #a3a3a3;
+                background: #1a1a1a;
+            }
         }
 
         .add-button:active {
@@ -208,9 +210,11 @@
             text-transform: uppercase;
         }
 
-        .day-toggle:hover {
-            border-color: #404040;
-            color: #737373;
+        @media (hover: hover) {
+            .day-toggle:hover {
+                border-color: #404040;
+                color: #737373;
+            }
         }
 
         .day-toggle.selected {
@@ -247,8 +251,10 @@
             transition: all 0.2s ease;
         }
 
-        .view-btn:hover {
-            color: #737373;
+        @media (hover: hover) {
+            .view-btn:hover {
+                color: #737373;
+            }
         }
 
         .view-btn.active {
@@ -372,6 +378,8 @@
             position: relative;
             cursor: pointer;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .week-container.day-view .task-item {
@@ -393,8 +401,10 @@
             }
         }
 
-        .task-item:hover {
-            border-color: #262626;
+        @media (hover: hover) {
+            .task-item:hover {
+                border-color: #262626;
+            }
         }
 
         .task-item:active {
@@ -492,8 +502,16 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            opacity: 0;
+            opacity: 0.4;
             pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hide delete button on desktop until hover */
+        @media (hover: hover) {
+            .delete-button {
+                opacity: 0;
+            }
         }
 
         .week-container.day-view .delete-button {
@@ -503,13 +521,15 @@
             opacity: 0.5;
         }
 
-        .task-item:hover .delete-button {
-            opacity: 1;
-        }
+        @media (hover: hover) {
+            .task-item:hover .delete-button {
+                opacity: 1;
+            }
 
-        .delete-button:hover {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
+            .delete-button:hover {
+                color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+            }
         }
 
         /* Empty State */
@@ -640,8 +660,10 @@
             color: #ef4444;
         }
 
-        .modal-btn-primary:hover {
-            background: #262626;
+        @media (hover: hover) {
+            .modal-btn-primary:hover {
+                background: #262626;
+            }
         }
 
         .modal-btn-secondary {
@@ -650,8 +672,10 @@
             color: #d4d4d4;
         }
 
-        .modal-btn-secondary:hover {
-            background: #262626;
+        @media (hover: hover) {
+            .modal-btn-secondary:hover {
+                background: #262626;
+            }
         }
 
         .modal-btn-cancel {
@@ -659,8 +683,10 @@
             color: #525252;
         }
 
-        .modal-btn-cancel:hover {
-            color: #737373;
+        @media (hover: hover) {
+            .modal-btn-cancel:hover {
+                color: #737373;
+            }
         }
     </style>
 </head>
@@ -1029,9 +1055,27 @@
                 <button class="delete-button" onclick="deleteTask(event, this)">×</button>
             `;
 
-            // Click on row to toggle (except delete button)
+            // Track touch to prevent ghost clicks
+            let touchHandled = false;
+
+            // Touch event for mobile (fires immediately on tap)
+            taskItem.addEventListener('touchend', function(e) {
+                if (e.target.classList.contains('delete-button')) {
+                    return;
+                }
+                e.preventDefault();
+                touchHandled = true;
+                toggleTask(this);
+                // Reset flag after a short delay
+                setTimeout(() => { touchHandled = false; }, 300);
+            }, { passive: false });
+
+            // Click event for desktop (skipped if touch just handled it)
             taskItem.addEventListener('click', function(e) {
-                if (!e.target.classList.contains('delete-button')) {
+                if (e.target.classList.contains('delete-button')) {
+                    return;
+                }
+                if (!touchHandled) {
                     toggleTask(this);
                 }
             });
