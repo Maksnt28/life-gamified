@@ -2697,10 +2697,10 @@
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-modal">
             <div class="confirm-title">Reset Achievements?</div>
-            <div class="confirm-message">This will clear all unlocked achievements and remove bonus XP. This cannot be undone.</div>
+            <div class="confirm-message">This will lock all achievements and remove bonus XP. Your task completion progress will remain. This cannot be undone.</div>
             <div class="confirm-buttons">
-                <button type="button" class="confirm-btn confirm-btn-cancel" id="confirmCancel">Cancel</button>
-                <button type="button" class="confirm-btn confirm-btn-confirm" id="confirmReset">Reset</button>
+                <button type="button" class="confirm-btn confirm-btn-cancel" id="confirmCancel" onclick="hideResetConfirmation()">Cancel</button>
+                <button type="button" class="confirm-btn confirm-btn-confirm" id="confirmReset" onclick="resetAchievements()">Reset</button>
             </div>
         </div>
     </div>
@@ -4647,6 +4647,8 @@
         function hideResetConfirmation() {
             confirmOverlay.classList.remove('active');
         }
+        // Make available for inline onclick
+        window.hideResetConfirmation = hideResetConfirmation;
 
         function resetAchievements() {
             // Calculate XP to remove (sum of all unlocked achievement bonuses)
@@ -4660,8 +4662,10 @@
                 }
             }
 
-            // Clear unlocked achievements
-            unlockedAchievements = {};
+            // Clear unlocked achievements (delete all keys to maintain reference)
+            for (const key in unlockedAchievements) {
+                delete unlockedAchievements[key];
+            }
 
             // Subtract achievement XP from total
             totalXp = Math.max(0, totalXp - xpToRemove);
@@ -4670,12 +4674,22 @@
             saveData();
 
             // Update UI
-            updateXpDisplay();
+            updateLevelDisplay();
+
+            // Force clear and re-render achievement containers
+            streakAchievementsEl.innerHTML = '';
+            completionAchievementsEl.innerHTML = '';
+            streakProgressEl.innerHTML = '';
+            completionProgressEl.innerHTML = '';
+
+            // Re-render achievements with fresh data
             renderAchievements();
 
             // Close confirmation modal
             hideResetConfirmation();
         }
+        // Make available for inline onclick
+        window.resetAchievements = resetAchievements;
 
         // Bottom Sheet
         function openBottomSheet(dateStr) {
