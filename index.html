@@ -755,6 +755,8 @@
             display: flex;
             flex-direction: column;
             gap: 0;
+            /* Optimize scroll performance */
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Month Header Separator */
@@ -787,6 +789,9 @@
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 0.5rem;
+            /* Optimize rendering during scroll */
+            content-visibility: auto;
+            contain-intrinsic-size: auto 400px;
         }
 
         /* Week Separator */
@@ -3776,6 +3781,8 @@
         let monthScrollObserver = null;
         let isLoadingMonths = false;
         let isInitialMonthRender = true; // Prevent auto-scroll on initial render
+        let lastLoadTime = 0; // Debounce rapid scroll loads
+        const LOAD_DEBOUNCE_MS = 150; // Minimum time between loads
 
         // Mobile: Vertical scrollable list - Compact with infinite scroll
         function renderMonthListView() {
@@ -3993,17 +4000,20 @@
             // Observer for loading more months
             const loadObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    // Skip loading during initial render to prevent auto-scroll
-                    if (entry.isIntersecting && !isLoadingMonths && !isInitialMonthRender) {
+                    const now = Date.now();
+                    // Skip loading during initial render, if already loading, or if debounce period hasn't passed
+                    if (entry.isIntersecting && !isLoadingMonths && !isInitialMonthRender && (now - lastLoadTime > LOAD_DEBOUNCE_MS)) {
                         const block = entry.target;
                         const month = parseInt(block.dataset.month);
                         const year = parseInt(block.dataset.year);
 
                         if (month === loadedMonthStart.month && year === loadedMonthStart.year) {
                             // Near top - load previous month
+                            lastLoadTime = now;
                             loadPreviousMonth();
                         } else if (month === loadedMonthEnd.month && year === loadedMonthEnd.year) {
                             // Near bottom - load next month
+                            lastLoadTime = now;
                             loadNextMonth();
                         }
                     }
@@ -4011,7 +4021,7 @@
             }, {
                 root: null,
                 threshold: 0.1,
-                rootMargin: '200px 0px'
+                rootMargin: '100px 0px'  // Reduced from 200px to load closer to edge
             });
 
             // Observe first and last month blocks
@@ -4034,6 +4044,11 @@
                 newMonth = 11;
                 newYear--;
             }
+
+            // Record scroll position before inserting content
+            const scrollContainer = document.documentElement;
+            const scrollTop = scrollContainer.scrollTop || document.body.scrollTop;
+            const oldHeight = monthList.scrollHeight;
 
             // Create elements for the new month
             const fragment = document.createDocumentFragment();
@@ -4086,13 +4101,21 @@
             // Insert at beginning
             monthList.insertBefore(fragment, monthList.firstChild);
 
+            // Adjust scroll position to compensate for inserted content
+            const newHeight = monthList.scrollHeight;
+            const heightDiff = newHeight - oldHeight;
+            if (heightDiff > 0) {
+                window.scrollTo(0, scrollTop + heightDiff);
+            }
+
             // Update loaded range
             loadedMonthStart = { month: newMonth, year: newYear };
 
-            // Update observers
-            setupMonthScrollObserver();
-
-            isLoadingMonths = false;
+            // Update observers after a brief delay to avoid triggering during scroll adjustment
+            setTimeout(() => {
+                setupMonthScrollObserver();
+                isLoadingMonths = false;
+            }, 50);
         }
 
         // Load next month at the bottom
