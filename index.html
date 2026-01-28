@@ -155,6 +155,24 @@
             color: #e5e5e5;
         }
 
+        .date-input {
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #e5e5e5;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: none;
+            color-scheme: dark;
+        }
+
+        .date-input:focus {
+            border-color: #404040;
+        }
+
         .add-button {
             width: 40px;
             height: 40px;
@@ -236,11 +254,11 @@
             border: 1px solid #262626;
             border-radius: 8px;
             padding: 4px;
-            gap: 4px;
+            gap: 2px;
         }
 
         .view-btn {
-            padding: 0.5rem 1.25rem;
+            padding: 0.5rem 1rem;
             border: none;
             background: transparent;
             color: #525252;
@@ -297,6 +315,233 @@
             display: flex;
         }
 
+        /* Month View */
+        .month-container {
+            display: none;
+        }
+
+        .month-container.active {
+            display: block;
+        }
+
+        .month-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .month-nav {
+            width: 32px;
+            height: 32px;
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 6px;
+            color: #737373;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (hover: hover) {
+            .month-nav:hover {
+                border-color: #404040;
+                color: #a3a3a3;
+            }
+        }
+
+        .month-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #e5e5e5;
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1a1a1a;
+        }
+
+        .month-weekday-header {
+            background: #0f0f0f;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #525252;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .month-day {
+            background: #0a0a0a;
+            min-height: 80px;
+            padding: 0.375rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        @media (hover: hover) {
+            .month-day:not(.empty):hover {
+                background: #111111;
+            }
+        }
+
+        .month-day.empty {
+            background: #050505;
+            cursor: default;
+        }
+
+        .month-day.today {
+            background: #111111;
+        }
+
+        .month-day-number {
+            font-size: 0.7rem;
+            color: #525252;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .month-day.today .month-day-number {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .month-day.other-month .month-day-number {
+            color: #333333;
+        }
+
+        .month-task {
+            background: #141414;
+            border: 1px solid #1a1a1a;
+            border-radius: 4px;
+            padding: 0.25rem 0.375rem;
+            font-size: 0.6rem;
+            color: #a3a3a3;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .month-task.completed {
+            background: #181818;
+            color: #525252;
+        }
+
+        .month-task-checkbox {
+            width: 10px;
+            height: 10px;
+            border: 1px solid #404040;
+            border-radius: 2px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .month-task-checkbox.checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .month-task-checkbox.checked::after {
+            content: '';
+            width: 5px;
+            height: 3px;
+            border: 1px solid #ffffff;
+            border-top: none;
+            border-right: none;
+            transform: rotate(-45deg) translateY(-0.5px);
+        }
+
+        .month-task-delete {
+            width: 14px;
+            height: 14px;
+            background: transparent;
+            border: none;
+            color: #404040;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            opacity: 0.5;
+            margin-left: auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (hover: hover) {
+            .month-task-delete {
+                opacity: 0;
+            }
+
+            .month-task:hover .month-task-delete {
+                opacity: 1;
+            }
+
+            .month-task-delete:hover {
+                color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+            }
+        }
+
+        .month-task-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .month-tasks-overflow {
+            font-size: 0.55rem;
+            color: #525252;
+            text-align: center;
+            padding: 0.125rem;
+        }
+
+        @media (max-width: 600px) {
+            .month-day {
+                min-height: 60px;
+                padding: 0.25rem;
+            }
+
+            .month-task {
+                font-size: 0.55rem;
+                padding: 0.2rem 0.25rem;
+            }
+
+            .month-task-checkbox {
+                width: 8px;
+                height: 8px;
+            }
+
+            .month-day-number {
+                font-size: 0.6rem;
+            }
+        }
+
         .day-column {
             background: #0f0f0f;
             border: 1px solid #1a1a1a;
@@ -306,6 +551,13 @@
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
+            cursor: pointer;
+        }
+
+        @media (hover: hover) {
+            .day-column:hover {
+                border-color: #262626;
+            }
         }
 
         .week-container.day-view .day-column.today {
@@ -720,6 +972,7 @@
                 <option value="custom">Custom</option>
             </select>
             <select class="day-select" id="daySelect"></select>
+            <input type="date" class="date-input" id="dateInput">
             <button class="add-button" onclick="addTask()">+</button>
         </div>
 
@@ -737,10 +990,20 @@
             <div class="view-toggle">
                 <button class="view-btn" id="dayViewBtn" onclick="setView('day')">Day</button>
                 <button class="view-btn" id="weekViewBtn" onclick="setView('week')">Week</button>
+                <button class="view-btn" id="monthViewBtn" onclick="setView('month')">Month</button>
             </div>
         </div>
 
         <div class="week-container" id="weekContainer"></div>
+
+        <div class="month-container" id="monthContainer">
+            <div class="month-header">
+                <button class="month-nav" onclick="changeMonth(-1)">←</button>
+                <div class="month-title" id="monthTitle">January 2025</div>
+                <button class="month-nav" onclick="changeMonth(1)">→</button>
+            </div>
+            <div class="month-grid" id="monthGrid"></div>
+        </div>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -759,6 +1022,7 @@
     <script>
         const taskInput = document.getElementById('taskInput');
         const daySelect = document.getElementById('daySelect');
+        const dateInput = document.getElementById('dateInput');
         const typeSelect = document.getElementById('typeSelect');
         const dayPicker = document.getElementById('dayPicker');
         const weekContainer = document.getElementById('weekContainer');
@@ -771,12 +1035,22 @@
         const progressBar = document.getElementById('progressBar');
         const dayViewBtn = document.getElementById('dayViewBtn');
         const weekViewBtn = document.getElementById('weekViewBtn');
+        const monthViewBtn = document.getElementById('monthViewBtn');
+        const monthContainer = document.getElementById('monthContainer');
+        const monthGrid = document.getElementById('monthGrid');
+        const monthTitle = document.getElementById('monthTitle');
 
         let totalXp = 0;
         let dailyTaskCounter = 0;
         let taskIdCounter = 0;
         let pendingDeleteTask = null;
+        let pendingMonthDeleteContext = null;
         let currentView = 'day';
+        let viewingMonth = new Date().getMonth();
+        let viewingYear = new Date().getFullYear();
+
+        // Track completions by date: { 'daily-1': { '2025-01-20': true }, 'task-5': { '2025-01-15': true } }
+        let taskCompletions = {};
 
         const STORAGE_KEY = 'lifeGamifiedData';
         const VIEW_STORAGE_KEY = 'lifeGamifiedView';
@@ -797,10 +1071,21 @@
         function setView(view) {
             currentView = view;
             weekContainer.classList.remove('day-view', 'week-view');
-            weekContainer.classList.add(view + '-view');
+
+            if (view === 'month') {
+                weekContainer.style.display = 'none';
+                monthContainer.classList.add('active');
+                renderMonthView();
+            } else {
+                weekContainer.style.display = '';
+                monthContainer.classList.remove('active');
+                weekContainer.classList.add(view + '-view');
+                updateWeekViewVisibility();
+            }
 
             dayViewBtn.classList.toggle('active', view === 'day');
             weekViewBtn.classList.toggle('active', view === 'week');
+            monthViewBtn.classList.toggle('active', view === 'month');
 
             localStorage.setItem(VIEW_STORAGE_KEY, view);
         }
@@ -813,6 +1098,343 @@
                 setView(savedView);
             } else {
                 setView(isMobile ? 'day' : 'week');
+            }
+        }
+
+        // Month View Functions
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+
+        function changeMonth(delta) {
+            viewingMonth += delta;
+            if (viewingMonth > 11) {
+                viewingMonth = 0;
+                viewingYear++;
+            } else if (viewingMonth < 0) {
+                viewingMonth = 11;
+                viewingYear--;
+            }
+            renderMonthView();
+        }
+
+        function getWeekdayFromDate(date) {
+            // Convert JS day (0=Sun) to our format (0=Mon)
+            const jsDay = date.getDay();
+            return jsDay === 0 ? 6 : jsDay - 1;
+        }
+
+        function getTasksForWeekday(weekdayIndex) {
+            const tasks = [];
+            const taskList = document.getElementById(`tasks-${weekdayIndex}`);
+            if (!taskList) return tasks;
+
+            const taskItems = taskList.querySelectorAll('.task-item');
+            taskItems.forEach(taskItem => {
+                tasks.push({
+                    name: taskItem.querySelector('.task-name').textContent,
+                    dailyId: taskItem.dataset.dailyId || null,
+                    taskId: taskItem.dataset.taskId,
+                    pattern: taskItem.dataset.pattern || null,
+                    fullDate: taskItem.dataset.fullDate || null
+                });
+            });
+            return tasks;
+        }
+
+        function getTasksForDate(dateStr, weekdayIndex) {
+            const allTasks = getTasksForWeekday(weekdayIndex);
+            return allTasks.filter(task => {
+                // Recurring tasks (daily or custom) appear on all matching weekdays
+                if (task.dailyId) {
+                    return true;
+                }
+                // One-time tasks only appear on their exact date
+                if (task.fullDate) {
+                    return task.fullDate === dateStr;
+                }
+                // Legacy tasks without fullDate - treat as weekly recurring
+                return true;
+            }).map(task => {
+                // Check completion status for this specific date
+                const completionKey = task.dailyId || task.taskId;
+                const taskDate = task.fullDate || dateStr;
+                return {
+                    ...task,
+                    completed: isTaskCompletedForDate(completionKey, taskDate)
+                };
+            });
+        }
+
+        function renderMonthView() {
+            monthTitle.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
+
+            // Clear existing grid
+            monthGrid.innerHTML = '';
+
+            // Add weekday headers (Mon-Sun)
+            const weekdayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            weekdayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'month-weekday-header';
+                header.textContent = day;
+                monthGrid.appendChild(header);
+            });
+
+            // Get first day of month and number of days
+            const firstDay = new Date(viewingYear, viewingMonth, 1);
+            const lastDay = new Date(viewingYear, viewingMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            // Convert to Mon=0 format: Sunday (0) becomes 6, others shift down by 1
+            const jsStartDay = firstDay.getDay();
+            const startDayOfWeek = jsStartDay === 0 ? 6 : jsStartDay - 1;
+
+            // Get today for highlighting
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === viewingMonth && today.getFullYear() === viewingYear;
+
+            // Fill empty cells before first day
+            for (let i = 0; i < startDayOfWeek; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'month-day empty';
+                monthGrid.appendChild(emptyCell);
+            }
+
+            // Fill in the days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(viewingYear, viewingMonth, day);
+                const weekdayIndex = getWeekdayFromDate(date); // 0=Mon format
+                const isToday = isCurrentMonth && day === today.getDate();
+
+                const dayCell = document.createElement('div');
+                dayCell.className = 'month-day' + (isToday ? ' today' : '');
+                dayCell.dataset.date = formatDateForInput(date);
+                dayCell.dataset.weekday = weekdayIndex;
+
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'month-day-number';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+
+                // Get tasks for this specific date
+                const dateStr = formatDateForInput(date);
+                const tasks = getTasksForDate(dateStr, weekdayIndex);
+                const maxTasksToShow = 3;
+                let tasksShown = 0;
+
+                tasks.forEach((task, index) => {
+                    if (tasksShown >= maxTasksToShow) return;
+
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'month-task' + (task.completed ? ' completed' : '');
+                    taskEl.dataset.taskId = task.taskId;
+                    taskEl.dataset.weekday = weekdayIndex;
+                    if (task.fullDate) {
+                        taskEl.dataset.fullDate = task.fullDate;
+                    }
+
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'month-task-checkbox' + (task.completed ? ' checked' : '');
+
+                    const taskName = document.createElement('span');
+                    taskName.className = 'month-task-name';
+                    taskName.textContent = task.name;
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'month-task-delete';
+                    deleteBtn.textContent = '×';
+
+                    // Store dailyId if it's a recurring task
+                    if (task.dailyId) {
+                        taskEl.dataset.dailyId = task.dailyId;
+                    }
+
+                    taskEl.appendChild(checkbox);
+                    taskEl.appendChild(taskName);
+                    taskEl.appendChild(deleteBtn);
+
+                    // Touch and click handlers for toggling
+                    let touchHandled = false;
+                    const taskDateStr = dateStr; // Capture the date for this task
+                    taskEl.addEventListener('touchend', function(e) {
+                        if (e.target.classList.contains('month-task-delete')) {
+                            return; // Let delete button handle it
+                        }
+                        e.preventDefault();
+                        e.stopPropagation();
+                        touchHandled = true;
+                        toggleMonthTask(this, taskDateStr);
+                        setTimeout(() => { touchHandled = false; }, 300);
+                    }, { passive: false });
+
+                    taskEl.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('month-task-delete')) {
+                            return; // Let delete button handle it
+                        }
+                        e.stopPropagation();
+                        if (!touchHandled) {
+                            toggleMonthTask(this, taskDateStr);
+                        }
+                    });
+
+                    // Delete button handler
+                    let deleteTouchHandled = false;
+                    deleteBtn.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        deleteTouchHandled = true;
+                        deleteMonthTask(taskEl, taskDateStr);
+                        setTimeout(() => { deleteTouchHandled = false; }, 300);
+                    }, { passive: false });
+
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (!deleteTouchHandled) {
+                            deleteMonthTask(taskEl, taskDateStr);
+                        }
+                    });
+
+                    dayCell.appendChild(taskEl);
+                    tasksShown++;
+                });
+
+                // Show overflow indicator if more tasks
+                if (tasks.length > maxTasksToShow) {
+                    const overflow = document.createElement('div');
+                    overflow.className = 'month-tasks-overflow';
+                    overflow.textContent = `+${tasks.length - maxTasksToShow} more`;
+                    dayCell.appendChild(overflow);
+                }
+
+                // Click handler to create task on this date
+                dayCell.addEventListener('click', function(e) {
+                    if (e.target.closest('.month-task')) return; // Don't trigger if clicking a task
+                    openTaskCreationForDate(dateStr);
+                });
+
+                monthGrid.appendChild(dayCell);
+            }
+
+            // Fill remaining cells to complete the grid
+            const totalCells = startDayOfWeek + daysInMonth;
+            const remainingCells = (7 - (totalCells % 7)) % 7;
+            for (let i = 0; i < remainingCells; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'month-day empty';
+                monthGrid.appendChild(emptyCell);
+            }
+        }
+
+        function toggleMonthTask(monthTaskEl, dateStr) {
+            const taskId = monthTaskEl.dataset.taskId;
+            const weekdayIndex = monthTaskEl.dataset.weekday;
+            const fullDate = monthTaskEl.dataset.fullDate;
+
+            // Get the completion key (dailyId for recurring, taskId for one-time)
+            const taskList = document.getElementById(`tasks-${weekdayIndex}`);
+            const weekViewTask = taskList.querySelector(`[data-task-id="${taskId}"]`);
+
+            let completionKey = taskId;
+            if (weekViewTask && weekViewTask.dataset.dailyId) {
+                completionKey = weekViewTask.dataset.dailyId;
+            }
+
+            // Determine the date for this completion
+            const completionDate = fullDate || dateStr;
+
+            // Check current completion status for this specific date
+            const wasCompleted = isTaskCompletedForDate(completionKey, completionDate);
+            const isNowCompleted = !wasCompleted;
+
+            // Update completions tracking
+            setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
+
+            // Update the month view task appearance
+            const checkbox = monthTaskEl.querySelector('.month-task-checkbox');
+            checkbox.classList.toggle('checked', isNowCompleted);
+            monthTaskEl.classList.toggle('completed', isNowCompleted);
+
+            // Show XP popup on the month task element
+            const popup = document.createElement('span');
+            popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
+            popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
+            popup.style.position = 'absolute';
+            popup.style.left = '50%';
+            popup.style.transform = 'translateX(-50%)';
+            monthTaskEl.style.position = 'relative';
+            monthTaskEl.appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+
+            // Update XP
+            totalXp += isNowCompleted ? 10 : -10;
+            if (totalXp < 0) totalXp = 0;
+            updateLevelDisplay();
+
+            // If this date is in the current week, also update the week view
+            const currentWeekDates = getCurrentWeekDates();
+            if (currentWeekDates.includes(completionDate) && weekViewTask) {
+                const weekCheckbox = weekViewTask.querySelector('.task-checkbox');
+                const weekTaskName = weekViewTask.querySelector('.task-name');
+                weekCheckbox.classList.toggle('checked', isNowCompleted);
+                weekTaskName.classList.toggle('completed', isNowCompleted);
+                weekViewTask.classList.toggle('completed', isNowCompleted);
+            }
+
+            saveData();
+        }
+
+        function deleteMonthTask(monthTaskEl, dateStr) {
+            const taskId = monthTaskEl.dataset.taskId;
+            const dailyId = monthTaskEl.dataset.dailyId;
+            const weekdayIndex = monthTaskEl.dataset.weekday;
+            const fullDate = monthTaskEl.dataset.fullDate;
+
+            // Find the corresponding task in the week view
+            const taskList = document.getElementById(`tasks-${weekdayIndex}`);
+            const weekViewTask = taskList.querySelector(`[data-task-id="${taskId}"]`);
+
+            if (dailyId) {
+                // Recurring task - show modal
+                pendingDeleteTask = weekViewTask;
+                pendingMonthDeleteContext = {
+                    monthTaskEl: monthTaskEl,
+                    dateStr: dateStr,
+                    dailyId: dailyId,
+                    taskId: taskId,
+                    weekdayIndex: weekdayIndex
+                };
+
+                const pattern = weekViewTask ? weekViewTask.dataset.pattern : null;
+                const label = getPatternLabel(pattern);
+
+                modalTitle.textContent = 'Delete Repeating Task';
+                modalText.textContent = `This task repeats (${label}). How would you like to delete it?`;
+                deleteModal.classList.add('active');
+            } else {
+                // One-time task - delete directly
+                const completionDate = fullDate || dateStr;
+                const isCompleted = monthTaskEl.classList.contains('completed');
+
+                // Remove XP if completed
+                if (isCompleted) {
+                    totalXp -= 10;
+                    if (totalXp < 0) totalXp = 0;
+                    updateLevelDisplay();
+                }
+
+                // Clean up completions
+                if (taskCompletions[taskId]) {
+                    delete taskCompletions[taskId];
+                }
+
+                // Remove from week view if it exists there
+                if (weekViewTask) {
+                    const weekTaskList = weekViewTask.parentElement;
+                    weekViewTask.remove();
+                    checkEmpty(weekTaskList);
+                }
+
+                saveData();
+                renderMonthView();
             }
         }
 
@@ -850,6 +1472,7 @@
                     const dailyId = taskItem.dataset.dailyId || null;
                     const taskId = taskItem.dataset.taskId;
                     const pattern = taskItem.dataset.pattern || null;
+                    const fullDate = taskItem.dataset.fullDate || null;
 
                     tasks.push({
                         id: taskId,
@@ -858,6 +1481,7 @@
                         isRepeating: !!dailyId,
                         dailyId: dailyId,
                         pattern: pattern,
+                        fullDate: fullDate,
                         completed: isCompleted
                     });
                 });
@@ -867,10 +1491,57 @@
                 tasks: tasks,
                 xp: totalXp,
                 dailyTaskCounter: dailyTaskCounter,
-                taskIdCounter: taskIdCounter
+                taskIdCounter: taskIdCounter,
+                completions: taskCompletions
             };
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function refreshMonthViewIfActive() {
+            if (currentView === 'month') {
+                renderMonthView();
+            }
+        }
+
+        function openTaskCreationForDate(dateStr) {
+            // Set type to one-time
+            typeSelect.value = 'onetime';
+            toggleDaySelect();
+
+            // Set the date
+            dateInput.value = dateStr;
+
+            // Focus the task input and scroll to it
+            taskInput.focus();
+            taskInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function updateWeekViewVisibility() {
+            const currentWeekDates = getCurrentWeekDates();
+
+            // Find all one-time tasks with fullDate and show/hide based on current week
+            document.querySelectorAll('.task-item[data-full-date]').forEach(taskItem => {
+                const fullDate = taskItem.dataset.fullDate;
+                const isInCurrentWeek = currentWeekDates.includes(fullDate);
+                taskItem.style.display = isInCurrentWeek ? '' : 'none';
+            });
+
+            // Update empty state for each day
+            for (let i = 0; i < 7; i++) {
+                const taskList = document.getElementById(`tasks-${i}`);
+                const visibleTasks = taskList.querySelectorAll('.task-item:not([style*="display: none"])');
+                const emptyState = taskList.querySelector('.empty-day');
+
+                if (visibleTasks.length === 0 && !emptyState) {
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'empty-day';
+                    emptyDiv.textContent = 'No tasks';
+                    taskList.appendChild(emptyDiv);
+                } else if (visibleTasks.length > 0 && emptyState) {
+                    emptyState.remove();
+                }
+            }
         }
 
         function loadData() {
@@ -880,15 +1551,21 @@
             try {
                 const data = JSON.parse(savedData);
 
-                totalXp = data.xp || 0;
                 dailyTaskCounter = data.dailyTaskCounter || 0;
                 taskIdCounter = data.taskIdCounter || 0;
+                taskCompletions = data.completions || {};
+
+                // Recalculate XP from actual completions to ensure consistency
+                totalXp = recalculateXpFromCompletions();
                 updateLevelDisplay();
 
                 const tasksByDay = {};
                 for (let i = 0; i < 7; i++) {
                     tasksByDay[i] = [];
                 }
+
+                // Get current week dates for setting initial completion states
+                const currentWeekDates = getCurrentWeekDates();
 
                 data.tasks.forEach(task => {
                     tasksByDay[task.dayIndex].push(task);
@@ -897,19 +1574,50 @@
                 for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
                     const taskList = document.getElementById(`tasks-${dayIndex}`);
                     const dayTasks = tasksByDay[dayIndex];
+                    const dateStr = currentWeekDates[dayIndex];
 
                     if (dayTasks.length > 0) {
                         const emptyState = taskList.querySelector('.empty-day');
                         if (emptyState) emptyState.remove();
 
                         dayTasks.forEach(task => {
+                            // Determine completion status for this specific date
+                            const completionKey = task.dailyId || task.id;
+                            let isCompletedForDate = false;
+
+                            if (task.isRepeating) {
+                                // For recurring tasks, check the completions map
+                                isCompletedForDate = isTaskCompletedForDate(completionKey, dateStr);
+
+                                // Migration: if no completion data exists but old format had completed=true,
+                                // migrate it for today's date only
+                                if (!taskCompletions[completionKey] && task.completed) {
+                                    const todayDate = formatDateForInput(new Date());
+                                    if (dateStr === todayDate) {
+                                        setTaskCompletedForDate(completionKey, dateStr, true);
+                                        isCompletedForDate = true;
+                                    }
+                                }
+                            } else {
+                                // For one-time tasks, use the fullDate or fall back to old behavior
+                                const taskDate = task.fullDate || dateStr;
+                                isCompletedForDate = isTaskCompletedForDate(completionKey, taskDate);
+
+                                // Migration from old format
+                                if (!taskCompletions[completionKey] && task.completed) {
+                                    setTaskCompletedForDate(completionKey, taskDate, true);
+                                    isCompletedForDate = true;
+                                }
+                            }
+
                             const taskItem = createTaskElement(
                                 task.name,
                                 task.isRepeating,
                                 task.dailyId,
                                 task.pattern,
                                 task.id,
-                                task.completed
+                                isCompletedForDate,
+                                task.fullDate
                             );
                             taskList.appendChild(taskItem);
                         });
@@ -925,9 +1633,65 @@
             return jsDay === 0 ? 6 : jsDay - 1;
         }
 
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateForDisplay(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const monthShort = monthNames[date.getMonth()].slice(0, 3);
+            return `${monthShort} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+
+        function getCurrentWeekDates() {
+            const today = new Date();
+            const todayIndex = getTodayIndex();
+            const weekDates = [];
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - todayIndex + i);
+                weekDates.push(formatDateForInput(date));
+            }
+            return weekDates;
+        }
+
+        // Completion tracking helpers
+        function getTaskCompletionKey(taskItem) {
+            // Use dailyId for recurring tasks, taskId for one-time
+            return taskItem.dataset.dailyId || taskItem.dataset.taskId;
+        }
+
+        function isTaskCompletedForDate(completionKey, dateStr) {
+            return taskCompletions[completionKey]?.[dateStr] === true;
+        }
+
+        function setTaskCompletedForDate(completionKey, dateStr, completed) {
+            if (!taskCompletions[completionKey]) {
+                taskCompletions[completionKey] = {};
+            }
+            taskCompletions[completionKey][dateStr] = completed;
+        }
+
+        function recalculateXpFromCompletions() {
+            let calculatedXp = 0;
+            for (const taskKey in taskCompletions) {
+                for (const dateStr in taskCompletions[taskKey]) {
+                    if (taskCompletions[taskKey][dateStr] === true) {
+                        calculatedXp += 10;
+                    }
+                }
+            }
+            return calculatedXp;
+        }
+
         function toggleDaySelect() {
             const type = typeSelect.value;
-            daySelect.style.display = type === 'onetime' ? 'block' : 'none';
+            daySelect.style.display = 'none';
+            dateInput.style.display = type === 'onetime' ? 'block' : 'none';
             dayPicker.classList.toggle('active', type === 'custom');
         }
 
@@ -968,6 +1732,11 @@
 
         function initCalendar() {
             const todayIndex = getTodayIndex();
+            const today = new Date();
+
+            // Set default date to today
+            dateInput.value = formatDateForInput(today);
+            dateInput.style.display = 'block'; // Show by default since one-time is default
 
             days.forEach((day, index) => {
                 const option = document.createElement('option');
@@ -977,10 +1746,13 @@
                 daySelect.appendChild(option);
             });
 
+            const currentWeekDates = getCurrentWeekDates();
+
             days.forEach((day, index) => {
                 const column = document.createElement('div');
                 column.className = 'day-column' + (index === todayIndex ? ' today' : '');
                 column.dataset.dayIndex = index;
+                column.dataset.date = currentWeekDates[index];
                 column.innerHTML = `
                     <div class="day-header">
                         <div class="day-name">${day.slice(0, 3)}</div>
@@ -990,10 +1762,18 @@
                         <div class="empty-day">No tasks</div>
                     </div>
                 `;
+
+                // Click handler to create task on this day
+                column.addEventListener('click', function(e) {
+                    if (e.target.closest('.task-item')) return; // Don't trigger if clicking a task
+                    openTaskCreationForDate(this.dataset.date);
+                });
+
                 weekContainer.appendChild(column);
             });
 
             loadData();
+            updateWeekViewVisibility();
             loadView();
             updateLevelDisplay();
         }
@@ -1021,7 +1801,7 @@
             }
         }
 
-        function createTaskElement(taskName, isRepeating, dailyId = null, pattern = null, taskId = null, isCompleted = false) {
+        function createTaskElement(taskName, isRepeating, dailyId = null, pattern = null, taskId = null, isCompleted = false, fullDate = null) {
             const taskItem = document.createElement('div');
             taskItem.className = 'task-item' + (isCompleted ? ' completed' : '');
 
@@ -1037,10 +1817,14 @@
                 }
             }
 
+            // Store full date for one-time tasks
+            if (fullDate && !isRepeating) {
+                taskItem.dataset.fullDate = fullDate;
+            }
+
             let badge = '';
             if (isRepeating) {
-                const label = getPatternLabel(pattern);
-                badge = `<div class="task-badge">${repeatIcon} ${label}</div>`;
+                badge = `<div class="task-badge">${repeatIcon}</div>`;
             }
 
             const checkedClass = isCompleted ? ' checked' : '';
@@ -1121,22 +1905,32 @@
 
                 clearCustomDays();
             } else {
-                const dayIndex = daySelect.value;
+                // One-time task with specific date
+                const fullDate = dateInput.value;
+                if (!fullDate) {
+                    alert('Please select a date');
+                    return;
+                }
+
+                const date = new Date(fullDate + 'T00:00:00');
+                const dayIndex = getWeekdayFromDate(date);
                 const taskList = document.getElementById(`tasks-${dayIndex}`);
 
                 const emptyState = taskList.querySelector('.empty-day');
                 if (emptyState) emptyState.remove();
 
-                const taskItem = createTaskElement(taskName, false);
+                const taskItem = createTaskElement(taskName, false, null, null, null, false, fullDate);
                 taskList.appendChild(taskItem);
             }
 
             taskInput.value = '';
             taskInput.focus();
             saveData();
+            updateWeekViewVisibility();
+            refreshMonthViewIfActive();
         }
 
-        function toggleTask(taskItem) {
+        function toggleTask(taskItem, overrideDateStr = null) {
             const checkbox = taskItem.querySelector('.task-checkbox');
             const taskName = taskItem.querySelector('.task-name');
             const isCompleting = !checkbox.classList.contains('checked');
@@ -1144,6 +1938,24 @@
             checkbox.classList.toggle('checked');
             taskName.classList.toggle('completed');
             taskItem.classList.toggle('completed');
+
+            // Determine the date for this completion
+            const dayColumn = taskItem.closest('.day-column');
+            let dateStr = overrideDateStr;
+            if (!dateStr && dayColumn) {
+                dateStr = dayColumn.dataset.date;
+            }
+            if (!dateStr && taskItem.dataset.fullDate) {
+                dateStr = taskItem.dataset.fullDate;
+            }
+            if (!dateStr) {
+                // Fallback to today
+                dateStr = formatDateForInput(new Date());
+            }
+
+            // Update completions tracking
+            const completionKey = getTaskCompletionKey(taskItem);
+            setTaskCompletedForDate(completionKey, dateStr, isCompleting);
 
             updateXp(isCompleting ? 10 : -10, taskItem);
         }
@@ -1169,18 +1981,50 @@
         function closeModal() {
             deleteModal.classList.remove('active');
             pendingDeleteTask = null;
+            pendingMonthDeleteContext = null;
         }
 
         function deleteThisDay() {
-            if (pendingDeleteTask) {
+            if (pendingMonthDeleteContext) {
+                // Deleting from Month view
+                const ctx = pendingMonthDeleteContext;
+                const completionDate = ctx.dateStr;
+                const isCompleted = isTaskCompletedForDate(ctx.dailyId, completionDate);
+
+                // Remove XP if completed for this date
+                if (isCompleted) {
+                    totalXp -= 10;
+                    if (totalXp < 0) totalXp = 0;
+                    updateLevelDisplay();
+                }
+
+                // Remove completion for this date
+                if (taskCompletions[ctx.dailyId]) {
+                    delete taskCompletions[ctx.dailyId][completionDate];
+                }
+
+                // If this date is in current week, also remove from week view
+                const currentWeekDates = getCurrentWeekDates();
+                if (currentWeekDates.includes(completionDate) && pendingDeleteTask) {
+                    const weekTaskList = pendingDeleteTask.parentElement;
+                    pendingDeleteTask.remove();
+                    checkEmpty(weekTaskList);
+                }
+
+                saveData();
+                renderMonthView();
+            } else if (pendingDeleteTask) {
+                // Deleting from Week view
                 removeTaskItem(pendingDeleteTask);
             }
             closeModal();
         }
 
         function deleteAllDays() {
-            if (pendingDeleteTask) {
-                const dailyId = pendingDeleteTask.dataset.dailyId;
+            const dailyId = pendingMonthDeleteContext ? pendingMonthDeleteContext.dailyId :
+                           (pendingDeleteTask ? pendingDeleteTask.dataset.dailyId : null);
+
+            if (dailyId) {
                 const allTasks = document.querySelectorAll(`[data-daily-id="${dailyId}"]`);
 
                 allTasks.forEach(task => {
@@ -1189,18 +2033,55 @@
                     checkEmpty(taskList);
                 });
 
+                // Remove XP for all completed dates and clean up completions data
+                if (taskCompletions[dailyId]) {
+                    const completedCount = Object.values(taskCompletions[dailyId]).filter(v => v === true).length;
+                    if (completedCount > 0) {
+                        totalXp -= completedCount * 10;
+                        if (totalXp < 0) totalXp = 0;
+                        updateLevelDisplay();
+                    }
+                    delete taskCompletions[dailyId];
+                }
+
                 saveData();
+                refreshMonthViewIfActive();
             }
             closeModal();
         }
 
         function removeTaskItem(taskItem) {
             const taskList = taskItem.parentElement;
+            const taskId = taskItem.dataset.taskId;
+            const dailyId = taskItem.dataset.dailyId;
+            const isCompleted = taskItem.querySelector('.task-checkbox').classList.contains('checked');
+
+            // Remove XP if task was completed
+            if (isCompleted) {
+                totalXp -= 10;
+                if (totalXp < 0) totalXp = 0;
+                updateLevelDisplay();
+            }
+
+            // Clean up completions data for one-time tasks
+            if (taskId && !dailyId && taskCompletions[taskId]) {
+                delete taskCompletions[taskId];
+            }
+
+            // For recurring tasks deleted from "this day only", remove that date's completion
+            if (dailyId && taskCompletions[dailyId]) {
+                const dayColumn = taskItem.closest('.day-column');
+                if (dayColumn && dayColumn.dataset.date) {
+                    delete taskCompletions[dailyId][dayColumn.dataset.date];
+                }
+            }
+
             taskItem.style.animation = 'slideIn 0.2s ease reverse';
             setTimeout(() => {
                 taskItem.remove();
                 checkEmpty(taskList);
                 saveData();
+                refreshMonthViewIfActive();
             }, 200);
         }
 
