@@ -270,15 +270,22 @@
         }
 
         .view-btn {
-            padding: 0.5rem 1rem;
+            padding: 0.5rem 0.75rem;
             border: none;
             background: transparent;
             color: #525252;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
+        }
+
+        @media (min-width: 400px) {
+            .view-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
         }
 
         @media (hover: hover) {
@@ -1939,6 +1946,597 @@
             }
         }
 
+        /* Category Indicator */
+        .category-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Week grid smaller indicator */
+        .week-grid-tasks .category-indicator {
+            width: 5px;
+            height: 5px;
+        }
+
+        /* Month grid indicator */
+        .month-task-preview .category-indicator {
+            width: 4px;
+            height: 4px;
+        }
+
+        /* Category Select in Modal */
+        .modal-category-select {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            padding-right: 2rem;
+            padding-left: 2.5rem;
+            font-size: 1rem;
+            color: #e5e5e5;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+        }
+
+        .modal-category-select:focus {
+            border-color: #3b82f6;
+        }
+
+        .modal-category-select option {
+            background: #141414;
+            color: #e5e5e5;
+        }
+
+        .category-select-wrapper {
+            position: relative;
+        }
+
+        .category-select-indicator {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Stats View */
+        .stats-container {
+            display: none;
+        }
+
+        .stats-container.active {
+            display: block;
+        }
+
+        /* Quick Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            transition: border-color 0.2s ease;
+        }
+
+        @media (hover: hover) {
+            .stat-card:hover {
+                border-color: #333333;
+            }
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #525252;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Weekly Summary Section */
+        .stats-section {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .stats-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stats-section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #e5e5e5;
+        }
+
+        .stats-section-subtitle {
+            font-size: 0.7rem;
+            color: #525252;
+        }
+
+        /* Overall Progress Bar */
+        .overall-progress {
+            margin-bottom: 1.25rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: #a3a3a3;
+        }
+
+        .progress-percent {
+            font-size: 0.75rem;
+            color: #525252;
+        }
+
+        .stats-progress-bar {
+            height: 8px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .stats-progress-fill {
+            height: 100%;
+            background: #e5e5e5;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Category Breakdown */
+        .category-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .category-breakdown-title {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #737373;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .category-stat {
+            display: grid;
+            grid-template-columns: 110px 1fr 40px;
+            gap: 0.75rem;
+            align-items: center;
+            width: 100%;
+        }
+
+        .category-stat-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 0;
+        }
+
+        .category-stat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .category-stat-name {
+            font-size: 0.8rem;
+            color: #a3a3a3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .category-progress-wrapper {
+            width: 100%;
+            height: 8px;
+            position: relative;
+        }
+
+        .category-progress-container {
+            height: 100%;
+            background: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+            box-sizing: border-box;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .category-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .category-stat-count {
+            font-size: 0.75rem;
+            color: #737373;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        /* Desktop: Wider category name */
+        @media (min-width: 500px) {
+            .category-stat {
+                grid-template-columns: 140px 1fr 45px;
+            }
+        }
+
+        /* Empty state for stats */
+        .stats-empty {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #525252;
+            font-size: 0.85rem;
+        }
+
+        /* Hide date nav in stats view */
+        body[data-view="stats"] .date-nav {
+            display: none;
+        }
+
+        /* Hide FAB in stats view */
+        body[data-view="stats"] .fab {
+            display: none;
+        }
+
+        /* Achievements Section */
+        .achievements-section {
+            margin-top: 1rem;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (min-width: 500px) {
+            .achievements-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 700px) {
+            .achievements-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .achievement-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .achievement-card.unlocked {
+            border-color: #505050;
+            background: #111;
+        }
+
+        .achievement-card.locked {
+            opacity: 1;
+        }
+
+        .achievement-header {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .achievement-check {
+            color: #4CAF50;
+            font-size: 0.75rem;
+        }
+
+        .achievement-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #525252;
+        }
+
+        .achievement-card.unlocked .achievement-name {
+            color: #e5e5e5;
+        }
+
+        .achievement-req {
+            font-size: 0.65rem;
+            color: #404040;
+            margin-bottom: 0.375rem;
+        }
+
+        .achievement-card.unlocked .achievement-req {
+            color: #737373;
+        }
+
+        .achievement-xp {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #404040;
+        }
+
+        .achievement-card.unlocked .achievement-xp {
+            color: #FFD700;
+        }
+
+        .achievement-date {
+            font-size: 0.6rem;
+            color: #404040;
+            margin-top: 0.25rem;
+        }
+
+        .achievement-progress {
+            font-size: 0.7rem;
+            color: #525252;
+            padding: 0.5rem 0;
+            border-top: 1px solid #1a1a1a;
+            margin-top: 0.5rem;
+        }
+
+        .achievement-progress-bar {
+            height: 4px;
+            background: #1a1a1a;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.375rem;
+        }
+
+        .achievement-progress-fill {
+            height: 100%;
+            background: #404040;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .card-progress {
+            margin-top: 0.5rem;
+        }
+
+        .card-progress-text {
+            font-size: 0.6rem;
+            color: #525252;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-progress-bar {
+            height: 3px;
+            background: #1a1a1a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .card-progress-fill {
+            height: 100%;
+            background: #525252;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .achievements-reset-container {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #1a1a1a;
+            text-align: center;
+        }
+
+        .achievements-reset-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: #525252;
+            font-size: 0.7rem;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .achievements-reset-btn:hover {
+            border-color: #525252;
+            color: #737373;
+        }
+
+        /* Confirmation Modal */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-overlay.active {
+            display: flex;
+        }
+
+        .confirm-modal {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .confirm-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e5e5e5;
+            margin-bottom: 0.75rem;
+        }
+
+        .confirm-message {
+            font-size: 0.8rem;
+            color: #737373;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-btn-cancel {
+            background: transparent;
+            border: 1px solid #333;
+            color: #737373;
+        }
+
+        .confirm-btn-cancel:hover {
+            border-color: #525252;
+            color: #a5a5a5;
+        }
+
+        .confirm-btn-confirm {
+            background: #b91c1c;
+            border: none;
+            color: #fff;
+        }
+
+        .confirm-btn-confirm:hover {
+            background: #dc2626;
+        }
+
+        /* Celebration Modal */
+        .celebration-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .celebration-overlay.active {
+            display: flex;
+        }
+
+        .celebration-card {
+            background: #141414;
+            border: 1px solid #333333;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            animation: celebrationPop 0.3s ease;
+        }
+
+        @keyframes celebrationPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .celebration-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #737373;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .celebration-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.375rem;
+        }
+
+        .celebration-req {
+            font-size: 0.85rem;
+            color: #737373;
+            margin-bottom: 1rem;
+        }
+
+        .celebration-xp {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #FFD700;
+        }
+
         /* Responsive */
         @media (min-width: 600px) {
             .container {
@@ -1988,6 +2586,7 @@
                     <button type="button" class="view-btn" id="dayViewBtn">Day</button>
                     <button type="button" class="view-btn" id="weekViewBtn">Week</button>
                     <button type="button" class="view-btn" id="monthViewBtn">Month</button>
+                    <button type="button" class="view-btn" id="statsViewBtn">Stats</button>
                 </div>
             </div>
         </div>
@@ -2011,6 +2610,98 @@
             <div class="month-list" id="monthList"></div>
             <div class="month-grid" id="monthGrid"></div>
         </div>
+
+        <!-- Stats View -->
+        <div class="stats-container" id="statsContainer">
+            <!-- Quick Stats Grid -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotalCompleted">0</div>
+                    <div class="stat-label">Tasks Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statStreak">0</div>
+                    <div class="stat-label">Day Streak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statCompletionRate">0%</div>
+                    <div class="stat-label">Completion Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statLevel">1</div>
+                    <div class="stat-label">Level</div>
+                </div>
+            </div>
+
+            <!-- Weekly Summary Section -->
+            <div class="stats-section">
+                <div class="stats-section-header">
+                    <span class="stats-section-title">This Week</span>
+                    <span class="stats-section-subtitle" id="weekDateRange">Jan 20 - Jan 26</span>
+                </div>
+
+                <!-- Overall Progress -->
+                <div class="overall-progress">
+                    <div class="progress-header">
+                        <span class="progress-text" id="weekProgressText">0 of 0 tasks completed</span>
+                        <span class="progress-percent" id="weekProgressPercent">0%</span>
+                    </div>
+                    <div class="stats-progress-bar">
+                        <div class="stats-progress-fill" id="weekProgressFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="category-breakdown">
+                    <div class="category-breakdown-title">By Category</div>
+                    <div id="categoryBreakdown"></div>
+                </div>
+            </div>
+
+            <!-- Achievements Section -->
+            <div class="stats-section achievements-section">
+                <div class="stats-section-header">
+                    <span class="stats-section-title">Achievements</span>
+                </div>
+
+                <!-- Streak Achievements -->
+                <div class="category-breakdown-title">Streak</div>
+                <div class="achievements-grid" id="streakAchievements"></div>
+                <div class="achievement-progress" id="streakProgress"></div>
+
+                <!-- Completion Achievements -->
+                <div class="category-breakdown-title" style="margin-top: 1rem;">Completion</div>
+                <div class="achievements-grid" id="completionAchievements"></div>
+                <div class="achievement-progress" id="completionProgress"></div>
+
+                <!-- Reset Button (for testing) -->
+                <div class="achievements-reset-container">
+                    <button type="button" class="achievements-reset-btn" id="resetAchievementsBtn">Reset Achievements</button>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Celebration Modal -->
+    <div class="celebration-overlay" id="celebrationOverlay">
+        <div class="celebration-card">
+            <div class="celebration-label">Achievement Unlocked!</div>
+            <div class="celebration-name" id="celebrationName">Achievement</div>
+            <div class="celebration-req" id="celebrationReq">Requirement</div>
+            <div class="celebration-xp" id="celebrationXp">+100 XP</div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-modal">
+            <div class="confirm-title">Reset Achievements?</div>
+            <div class="confirm-message">This will clear all unlocked achievements and remove bonus XP. This cannot be undone.</div>
+            <div class="confirm-buttons">
+                <button type="button" class="confirm-btn confirm-btn-cancel" id="confirmCancel">Cancel</button>
+                <button type="button" class="confirm-btn confirm-btn-confirm" id="confirmReset">Reset</button>
+            </div>
         </div>
     </div>
 
@@ -2028,6 +2719,21 @@
                 <div class="modal-field">
                     <label class="modal-label">Task Name</label>
                     <input type="text" class="modal-input" id="modalTaskInput" placeholder="What do you want to do?">
+                </div>
+                <div class="modal-field">
+                    <label class="modal-label">Category</label>
+                    <div class="category-select-wrapper">
+                        <div class="category-select-indicator" id="categoryIndicator" style="background: #9E9E9E;"></div>
+                        <select class="modal-category-select" id="modalCategorySelect">
+                            <option value="general">General</option>
+                            <option value="health">Health & Fitness</option>
+                            <option value="learning">Learning</option>
+                            <option value="creative">Creative</option>
+                            <option value="wellness">Wellness</option>
+                            <option value="productivity">Productivity</option>
+                            <option value="social">Social</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-field">
                     <label class="modal-label">Type</label>
@@ -2096,9 +2802,28 @@
         const dayViewBtn = document.getElementById('dayViewBtn');
         const weekViewBtn = document.getElementById('weekViewBtn');
         const monthViewBtn = document.getElementById('monthViewBtn');
+        const statsViewBtn = document.getElementById('statsViewBtn');
         const dayViewContainer = document.getElementById('dayViewContainer');
         const weekViewContainer = document.getElementById('weekViewContainer');
         const monthContainer = document.getElementById('monthContainer');
+        const statsContainer = document.getElementById('statsContainer');
+        const statTotalCompleted = document.getElementById('statTotalCompleted');
+        const statStreak = document.getElementById('statStreak');
+        const statCompletionRate = document.getElementById('statCompletionRate');
+        const statLevel = document.getElementById('statLevel');
+        const weekDateRange = document.getElementById('weekDateRange');
+        const weekProgressText = document.getElementById('weekProgressText');
+        const weekProgressPercent = document.getElementById('weekProgressPercent');
+        const weekProgressFill = document.getElementById('weekProgressFill');
+        const categoryBreakdown = document.getElementById('categoryBreakdown');
+        const streakAchievementsEl = document.getElementById('streakAchievements');
+        const completionAchievementsEl = document.getElementById('completionAchievements');
+        const streakProgressEl = document.getElementById('streakProgress');
+        const completionProgressEl = document.getElementById('completionProgress');
+        const celebrationOverlay = document.getElementById('celebrationOverlay');
+        const celebrationName = document.getElementById('celebrationName');
+        const celebrationReq = document.getElementById('celebrationReq');
+        const celebrationXp = document.getElementById('celebrationXp');
         const dayContent = document.getElementById('dayContent');
         const dayTasks = document.getElementById('dayTasks');
         const weekList = document.getElementById('weekList');
@@ -2114,6 +2839,8 @@
         const createTaskModal = document.getElementById('createTaskModal');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
         const modalTaskInput = document.getElementById('modalTaskInput');
+        const modalCategorySelect = document.getElementById('modalCategorySelect');
+        const categoryIndicator = document.getElementById('categoryIndicator');
         const modalTypeSelect = document.getElementById('modalTypeSelect');
         const modalDateInput = document.getElementById('modalDateInput');
         const modalDateField = document.getElementById('modalDateField');
@@ -2129,6 +2856,10 @@
         const sheetTasks = document.getElementById('sheetTasks');
         const sheetCloseBtn = document.getElementById('sheetCloseBtn');
         const dateNav = document.getElementById('dateNav');
+        const resetAchievementsBtn = document.getElementById('resetAchievementsBtn');
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const confirmCancel = document.getElementById('confirmCancel');
+        const confirmReset = document.getElementById('confirmReset');
 
         // State
         let totalXp = 0;
@@ -2161,6 +2892,42 @@
                            'July', 'August', 'September', 'October', 'November', 'December'];
 
         const repeatIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+
+        // Category Colors
+        const CATEGORY_COLORS = {
+            general: '#9E9E9E',
+            health: '#4CAF50',
+            learning: '#2196F3',
+            creative: '#9C27B0',
+            wellness: '#00BCD4',
+            productivity: '#FF9800',
+            social: '#E91E63'
+        };
+
+        function getCategoryColor(category) {
+            return CATEGORY_COLORS[category] || CATEGORY_COLORS.general;
+        }
+
+        // Achievement Definitions
+        const ACHIEVEMENTS = {
+            streak: [
+                { id: 'streak_3', name: 'Spark', requirement: '3-day streak', threshold: 3, xp: 50 },
+                { id: 'streak_7', name: 'On Fire', requirement: '7-day streak', threshold: 7, xp: 100 },
+                { id: 'streak_14', name: 'Blazing', requirement: '14-day streak', threshold: 14, xp: 200 },
+                { id: 'streak_30', name: 'Unstoppable', requirement: '30-day streak', threshold: 30, xp: 500 },
+                { id: 'streak_100', name: 'Legendary', requirement: '100-day streak', threshold: 100, xp: 1000 }
+            ],
+            completion: [
+                { id: 'complete_1', name: 'First Steps', requirement: '1 task completed', threshold: 1, xp: 10 },
+                { id: 'complete_10', name: 'Getting Started', requirement: '10 tasks completed', threshold: 10, xp: 50 },
+                { id: 'complete_50', name: 'Consistent', requirement: '50 tasks completed', threshold: 50, xp: 200 },
+                { id: 'complete_100', name: 'Centurion', requirement: '100 tasks completed', threshold: 100, xp: 500 },
+                { id: 'complete_500', name: 'Task Master', requirement: '500 tasks completed', threshold: 500, xp: 2000 }
+            ]
+        };
+
+        // Unlocked achievements stored by id with unlock date
+        let unlockedAchievements = {};
 
         // Utility Functions
         function getTodayIndex() {
@@ -2432,17 +3199,21 @@
                 viewingYear = viewingDate.getFullYear();
             }
 
-            // Update header IMMEDIATELY before rendering
-            updateDateDisplay();
+            // Update header IMMEDIATELY before rendering (not for stats view)
+            if (view !== 'stats') {
+                updateDateDisplay();
+            }
 
             // Remove active classes
             dayViewContainer.classList.remove('active');
             weekViewContainer.classList.remove('active');
             monthContainer.classList.remove('active');
+            statsContainer.classList.remove('active');
 
             dayViewBtn.classList.remove('active');
             weekViewBtn.classList.remove('active');
             monthViewBtn.classList.remove('active');
+            statsViewBtn.classList.remove('active');
 
             // Activate the selected view
             if (view === 'day') {
@@ -2453,6 +3224,10 @@
                 weekViewContainer.classList.add('active');
                 weekViewBtn.classList.add('active');
                 renderWeekView();
+            } else if (view === 'stats') {
+                statsContainer.classList.add('active');
+                statsViewBtn.classList.add('active');
+                renderStatsView();
             } else {
                 monthContainer.classList.add('active');
                 monthViewBtn.classList.add('active');
@@ -2467,6 +3242,8 @@
                 renderDayView();
             } else if (currentView === 'week') {
                 renderWeekView();
+            } else if (currentView === 'stats') {
+                renderStatsView();
             } else {
                 renderMonthView();
             }
@@ -2522,9 +3299,11 @@
 
             const checkedClass = task.completed ? ' checked' : '';
             const completedClass = task.completed ? ' completed' : '';
+            const categoryColor = getCategoryColor(task.category);
 
             taskItem.innerHTML = `
                 <div class="task-checkbox${checkedClass}"></div>
+                <div class="category-indicator" style="background: ${categoryColor};"></div>
                 <div class="task-content">
                     <span class="task-name${completedClass}">${escapeHtml(task.name)}</span>
                     ${badge}
@@ -2594,6 +3373,11 @@
             updateLevelDisplay();
 
             saveData();
+
+            // Check achievements when completing a task
+            if (isNowCompleted) {
+                checkAchievements();
+            }
         }
 
         function handleDeleteTask(taskItem) {
@@ -2715,6 +3499,11 @@
             updateLevelDisplay();
 
             saveData();
+
+            // Check achievements when completing a task
+            if (isNowCompleted) {
+                checkAchievements();
+            }
         }
 
         // Handle delete for grid task preview
@@ -3371,6 +4160,11 @@
                         const checkbox = document.createElement('span');
                         checkbox.className = 'month-task-checkbox' + (task.completed ? ' checked' : '');
 
+                        // Category indicator
+                        const indicator = document.createElement('span');
+                        indicator.className = 'category-indicator';
+                        indicator.style.background = getCategoryColor(task.category);
+
                         const text = document.createElement('span');
                         text.className = 'month-task-text';
                         text.textContent = task.name;
@@ -3386,6 +4180,7 @@
                         });
 
                         preview.appendChild(checkbox);
+                        preview.appendChild(indicator);
                         preview.appendChild(text);
                         preview.appendChild(deleteBtn);
 
@@ -3430,6 +4225,434 @@
             }
         }
 
+        // Stats View
+        function renderStatsView() {
+            const stats = calculateStats();
+
+            // Quick stats
+            statTotalCompleted.textContent = stats.totalCompleted;
+            statStreak.textContent = stats.streak;
+            statCompletionRate.textContent = stats.completionRate + '%';
+            statLevel.textContent = getLevel(totalXp);
+
+            // Weekly summary
+            weekDateRange.textContent = stats.weekRange;
+            weekProgressText.textContent = `${stats.weekCompleted} of ${stats.weekTotal} tasks completed`;
+            const weekPercent = stats.weekTotal > 0 ? Math.round((stats.weekCompleted / stats.weekTotal) * 100) : 0;
+            weekProgressPercent.textContent = weekPercent + '%';
+            weekProgressFill.style.width = weekPercent + '%';
+
+            // Category breakdown
+            renderCategoryBreakdown(stats.categoryStats);
+
+            // Achievements
+            renderAchievements();
+        }
+
+        function calculateStats() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Get current week dates (Monday to Sunday)
+            const weekDates = getWeekDates(today);
+            const weekStart = weekDates[0];
+            const weekEnd = weekDates[6];
+
+            // Calculate total completed (all time)
+            let totalCompleted = 0;
+            for (const taskId in taskCompletions) {
+                totalCompleted += Object.keys(taskCompletions[taskId]).length;
+            }
+
+            // Calculate streak (consecutive days with at least 1 completion)
+            const streak = calculateStreak();
+
+            // Calculate completion rate
+            const completionRate = calculateCompletionRate();
+
+            // Calculate week stats
+            const weekStats = calculateWeekStats(weekDates);
+
+            // Format week range
+            const startMonth = monthNames[weekStart.getMonth()].slice(0, 3);
+            const endMonth = monthNames[weekEnd.getMonth()].slice(0, 3);
+            let weekRange;
+            if (weekStart.getMonth() === weekEnd.getMonth()) {
+                weekRange = `${startMonth} ${weekStart.getDate()} - ${weekEnd.getDate()}`;
+            } else {
+                weekRange = `${startMonth} ${weekStart.getDate()} - ${endMonth} ${weekEnd.getDate()}`;
+            }
+
+            return {
+                totalCompleted,
+                streak,
+                completionRate,
+                weekRange,
+                weekCompleted: weekStats.completed,
+                weekTotal: weekStats.total,
+                categoryStats: weekStats.byCategory
+            };
+        }
+
+        function calculateStreak() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let streak = 0;
+            let checkDate = new Date(today);
+
+            // Check if today has any completions
+            const todayStr = formatDateForInput(checkDate);
+            const todayHasCompletion = hasCompletionOnDate(todayStr);
+
+            // If today has no completion, start checking from yesterday
+            if (!todayHasCompletion) {
+                checkDate.setDate(checkDate.getDate() - 1);
+            }
+
+            // Count consecutive days with completions going backwards
+            while (true) {
+                const dateStr = formatDateForInput(checkDate);
+                if (hasCompletionOnDate(dateStr)) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    break;
+                }
+
+                // Safety limit (don't check more than a year back)
+                if (streak > 365) break;
+            }
+
+            return streak;
+        }
+
+        function hasCompletionOnDate(dateStr) {
+            for (const taskId in taskCompletions) {
+                if (taskCompletions[taskId][dateStr]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function calculateCompletionRate() {
+            // Get all unique task-date combinations that could have been completed
+            let totalPossible = 0;
+            let totalCompleted = 0;
+
+            // For each task, count how many times it could have been completed
+            // and how many times it was actually completed
+            for (const taskId in taskCompletions) {
+                const completions = taskCompletions[taskId];
+                totalCompleted += Object.keys(completions).length;
+            }
+
+            // Count total possible completions based on tasks
+            const today = new Date();
+            tasks.forEach(task => {
+                if (task.type === 'onetime') {
+                    totalPossible++;
+                } else if (task.type === 'daily') {
+                    // Count days from task creation to today (simplified: assume 30 days max)
+                    totalPossible += 30;
+                } else if (task.type === 'custom') {
+                    // Custom tasks: count based on pattern (simplified: 30 days / 7 * days in pattern)
+                    const daysCount = task.pattern.split(',').length;
+                    totalPossible += Math.round((30 / 7) * daysCount);
+                }
+            });
+
+            // Simple approach: just use actual completed / total created tasks * 100
+            // This gives a more meaningful rate
+            if (tasks.length === 0) return 0;
+
+            // Calculate based on completion count vs task count
+            const rate = totalCompleted > 0 ? Math.min(Math.round((totalCompleted / Math.max(totalPossible, 1)) * 100), 100) : 0;
+            return rate;
+        }
+
+        function calculateWeekStats(weekDates) {
+            let completed = 0;
+            let total = 0;
+            const byCategory = {};
+
+            // Category names for display
+            const categoryNames = {
+                general: 'General',
+                health: 'Health & Fitness',
+                learning: 'Learning',
+                creative: 'Creative',
+                wellness: 'Wellness',
+                productivity: 'Productivity',
+                social: 'Social'
+            };
+
+            weekDates.forEach(date => {
+                const dateStr = formatDateForInput(date);
+                const tasksForDay = getTasksForDate(date);
+
+                tasksForDay.forEach(task => {
+                    const category = task.category || 'general';
+
+                    // Initialize category if not exists
+                    if (!byCategory[category]) {
+                        byCategory[category] = {
+                            name: categoryNames[category] || category,
+                            color: getCategoryColor(category),
+                            total: 0,
+                            completed: 0
+                        };
+                    }
+
+                    total++;
+                    byCategory[category].total++;
+
+                    if (task.completed) {
+                        completed++;
+                        byCategory[category].completed++;
+                    }
+                });
+            });
+
+            return { completed, total, byCategory };
+        }
+
+        function renderCategoryBreakdown(categoryStats) {
+            categoryBreakdown.innerHTML = '';
+
+            // Convert to array and sort by total tasks (descending)
+            const categories = Object.entries(categoryStats)
+                .filter(([key, data]) => data.total > 0)
+                .sort((a, b) => b[1].total - a[1].total);
+
+            if (categories.length === 0) {
+                categoryBreakdown.innerHTML = '<div class="stats-empty">No tasks this week</div>';
+                return;
+            }
+
+            // Find max task count for proportional bar widths
+            const maxTasks = Math.max(...categories.map(([key, data]) => data.total));
+
+            categories.forEach(([key, data]) => {
+                // Completion percentage (fill inside the bar)
+                const completionPercent = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+
+                // Proportional bar width based on task count (minimum 40%)
+                // This scales dynamically: category with most tasks = 100%, others proportionally smaller
+                const barWidthPercent = Math.max(40, Math.round((data.total / maxTasks) * 100));
+
+                const categoryEl = document.createElement('div');
+                categoryEl.className = 'category-stat';
+                categoryEl.innerHTML = `
+                    <div class="category-stat-left">
+                        <div class="category-stat-dot" style="background: ${data.color};"></div>
+                        <span class="category-stat-name">${data.name}</span>
+                    </div>
+                    <div class="category-progress-wrapper">
+                        <div class="category-progress-container" style="width: ${barWidthPercent}%;">
+                            <div class="category-progress-fill" style="width: ${completionPercent}%; background: ${data.color};"></div>
+                        </div>
+                    </div>
+                    <span class="category-stat-count">${data.completed}/${data.total}</span>
+                `;
+
+                categoryBreakdown.appendChild(categoryEl);
+            });
+        }
+
+        // Achievement Functions
+        function renderAchievements() {
+            const stats = calculateStats();
+            const currentStreak = stats.streak;
+            const totalCompleted = stats.totalCompleted;
+
+            // Render streak achievements
+            renderAchievementGrid(streakAchievementsEl, ACHIEVEMENTS.streak, currentStreak);
+            renderAchievementProgress(streakProgressEl, ACHIEVEMENTS.streak, currentStreak, 'days');
+
+            // Render completion achievements
+            renderAchievementGrid(completionAchievementsEl, ACHIEVEMENTS.completion, totalCompleted);
+            renderAchievementProgress(completionProgressEl, ACHIEVEMENTS.completion, totalCompleted, 'tasks');
+        }
+
+        function renderAchievementGrid(container, achievements, currentValue) {
+            container.innerHTML = '';
+
+            achievements.forEach(achievement => {
+                const isUnlocked = unlockedAchievements[achievement.id];
+                const card = document.createElement('div');
+                card.className = 'achievement-card' + (isUnlocked ? ' unlocked' : ' locked');
+
+                let extraHtml = '';
+                if (isUnlocked) {
+                    const date = new Date(isUnlocked.date);
+                    extraHtml = `<div class="achievement-date">${formatAchievementDate(date)}</div>`;
+                } else {
+                    // Show progress for locked achievements
+                    const progress = Math.min(currentValue, achievement.threshold);
+                    const percentage = Math.min((progress / achievement.threshold) * 100, 100);
+                    extraHtml = `
+                        <div class="card-progress">
+                            <div class="card-progress-text">${progress}/${achievement.threshold}</div>
+                            <div class="card-progress-bar">
+                                <div class="card-progress-fill" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const checkmark = isUnlocked ? '<span class="achievement-check">✓</span>' : '';
+                card.innerHTML = `
+                    <div class="achievement-header">
+                        ${checkmark}
+                        <div class="achievement-name">${achievement.name}</div>
+                    </div>
+                    <div class="achievement-req">${achievement.requirement}</div>
+                    <div class="achievement-xp">+${achievement.xp} XP</div>
+                    ${extraHtml}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function renderAchievementProgress(container, achievements, currentValue, unit) {
+            // Find next locked achievement
+            let nextAchievement = null;
+            for (const achievement of achievements) {
+                if (!unlockedAchievements[achievement.id]) {
+                    nextAchievement = achievement;
+                    break;
+                }
+            }
+
+            if (!nextAchievement) {
+                container.innerHTML = '<span style="color: #737373;">All achievements unlocked!</span>';
+                return;
+            }
+
+            const progress = Math.min(currentValue, nextAchievement.threshold);
+            const percent = Math.round((progress / nextAchievement.threshold) * 100);
+
+            container.innerHTML = `
+                <span>Next: ${progress}/${nextAchievement.threshold} ${unit} to ${nextAchievement.name}</span>
+                <div class="achievement-progress-bar">
+                    <div class="achievement-progress-fill" style="width: ${percent}%;"></div>
+                </div>
+            `;
+        }
+
+        function formatAchievementDate(date) {
+            const month = monthNames[date.getMonth()].slice(0, 3);
+            return `${month} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+
+        function checkAchievements() {
+            const stats = calculateStats();
+            const currentStreak = stats.streak;
+            const totalCompleted = stats.totalCompleted;
+
+            // Check streak achievements
+            ACHIEVEMENTS.streak.forEach(achievement => {
+                if (!unlockedAchievements[achievement.id] && currentStreak >= achievement.threshold) {
+                    unlockAchievement(achievement);
+                }
+            });
+
+            // Check completion achievements
+            ACHIEVEMENTS.completion.forEach(achievement => {
+                if (!unlockedAchievements[achievement.id] && totalCompleted >= achievement.threshold) {
+                    unlockAchievement(achievement);
+                }
+            });
+        }
+
+        function unlockAchievement(achievement) {
+            // Mark as unlocked
+            unlockedAchievements[achievement.id] = {
+                date: new Date().toISOString()
+            };
+
+            // Award XP
+            totalXp += achievement.xp;
+            updateLevelDisplay();
+
+            // Save data
+            saveData();
+
+            // Show celebration
+            showCelebration(achievement);
+
+            // Update stats view if visible
+            if (currentView === 'stats') {
+                renderAchievements();
+            }
+        }
+
+        function showCelebration(achievement) {
+            celebrationName.textContent = achievement.name;
+            celebrationReq.textContent = achievement.requirement;
+            celebrationXp.textContent = '+' + achievement.xp + ' XP';
+
+            celebrationOverlay.classList.add('active');
+
+            // Auto dismiss after 3 seconds
+            const autoDismiss = setTimeout(() => {
+                closeCelebration();
+            }, 3000);
+
+            // Click to dismiss
+            const clickHandler = () => {
+                clearTimeout(autoDismiss);
+                closeCelebration();
+                celebrationOverlay.removeEventListener('click', clickHandler);
+            };
+
+            celebrationOverlay.addEventListener('click', clickHandler);
+        }
+
+        function closeCelebration() {
+            celebrationOverlay.classList.remove('active');
+        }
+
+        function showResetConfirmation() {
+            confirmOverlay.classList.add('active');
+        }
+
+        function hideResetConfirmation() {
+            confirmOverlay.classList.remove('active');
+        }
+
+        function resetAchievements() {
+            // Calculate XP to remove (sum of all unlocked achievement bonuses)
+            let xpToRemove = 0;
+            for (const achievementId in unlockedAchievements) {
+                // Find the achievement definition
+                const allAchievements = [...ACHIEVEMENTS.streak, ...ACHIEVEMENTS.completion];
+                const achievement = allAchievements.find(a => a.id === achievementId);
+                if (achievement) {
+                    xpToRemove += achievement.xp;
+                }
+            }
+
+            // Clear unlocked achievements
+            unlockedAchievements = {};
+
+            // Subtract achievement XP from total
+            totalXp = Math.max(0, totalXp - xpToRemove);
+
+            // Save to localStorage
+            saveData();
+
+            // Update UI
+            updateXpDisplay();
+            renderAchievements();
+
+            // Close confirmation modal
+            hideResetConfirmation();
+        }
+
         // Bottom Sheet
         function openBottomSheet(dateStr) {
             selectedSheetDate = dateStr;
@@ -3470,8 +4693,9 @@
             addBtn.className = 'sheet-add-btn';
             addBtn.innerHTML = '+ Add task for this day';
             addBtn.addEventListener('click', () => {
+                const dateToUse = selectedSheetDate;
                 closeBottomSheet();
-                openCreateTaskModal(selectedSheetDate);
+                openCreateTaskModal(dateToUse);
             });
             sheetTasks.appendChild(addBtn);
         }
@@ -3489,6 +4713,8 @@
 
             // Reset form
             modalTaskInput.value = '';
+            modalCategorySelect.value = 'general';
+            categoryIndicator.style.background = getCategoryColor('general');
             modalTypeSelect.value = 'onetime';
             modalDateInput.value = presetDate || formatDateForInput(viewingDate);
             modalDateField.style.display = 'block';
@@ -3522,12 +4748,14 @@
             if (!taskName) return;
 
             const type = modalTypeSelect.value;
+            const category = modalCategorySelect.value;
             const taskId = 'task-' + (++taskIdCounter);
 
             const newTask = {
                 id: taskId,
                 name: taskName,
-                type: type
+                type: type,
+                category: category
             };
 
             if (type === 'daily') {
@@ -3643,7 +4871,8 @@
                 xp: totalXp,
                 dailyTaskCounter: dailyTaskCounter,
                 taskIdCounter: taskIdCounter,
-                completions: taskCompletions
+                completions: taskCompletions,
+                achievements: unlockedAchievements
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
@@ -3658,6 +4887,7 @@
                 dailyTaskCounter = data.dailyTaskCounter || 0;
                 taskIdCounter = data.taskIdCounter || 0;
                 taskCompletions = data.completions || {};
+                unlockedAchievements = data.achievements || {};
 
                 // Load tasks - handle migration from old format
                 if (data.tasks && Array.isArray(data.tasks)) {
@@ -3668,14 +4898,35 @@
                     } else {
                         tasks = data.tasks;
                     }
+
+                    // Migrate tasks without category (add default "general" category)
+                    tasks.forEach(task => {
+                        if (!task.category) {
+                            task.category = 'general';
+                        }
+                    });
                 }
 
-                // Recalculate XP from completions
+                // Recalculate XP from completions + achievements
                 totalXp = recalculateXpFromCompletions();
+                totalXp += calculateAchievementXp();
                 updateLevelDisplay();
             } catch (e) {
                 console.error('Error loading saved data:', e);
             }
+        }
+
+        function calculateAchievementXp() {
+            let achievementXp = 0;
+            for (const achievementId in unlockedAchievements) {
+                // Find achievement by id
+                const allAchievements = [...ACHIEVEMENTS.streak, ...ACHIEVEMENTS.completion];
+                const achievement = allAchievements.find(a => a.id === achievementId);
+                if (achievement) {
+                    achievementXp += achievement.xp;
+                }
+            }
+            return achievementXp;
         }
 
         function migrateOldTasks(oldTasks) {
@@ -3749,6 +5000,7 @@
             dayViewBtn.addEventListener('click', () => setView('day'));
             weekViewBtn.addEventListener('click', () => setView('week'));
             monthViewBtn.addEventListener('click', () => setView('month'));
+            statsViewBtn.addEventListener('click', () => setView('stats'));
 
             // FAB
             fabButton.addEventListener('click', () => {
@@ -3765,6 +5017,11 @@
                 if (e.target === createTaskModal) {
                     closeCreateTaskModal();
                 }
+            });
+
+            modalCategorySelect.addEventListener('change', () => {
+                const category = modalCategorySelect.value;
+                categoryIndicator.style.background = getCategoryColor(category);
             });
 
             modalTypeSelect.addEventListener('change', () => {
@@ -3787,6 +5044,14 @@
             // Bottom sheet
             bottomSheetOverlay.addEventListener('click', closeBottomSheet);
             sheetCloseBtn.addEventListener('click', closeBottomSheet);
+
+            // Reset achievements
+            resetAchievementsBtn.addEventListener('click', showResetConfirmation);
+            confirmCancel.addEventListener('click', hideResetConfirmation);
+            confirmReset.addEventListener('click', resetAchievements);
+            confirmOverlay.addEventListener('click', (e) => {
+                if (e.target === confirmOverlay) hideResetConfirmation();
+            });
 
             // Swipe gestures
             setupSwipeGestures();
