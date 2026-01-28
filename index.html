@@ -1103,7 +1103,6 @@
         }
 
         .month-task-preview.completed .month-task-text {
-            text-decoration: line-through;
             color: #525252;
         }
 
@@ -1464,11 +1463,46 @@
             background: #141414;
             border: 1px solid #262626;
             border-radius: 16px;
-            width: 90%;
+            width: calc(100% - 2rem);
             max-width: 400px;
             max-height: 90vh;
             overflow-y: auto;
             animation: modalSlide 0.2s ease;
+            box-sizing: border-box;
+            margin: 0 1rem;
+        }
+
+        @media (max-width: 359px) {
+            .task-modal {
+                width: calc(100% - 1rem);
+                margin: 0 0.5rem;
+                border-radius: 12px;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .modal-header {
+                padding: 0.875rem 1rem;
+            }
+
+            .modal-footer {
+                padding: 0.875rem 1rem;
+            }
+
+            .modal-input,
+            .modal-select,
+            .modal-date-input {
+                padding: 0.75rem;
+                font-size: 0.95rem;
+            }
+
+            .modal-day-toggle {
+                padding: 0.5rem 0.2rem;
+                font-size: 0.7rem;
+                min-width: 36px;
+            }
         }
 
         @keyframes modalSlide {
@@ -2256,12 +2290,22 @@
             updateDateDisplay();
 
             if (currentView === 'month') {
-                // Check if today's month is already loaded
+                // Always re-render grid view on desktop
+                renderMonthGridView();
+
+                // For mobile: Check if today's month is already loaded
                 const todaySection = monthList.querySelector('.month-date-section.today');
                 if (todaySection) {
                     todaySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
-                    renderCurrentView();
+                    renderMonthListView();
+                    // Scroll to current month after render
+                    setTimeout(() => {
+                        const newTodaySection = monthList.querySelector('.month-date-section.today');
+                        if (newTodaySection) {
+                            newTodaySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
                 }
             } else if (currentView === 'week') {
                 // Re-render week view centered on today
@@ -2279,6 +2323,7 @@
         }
 
         function updateDateDisplay() {
+            console.log('updateDateDisplay: currentView =', currentView);
             // Clear container and rebuild based on view
             dateDisplayContainer.innerHTML = '';
 
@@ -2331,8 +2376,24 @@
 
         // View Management
         function setView(view) {
+            console.log('setView called:', view);
             currentView = view;
 
+            // Update data attribute for CSS (used for arrow visibility on mobile)
+            document.body.dataset.view = view;
+
+            // For Month view, update viewingMonth/viewingYear FIRST
+            if (view === 'month') {
+                viewingMonth = viewingDate.getMonth();
+                viewingYear = viewingDate.getFullYear();
+                console.log('Month view: setting to', monthNames[viewingMonth], viewingYear);
+            }
+
+            // Update header IMMEDIATELY before rendering
+            console.log('Calling updateDateDisplay for view:', currentView);
+            updateDateDisplay();
+
+            // Remove active classes
             dayViewContainer.classList.remove('active');
             weekViewContainer.classList.remove('active');
             monthContainer.classList.remove('active');
@@ -2341,9 +2402,7 @@
             weekViewBtn.classList.remove('active');
             monthViewBtn.classList.remove('active');
 
-            // Update data attribute for CSS (used for arrow visibility on mobile)
-            document.body.dataset.view = view;
-
+            // Activate the selected view
             if (view === 'day') {
                 dayViewContainer.classList.add('active');
                 dayViewBtn.classList.add('active');
@@ -2353,17 +2412,11 @@
                 weekViewBtn.classList.add('active');
                 renderWeekView();
             } else {
-                // Month view: Update viewingMonth/viewingYear based on viewingDate
-                // If viewing a week that spans two months, use the month of viewingDate
-                viewingMonth = viewingDate.getMonth();
-                viewingYear = viewingDate.getFullYear();
-
                 monthContainer.classList.add('active');
                 monthViewBtn.classList.add('active');
                 renderMonthView();
             }
 
-            updateDateDisplay();
             localStorage.setItem(VIEW_STORAGE_KEY, view);
         }
 
@@ -3002,8 +3055,10 @@
 
         // Set up intersection observer for infinite scroll and header updates
         function setupMonthScrollObserver() {
+            // Properly disconnect existing observers
             if (monthScrollObserver) {
-                monthScrollObserver.disconnect();
+                if (monthScrollObserver.header) monthScrollObserver.header.disconnect();
+                if (monthScrollObserver.load) monthScrollObserver.load.disconnect();
             }
 
             // Observer for updating the header date display
