@@ -16,7 +16,7 @@
             background: #0a0a0a;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             color: #e5e5e5;
-            padding: 1rem;
+            padding: 0;
             padding-bottom: 5rem;
             overflow-x: hidden;
         }
@@ -24,12 +24,40 @@
         .container {
             max-width: 600px;
             margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Sticky Header */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #0a0a0a;
+            z-index: 100;
+            padding: 1rem 1rem 0;
+            margin: 0 -1rem;
+            width: calc(100% + 2rem);
+        }
+
+        .sticky-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #1a1a1a, transparent);
+        }
+
+        .main-content {
+            padding-top: 0.75rem;
         }
 
         /* Header */
         .header {
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .app-title {
@@ -99,7 +127,7 @@
             align-items: center;
             justify-content: center;
             gap: 0.75rem;
-            margin: 1rem 0;
+            margin: 0.75rem 0;
         }
 
         .nav-arrow {
@@ -161,7 +189,7 @@
         .view-toggle-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
         }
 
         .view-toggle {
@@ -384,6 +412,7 @@
             border-radius: 12px;
             margin-bottom: 0.75rem;
             overflow: hidden;
+            scroll-margin-top: 10rem;
         }
 
         .month-date-section.today {
@@ -1298,40 +1327,47 @@
             .container {
                 max-width: 900px;
             }
+
+            .sticky-header {
+                padding: 1rem 1rem 0;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <h1 class="app-title">Life Gamified</h1>
-            <p class="app-subtitle">Turn your daily habits into an adventure</p>
-            <div class="level-container">
-                <div class="level-info">
-                    <span class="level-badge">Level <span id="currentLevel">1</span></span>
-                    <span class="xp-text"><span id="currentXp">0</span> / <span id="xpToNext">100</span> XP</span>
+        <div class="sticky-header">
+            <header class="header">
+                <h1 class="app-title">Life Gamified</h1>
+                <p class="app-subtitle">Turn your daily habits into an adventure</p>
+                <div class="level-container">
+                    <div class="level-info">
+                        <span class="level-badge">Level <span id="currentLevel">1</span></span>
+                        <span class="xp-text"><span id="currentXp">0</span> / <span id="xpToNext">100</span> XP</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
                 </div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="progressBar"></div>
+            </header>
+
+            <div class="date-nav" id="dateNav">
+                <button type="button" class="nav-arrow" id="prevDate">&#8592;</button>
+                <div class="date-display" id="dateDisplay">Wednesday, January 15</div>
+                <button type="button" class="nav-arrow" id="nextDate">&#8594;</button>
+                <button type="button" class="today-btn" id="todayBtn">Today</button>
+            </div>
+
+            <div class="view-toggle-container">
+                <div class="view-toggle">
+                    <button type="button" class="view-btn" id="dayViewBtn">Day</button>
+                    <button type="button" class="view-btn" id="weekViewBtn">Week</button>
+                    <button type="button" class="view-btn" id="monthViewBtn">Month</button>
                 </div>
             </div>
-        </header>
-
-        <div class="date-nav" id="dateNav">
-            <button type="button" class="nav-arrow" id="prevDate">&#8592;</button>
-            <div class="date-display" id="dateDisplay">Wednesday, January 15</div>
-            <button type="button" class="nav-arrow" id="nextDate">&#8594;</button>
-            <button type="button" class="today-btn" id="todayBtn">Today</button>
         </div>
 
-        <div class="view-toggle-container">
-            <div class="view-toggle">
-                <button type="button" class="view-btn" id="dayViewBtn">Day</button>
-                <button type="button" class="view-btn" id="weekViewBtn">Week</button>
-                <button type="button" class="view-btn" id="monthViewBtn">Month</button>
-            </div>
-        </div>
-
+        <div class="main-content">
         <!-- Day View -->
         <div class="day-view-container" id="dayViewContainer">
             <div class="day-content" id="dayContent">
@@ -1349,6 +1385,7 @@
         <div class="month-container" id="monthContainer">
             <div class="month-list" id="monthList"></div>
             <div class="month-grid" id="monthGrid"></div>
+        </div>
         </div>
     </div>
 
