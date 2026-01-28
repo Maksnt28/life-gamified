@@ -126,18 +126,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             margin: 0.75rem 0;
         }
 
         .nav-arrow {
-            width: 36px;
-            height: 36px;
-            background: #141414;
+            width: 32px;
+            height: 32px;
+            background: transparent;
             border: 1px solid #262626;
             border-radius: 8px;
-            color: #737373;
-            font-size: 1rem;
+            color: #525252;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
@@ -149,33 +149,87 @@
             .nav-arrow:hover {
                 border-color: #404040;
                 color: #a3a3a3;
+                background: #141414;
             }
         }
 
-        .date-display {
-            font-size: 1rem;
+        /* Elegant Date Display */
+        .date-display-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            min-width: 160px;
+        }
+
+        /* Day View: Prominent single date */
+        .date-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.125rem;
+        }
+
+        .date-badge-month {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #3b82f6;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .date-badge-day {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .date-badge-weekday {
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: #525252;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Week/Month View: Simple text */
+        .date-text {
+            font-size: 0.9rem;
             font-weight: 500;
             color: #e5e5e5;
-            min-width: 180px;
             text-align: center;
         }
 
+        .date-text-sub {
+            font-size: 0.65rem;
+            color: #525252;
+            margin-top: 0.125rem;
+        }
+
         .today-btn {
-            padding: 0.5rem 0.75rem;
-            background: #141414;
+            padding: 0.375rem 0.625rem;
+            background: transparent;
             border: 1px solid #262626;
-            border-radius: 8px;
-            color: #737373;
-            font-size: 0.75rem;
-            font-weight: 500;
+            border-radius: 6px;
+            color: #525252;
+            font-size: 0.65rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         @media (hover: hover) {
             .today-btn:hover {
                 border-color: #404040;
                 color: #a3a3a3;
+                background: #141414;
             }
         }
 
@@ -298,96 +352,301 @@
             display: block;
         }
 
-        /* Week Strip */
-        .week-strip {
+        /* Week List (Mobile) - All 7 days vertical */
+        .week-list {
             display: flex;
-            justify-content: space-between;
-            gap: 0.25rem;
-            margin-bottom: 1rem;
-            padding: 0.5rem;
+            flex-direction: column;
+            gap: 0;
             background: #0f0f0f;
             border: 1px solid #1a1a1a;
             border-radius: 12px;
+            overflow: hidden;
         }
 
-        .strip-day {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0.5rem 0.25rem;
-            border-radius: 8px;
+        .week-day-section {
+            border-bottom: 1px solid #1a1a1a;
             cursor: pointer;
-            transition: all 0.2s ease;
-            color: #525252;
+            transition: background 0.15s ease;
+        }
+
+        .week-day-section:last-child {
+            border-bottom: none;
+        }
+
+        .week-day-section.today {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        @media (hover: hover) {
+            .week-day-section:hover {
+                background: #0e0e0e;
+            }
+
+            .week-day-section.today:hover {
+                background: rgba(59, 130, 246, 0.08);
+            }
+        }
+
+        .week-day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            background: #0a0a0a;
+        }
+
+        .week-day-section.today .week-day-header {
+            background: rgba(59, 130, 246, 0.08);
+        }
+
+        .week-day-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .week-day-name {
             font-size: 0.7rem;
-            font-weight: 500;
+            font-weight: 600;
+            color: #525252;
+            text-transform: uppercase;
+            min-width: 2rem;
         }
 
-        .strip-day:hover {
-            background: #1a1a1a;
-        }
-
-        .strip-day.active {
-            background: #3b82f6;
-            color: #ffffff;
-        }
-
-        .strip-day.today:not(.active) {
+        .week-day-section.today .week-day-name {
             color: #3b82f6;
         }
 
-        .strip-date {
-            display: block;
+        .week-day-num {
             font-size: 0.9rem;
             font-weight: 600;
-            margin-top: 0.25rem;
+            color: #a3a3a3;
         }
 
-        /* Week Carousel */
-        .week-carousel {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            gap: 0;
+        .week-day-section.today .week-day-num {
+            color: #3b82f6;
         }
 
-        .week-carousel::-webkit-scrollbar {
+        .week-day-badge {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            padding: 0.15rem 0.375rem;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .week-task-count {
+            font-size: 0.6rem;
+            color: #525252;
+            background: #1a1a1a;
+            padding: 0.125rem 0.375rem;
+            border-radius: 3px;
+        }
+
+        .week-empty-label {
+            font-size: 0.65rem;
+            color: #333333;
+        }
+
+        .week-add-indicator {
+            font-size: 0.9rem;
+            color: #333333;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            margin-left: 0.5rem;
+        }
+
+        @media (hover: hover) {
+            .week-day-section:hover .week-add-indicator {
+                opacity: 1;
+            }
+        }
+
+        .week-day-tasks {
+            padding: 0.375rem 0.5rem 0.5rem;
+        }
+
+        .week-day-tasks .day-tasks {
+            gap: 0.25rem;
+        }
+
+        /* Compact task items in week view */
+        .week-day-tasks .task-item {
+            padding: 0.5rem 0.625rem;
+            gap: 0.5rem;
+            border-radius: 6px;
+            animation: none;
+        }
+
+        .week-day-tasks .task-checkbox {
+            width: 16px;
+            height: 16px;
+            border-width: 1.5px;
+            border-radius: 4px;
+        }
+
+        .week-day-tasks .task-checkbox.checked::after {
+            width: 8px;
+            height: 5px;
+            border-width: 1.5px;
+        }
+
+        .week-day-tasks .task-name {
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+
+        .week-day-tasks .task-badge {
             display: none;
         }
 
-        .carousel-day {
-            min-width: 100%;
-            scroll-snap-align: start;
-            background: #0f0f0f;
-            border: 1px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 1rem;
-            min-height: 300px;
+        .week-day-tasks .delete-button {
+            width: 24px;
+            height: 24px;
+            font-size: 0.9rem;
         }
 
-        .carousel-day-header {
+        /* Desktop: 7-column grid */
+        .week-grid {
+            display: none;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .week-grid-day {
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .week-grid-day.today {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.03);
+        }
+
+        .week-grid-header {
+            padding: 0.5rem;
+            background: #0a0a0a;
             text-align: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
             border-bottom: 1px solid #1a1a1a;
         }
 
-        .carousel-day-name {
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #737373;
+        .week-grid-day.today .week-grid-header {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .week-grid-day-name {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #525252;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
 
-        .carousel-day-date {
-            font-size: 0.75rem;
-            color: #525252;
-            margin-top: 0.25rem;
+        .week-grid-day.today .week-grid-day-name {
+            color: #3b82f6;
+        }
+
+        .week-grid-day-num {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #a3a3a3;
+            margin-top: 0.125rem;
+        }
+
+        .week-grid-day.today .week-grid-day-num {
+            color: #3b82f6;
+        }
+
+        .week-grid-tasks {
+            flex: 1;
+            padding: 0.375rem;
+            overflow-y: auto;
+        }
+
+        .week-grid-tasks .task-item {
+            padding: 0.375rem 0.5rem;
+            gap: 0.375rem;
+            margin-bottom: 0.25rem;
+            border-radius: 4px;
+            animation: none;
+        }
+
+        .week-grid-tasks .task-checkbox {
+            width: 14px;
+            height: 14px;
+            border-width: 1.5px;
+            border-radius: 3px;
+        }
+
+        .week-grid-tasks .task-checkbox.checked::after {
+            width: 7px;
+            height: 4px;
+            border-width: 1.5px;
+        }
+
+        .week-grid-tasks .task-name {
+            font-size: 0.7rem;
+            line-height: 1.2;
+        }
+
+        .week-grid-tasks .task-badge,
+        .week-grid-tasks .delete-button {
+            display: none;
+        }
+
+        .week-grid-empty {
+            font-size: 0.65rem;
+            color: #333333;
+            text-align: center;
+            padding: 1rem 0.5rem;
+        }
+
+        .week-grid-add {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.375rem;
+            margin: 0.25rem;
+            background: transparent;
+            border: 1px dashed #262626;
+            border-radius: 4px;
+            color: #333333;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        @media (hover: hover) {
+            .week-grid-add:hover {
+                border-color: #404040;
+                color: #525252;
+            }
+        }
+
+        /* Responsive: Mobile list, Desktop grid */
+        @media (max-width: 599px) {
+            .week-list {
+                display: flex;
+            }
+            .week-grid {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .week-list {
+                display: none;
+            }
+            .week-grid {
+                display: grid !important;
+            }
         }
 
         /* Month View */
@@ -1508,7 +1767,13 @@
 
             <div class="date-nav" id="dateNav">
                 <button type="button" class="nav-arrow" id="prevDate">&#8592;</button>
-                <div class="date-display" id="dateDisplay">Wednesday, January 15</div>
+                <div class="date-display-container" id="dateDisplayContainer">
+                    <div class="date-badge" id="dateBadge">
+                        <span class="date-badge-month" id="dateBadgeMonth">JAN</span>
+                        <span class="date-badge-day" id="dateBadgeDay">15</span>
+                        <span class="date-badge-weekday" id="dateBadgeWeekday">Wednesday</span>
+                    </div>
+                </div>
                 <button type="button" class="nav-arrow" id="nextDate">&#8594;</button>
                 <button type="button" class="today-btn" id="todayBtn">Today</button>
             </div>
@@ -1532,8 +1797,8 @@
 
         <!-- Week View -->
         <div class="week-view-container" id="weekViewContainer">
-            <div class="week-strip" id="weekStrip"></div>
-            <div class="week-carousel" id="weekCarousel"></div>
+            <div class="week-list" id="weekList"></div>
+            <div class="week-grid" id="weekGrid"></div>
         </div>
 
         <!-- Month View -->
@@ -1620,7 +1885,6 @@
         const currentXpEl = document.getElementById('currentXp');
         const xpToNextEl = document.getElementById('xpToNext');
         const progressBar = document.getElementById('progressBar');
-        const dateDisplay = document.getElementById('dateDisplay');
         const prevDateBtn = document.getElementById('prevDate');
         const nextDateBtn = document.getElementById('nextDate');
         const todayBtn = document.getElementById('todayBtn');
@@ -1632,10 +1896,15 @@
         const monthContainer = document.getElementById('monthContainer');
         const dayContent = document.getElementById('dayContent');
         const dayTasks = document.getElementById('dayTasks');
-        const weekStrip = document.getElementById('weekStrip');
-        const weekCarousel = document.getElementById('weekCarousel');
+        const weekList = document.getElementById('weekList');
+        const weekGrid = document.getElementById('weekGrid');
         const monthGrid = document.getElementById('monthGrid');
         const monthList = document.getElementById('monthList');
+        const dateDisplayContainer = document.getElementById('dateDisplayContainer');
+        const dateBadge = document.getElementById('dateBadge');
+        const dateBadgeMonth = document.getElementById('dateBadgeMonth');
+        const dateBadgeDay = document.getElementById('dateBadgeDay');
+        const dateBadgeWeekday = document.getElementById('dateBadgeWeekday');
         const fabButton = document.getElementById('fabButton');
         const createTaskModal = document.getElementById('createTaskModal');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
@@ -1869,16 +2138,65 @@
                 } else {
                     renderCurrentView();
                 }
+            } else if (currentView === 'week') {
+                // Re-render week view centered on today
+                renderWeekView();
+                // Scroll to today in the week list
+                setTimeout(() => {
+                    const todaySection = weekList.querySelector('.week-day-section.today');
+                    if (todaySection) {
+                        todaySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 50);
             } else {
                 renderCurrentView();
             }
         }
 
         function updateDateDisplay() {
-            if (currentView === 'month') {
-                dateDisplay.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
+            // Clear container and rebuild based on view
+            dateDisplayContainer.innerHTML = '';
+
+            if (currentView === 'day') {
+                // Day View: Prominent badge with month, day number, weekday
+                const badge = document.createElement('div');
+                badge.className = 'date-badge';
+                badge.innerHTML = `
+                    <span class="date-badge-month">${monthNames[viewingDate.getMonth()].slice(0, 3)}</span>
+                    <span class="date-badge-day">${viewingDate.getDate()}</span>
+                    <span class="date-badge-weekday">${days[getWeekdayFromDate(viewingDate)]}</span>
+                `;
+                dateDisplayContainer.appendChild(badge);
+            } else if (currentView === 'week') {
+                // Week View: Show week range
+                const weekDates = getWeekDates(viewingDate);
+                const startDate = weekDates[0];
+                const endDate = weekDates[6];
+
+                const textDiv = document.createElement('div');
+                textDiv.className = 'date-text';
+
+                const startMonth = monthNames[startDate.getMonth()].slice(0, 3);
+                const endMonth = monthNames[endDate.getMonth()].slice(0, 3);
+
+                if (startDate.getMonth() === endDate.getMonth()) {
+                    textDiv.textContent = `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}`;
+                } else {
+                    textDiv.textContent = `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}`;
+                }
+
+                const subDiv = document.createElement('div');
+                subDiv.className = 'date-text-sub';
+                subDiv.textContent = startDate.getFullYear();
+
+                textDiv.appendChild(subDiv);
+                dateDisplayContainer.appendChild(textDiv);
             } else {
-                dateDisplay.textContent = formatDateForDisplay(viewingDate);
+                // Month View: Month and year
+                const textDiv = document.createElement('div');
+                textDiv.className = 'date-text';
+                textDiv.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
+                dateDisplayContainer.appendChild(textDiv);
             }
 
             // Highlight Today button if viewing today
@@ -1898,15 +2216,9 @@
             weekViewBtn.classList.remove('active');
             monthViewBtn.classList.remove('active');
 
-            // Show/hide date navigation arrows based on view
+            // Show navigation arrows for all views
             const arrows = dateNav.querySelectorAll('.nav-arrow');
-            if (view === 'month') {
-                arrows.forEach(a => a.style.display = 'flex');
-            } else if (view === 'week') {
-                arrows.forEach(a => a.style.display = 'none');
-            } else {
-                arrows.forEach(a => a.style.display = 'flex');
-            }
+            arrows.forEach(a => a.style.display = 'flex');
 
             if (view === 'day') {
                 dayViewContainer.classList.add('active');
@@ -2143,135 +2455,162 @@
         }
 
         // Week View
+        // Week View - Shows all 7 days
         function renderWeekView() {
+            // Render both mobile list and desktop grid (CSS handles visibility)
+            renderWeekListView();
+            renderWeekGridView();
+        }
+
+        // Mobile: Vertical list of all 7 days
+        function renderWeekListView() {
+            weekList.innerHTML = '';
             const weekDates = getWeekDates(viewingDate);
             const today = new Date();
 
-            // Render strip
-            weekStrip.innerHTML = '';
             weekDates.forEach((date, index) => {
-                const stripDay = document.createElement('div');
-                stripDay.className = 'strip-day';
-                if (isSameDay(date, viewingDate)) stripDay.classList.add('active');
-                if (isSameDay(date, today)) stripDay.classList.add('today');
-                stripDay.dataset.index = index;
-                stripDay.dataset.date = formatDateForInput(date);
+                const isToday = isSameDay(date, today);
+                const dateStr = formatDateForInput(date);
+                const tasksForDay = getTasksForDate(date);
+                const hasNoTasks = tasksForDay.length === 0;
 
-                stripDay.innerHTML = `
-                    ${dayAbbrev[index].charAt(0)}
-                    <span class="strip-date">${date.getDate()}</span>
+                const section = document.createElement('div');
+                section.className = 'week-day-section' + (isToday ? ' today' : '');
+                section.dataset.date = dateStr;
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'week-day-header';
+
+                const title = document.createElement('div');
+                title.className = 'week-day-title';
+                title.innerHTML = `
+                    <span class="week-day-name">${dayAbbrev[index]}</span>
+                    <span class="week-day-num">${date.getDate()}</span>
                 `;
 
-                stripDay.addEventListener('click', () => {
-                    viewingDate = new Date(date);
-                    updateDateDisplay();
-                    syncWeekStrip();
-                    scrollCarouselToDay(index);
+                header.appendChild(title);
+
+                // Today badge
+                if (isToday) {
+                    const badge = document.createElement('span');
+                    badge.className = 'week-day-badge';
+                    badge.textContent = 'Today';
+                    header.appendChild(badge);
+                }
+
+                // Task count or empty label
+                if (!hasNoTasks) {
+                    const countBadge = document.createElement('span');
+                    countBadge.className = 'week-task-count';
+                    countBadge.textContent = `${tasksForDay.length}`;
+                    header.appendChild(countBadge);
+                } else if (!isToday) {
+                    const emptyLabel = document.createElement('span');
+                    emptyLabel.className = 'week-empty-label';
+                    emptyLabel.textContent = 'No tasks';
+                    header.appendChild(emptyLabel);
+                }
+
+                // Add indicator
+                const addIndicator = document.createElement('span');
+                addIndicator.className = 'week-add-indicator';
+                addIndicator.textContent = '+';
+                header.appendChild(addIndicator);
+
+                section.appendChild(header);
+
+                // Tasks container
+                if (!hasNoTasks) {
+                    const tasksContainer = document.createElement('div');
+                    tasksContainer.className = 'week-day-tasks';
+
+                    const tasksList = document.createElement('div');
+                    tasksList.className = 'day-tasks';
+
+                    tasksForDay.forEach(task => {
+                        const taskEl = createTaskElement(task, dateStr);
+                        tasksList.appendChild(taskEl);
+                    });
+
+                    tasksContainer.appendChild(tasksList);
+                    section.appendChild(tasksContainer);
+                }
+
+                // Click to add task
+                section.addEventListener('click', (e) => {
+                    const taskItem = e.target.closest('.task-item');
+                    if (taskItem) return;
+                    openCreateTaskModal(dateStr);
                 });
 
-                weekStrip.appendChild(stripDay);
+                weekList.appendChild(section);
             });
+        }
 
-            // Render carousel
-            weekCarousel.innerHTML = '';
+        // Desktop: 7-column grid
+        function renderWeekGridView() {
+            weekGrid.innerHTML = '';
+            const weekDates = getWeekDates(viewingDate);
+            const today = new Date();
+
             weekDates.forEach((date, index) => {
-                const carouselDay = document.createElement('div');
-                carouselDay.className = 'carousel-day';
-                carouselDay.dataset.index = index;
-                carouselDay.dataset.date = formatDateForInput(date);
-
+                const isToday = isSameDay(date, today);
                 const dateStr = formatDateForInput(date);
                 const tasksForDay = getTasksForDate(date);
 
-                let tasksHtml = '';
+                const dayCol = document.createElement('div');
+                dayCol.className = 'week-grid-day' + (isToday ? ' today' : '');
+                dayCol.dataset.date = dateStr;
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'week-grid-header';
+                header.innerHTML = `
+                    <div class="week-grid-day-name">${dayAbbrev[index]}</div>
+                    <div class="week-grid-day-num">${date.getDate()}</div>
+                `;
+                dayCol.appendChild(header);
+
+                // Tasks container
+                const tasksContainer = document.createElement('div');
+                tasksContainer.className = 'week-grid-tasks';
+
                 if (tasksForDay.length === 0) {
-                    tasksHtml = '<div class="empty-day">No tasks</div>';
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'week-grid-empty';
+                    emptyDiv.textContent = 'No tasks';
+                    tasksContainer.appendChild(emptyDiv);
                 } else {
                     tasksForDay.forEach(task => {
                         const taskEl = createTaskElement(task, dateStr);
-                        tasksHtml += taskEl.outerHTML;
+                        tasksContainer.appendChild(taskEl);
                     });
                 }
 
-                carouselDay.innerHTML = `
-                    <div class="carousel-day-header">
-                        <div class="carousel-day-name">${days[index]}</div>
-                        <div class="carousel-day-date">${formatDateShort(date)}</div>
-                    </div>
-                    <div class="day-tasks">${tasksHtml}</div>
-                `;
+                dayCol.appendChild(tasksContainer);
 
-                // Re-attach event listeners to task items
-                carouselDay.querySelectorAll('.task-item').forEach(taskItem => {
-                    let touchHandled = false;
-
-                    taskItem.addEventListener('touchend', function(e) {
-                        if (e.target.classList.contains('delete-button')) return;
-                        e.preventDefault();
-                        touchHandled = true;
-                        toggleTask(this);
-                        setTimeout(() => { touchHandled = false; }, 300);
-                    }, { passive: false });
-
-                    taskItem.addEventListener('click', function(e) {
-                        if (e.target.classList.contains('delete-button')) return;
-                        if (!touchHandled) {
-                            toggleTask(this);
-                        }
-                    });
-
-                    const deleteBtn = taskItem.querySelector('.delete-button');
-                    deleteBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        handleDeleteTask(taskItem);
-                    });
+                // Add button
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'week-grid-add';
+                addBtn.textContent = '+';
+                addBtn.addEventListener('click', () => {
+                    openCreateTaskModal(dateStr);
                 });
+                dayCol.appendChild(addBtn);
 
-                weekCarousel.appendChild(carouselDay);
+                weekGrid.appendChild(dayCol);
             });
-
-            // Scroll to current day
-            scrollCarouselToDay();
-
-            // Set up scroll listener for carousel
-            weekCarousel.addEventListener('scrollend', handleCarouselScroll);
-            weekCarousel.addEventListener('scroll', debounce(handleCarouselScroll, 150));
         }
 
-        function scrollCarouselToDay(index = null) {
-            if (index === null) {
-                index = getWeekdayFromDate(viewingDate);
-            }
-            const carouselDay = weekCarousel.children[index];
-            if (carouselDay) {
-                weekCarousel.scrollTo({
-                    left: carouselDay.offsetLeft,
-                    behavior: 'smooth'
-                });
-            }
-        }
-
-        function handleCarouselScroll() {
-            const scrollLeft = weekCarousel.scrollLeft;
-            const cardWidth = weekCarousel.offsetWidth;
-            const activeIndex = Math.round(scrollLeft / cardWidth);
-
-            const weekDates = getWeekDates(viewingDate);
-            if (weekDates[activeIndex]) {
-                const newDate = weekDates[activeIndex];
-                if (!isSameDay(newDate, viewingDate)) {
-                    viewingDate = new Date(newDate);
-                    updateDateDisplay();
-                    syncWeekStrip();
-                }
-            }
-        }
-
-        function syncWeekStrip() {
-            const activeIndex = getWeekdayFromDate(viewingDate);
-            weekStrip.querySelectorAll('.strip-day').forEach((day, i) => {
-                day.classList.toggle('active', i === activeIndex);
-            });
+        // Navigate to previous/next week
+        function navigateWeek(delta) {
+            viewingDate.setDate(viewingDate.getDate() + (delta * 7));
+            viewingMonth = viewingDate.getMonth();
+            viewingYear = viewingDate.getFullYear();
+            updateDateDisplay();
+            renderWeekView();
         }
 
         function debounce(func, wait) {
@@ -2284,9 +2623,6 @@
 
         // Month View
         function renderMonthView() {
-            // Update date display for month view
-            dateDisplay.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
-
             // Render both views (CSS handles which one is visible)
             renderMonthListView();
             renderMonthGridView();
@@ -2487,7 +2823,7 @@
                         if (!isNaN(month) && !isNaN(year)) {
                             viewingMonth = month;
                             viewingYear = year;
-                            dateDisplay.textContent = `${monthNames[month]} ${year}`;
+                            updateDateDisplay();
                         }
                     }
                 });
@@ -3035,6 +3371,8 @@
             prevDateBtn.addEventListener('click', () => {
                 if (currentView === 'month') {
                     changeMonth(-1);
+                } else if (currentView === 'week') {
+                    navigateWeek(-1);
                 } else {
                     navigateDay(-1);
                 }
@@ -3043,6 +3381,8 @@
             nextDateBtn.addEventListener('click', () => {
                 if (currentView === 'month') {
                     changeMonth(1);
+                } else if (currentView === 'week') {
+                    navigateWeek(1);
                 } else {
                     navigateDay(1);
                 }
@@ -3115,7 +3455,7 @@
             viewingDate = new Date(viewingYear, viewingMonth, 1);
 
             // Update display
-            dateDisplay.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
+            updateDateDisplay();
 
             // Check if target month is already loaded
             const targetHeader = monthList.querySelector(`.month-header-separator[data-month="${targetMonth}"][data-year="${targetYear}"]`);
