@@ -371,8 +371,119 @@
             display: block;
         }
 
+        /* Mobile Month List View */
+        .month-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .month-date-section {
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+
+        .month-date-section.today {
+            border-color: #3b82f6;
+            border-width: 2px;
+        }
+
+        .month-date-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 1rem;
+            background: #111111;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .month-date-section.today .month-date-header {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .month-date-title {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .month-date-day {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #737373;
+            text-transform: uppercase;
+        }
+
+        .month-date-section.today .month-date-day {
+            color: #3b82f6;
+        }
+
+        .month-date-num {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e5e5e5;
+        }
+
+        .month-date-section.today .month-date-num {
+            color: #3b82f6;
+        }
+
+        .month-date-badge {
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .month-date-section.today .month-date-badge {
+            display: block;
+        }
+
+        .month-date-tasks {
+            padding: 0.75rem;
+        }
+
+        .month-date-tasks .day-tasks {
+            gap: 0.5rem;
+        }
+
+        .month-date-tasks .empty-day {
+            padding: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .month-date-add {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.625rem;
+            background: transparent;
+            border: 1px dashed #262626;
+            border-radius: 6px;
+            color: #404040;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        @media (hover: hover) {
+            .month-date-add:hover {
+                border-color: #404040;
+                color: #525252;
+            }
+        }
+
+        /* Desktop Month Grid View */
         .month-grid {
-            display: grid;
+            display: none;
             grid-template-columns: repeat(7, 1fr);
             gap: 2px;
             background: #1a1a1a;
@@ -394,11 +505,10 @@
 
         .month-day {
             background: #0a0a0a;
-            min-height: 48px;
-            padding: 0.25rem;
+            min-height: 90px;
+            padding: 0.375rem;
             display: flex;
             flex-direction: column;
-            align-items: center;
             cursor: pointer;
             transition: background 0.2s ease;
         }
@@ -415,13 +525,15 @@
         }
 
         .month-day.today {
-            background: #111111;
+            background: #111118;
+            border: 1px solid #3b82f6;
         }
 
         .month-day-number {
             font-size: 0.75rem;
             color: #525252;
             font-weight: 500;
+            margin-bottom: 0.25rem;
         }
 
         .month-day.today .month-day-number {
@@ -433,7 +545,67 @@
             color: #333333;
         }
 
-        /* Task Indicators */
+        /* Desktop Grid Task Items */
+        .month-task-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.3rem;
+            background: #141414;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            overflow: hidden;
+        }
+
+        .month-task-preview:hover {
+            background: #1a1a1a;
+        }
+
+        .month-task-preview.completed {
+            opacity: 0.5;
+        }
+
+        .month-task-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #404040;
+            flex-shrink: 0;
+        }
+
+        .month-task-preview.completed .month-task-dot {
+            background: #3b82f6;
+        }
+
+        .month-task-text {
+            font-size: 0.6rem;
+            color: #a3a3a3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .month-task-preview.completed .month-task-text {
+            text-decoration: line-through;
+            color: #525252;
+        }
+
+        .month-more-tasks {
+            font-size: 0.55rem;
+            color: #3b82f6;
+            padding: 0.15rem 0.3rem;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .month-more-tasks:hover {
+            text-decoration: underline;
+        }
+
+        /* Task Indicators (fallback/dots) */
         .task-indicators {
             display: flex;
             gap: 3px;
@@ -458,6 +630,25 @@
             font-size: 0.6rem;
             color: #525252;
             margin-top: 2px;
+        }
+
+        /* Responsive: Show grid on desktop, list on mobile */
+        @media (max-width: 599px) {
+            .month-list {
+                display: flex;
+            }
+            .month-grid {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .month-list {
+                display: none;
+            }
+            .month-grid {
+                display: grid !important;
+            }
         }
 
         /* Task Items */
@@ -1105,11 +1296,7 @@
         /* Responsive */
         @media (min-width: 600px) {
             .container {
-                max-width: 800px;
-            }
-
-            .month-day {
-                min-height: 60px;
+                max-width: 900px;
             }
         }
     </style>
@@ -1160,6 +1347,7 @@
 
         <!-- Month View -->
         <div class="month-container" id="monthContainer">
+            <div class="month-list" id="monthList"></div>
             <div class="month-grid" id="monthGrid"></div>
         </div>
     </div>
@@ -1255,6 +1443,7 @@
         const weekStrip = document.getElementById('weekStrip');
         const weekCarousel = document.getElementById('weekCarousel');
         const monthGrid = document.getElementById('monthGrid');
+        const monthList = document.getElementById('monthList');
         const fabButton = document.getElementById('fabButton');
         const createTaskModal = document.getElementById('createTaskModal');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
@@ -1891,6 +2080,98 @@
             // Update date display for month view
             dateDisplay.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
 
+            // Render both views (CSS handles which one is visible)
+            renderMonthListView();
+            renderMonthGridView();
+        }
+
+        // Mobile: Vertical scrollable list
+        function renderMonthListView() {
+            monthList.innerHTML = '';
+
+            const lastDay = new Date(viewingYear, viewingMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === viewingMonth && today.getFullYear() === viewingYear;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(viewingYear, viewingMonth, day);
+                const isToday = isCurrentMonth && day === today.getDate();
+                const dateStr = formatDateForInput(date);
+                const weekdayIndex = getWeekdayFromDate(date);
+                const tasksForDay = getTasksForDate(date);
+
+                const section = document.createElement('div');
+                section.className = 'month-date-section' + (isToday ? ' today' : '');
+                section.dataset.date = dateStr;
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'month-date-header';
+
+                const title = document.createElement('div');
+                title.className = 'month-date-title';
+                title.innerHTML = `
+                    <span class="month-date-day">${dayAbbrev[weekdayIndex]}</span>
+                    <span class="month-date-num">${day}</span>
+                `;
+
+                const badge = document.createElement('span');
+                badge.className = 'month-date-badge';
+                badge.textContent = 'Today';
+
+                header.appendChild(title);
+                header.appendChild(badge);
+                section.appendChild(header);
+
+                // Tasks container
+                const tasksContainer = document.createElement('div');
+                tasksContainer.className = 'month-date-tasks';
+
+                if (tasksForDay.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'empty-day';
+                    emptyState.textContent = 'No tasks';
+                    tasksContainer.appendChild(emptyState);
+                } else {
+                    const tasksList = document.createElement('div');
+                    tasksList.className = 'day-tasks';
+
+                    tasksForDay.forEach(task => {
+                        const taskEl = createTaskElement(task, dateStr);
+                        tasksList.appendChild(taskEl);
+                    });
+
+                    tasksContainer.appendChild(tasksList);
+                }
+
+                // Add task button
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'month-date-add';
+                addBtn.textContent = '+ Add task';
+                addBtn.addEventListener('click', () => {
+                    openCreateTaskModal(dateStr);
+                });
+                tasksContainer.appendChild(addBtn);
+
+                section.appendChild(tasksContainer);
+                monthList.appendChild(section);
+            }
+
+            // Scroll to today if in current month
+            if (isCurrentMonth) {
+                setTimeout(() => {
+                    const todaySection = monthList.querySelector('.month-date-section.today');
+                    if (todaySection) {
+                        todaySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
+        }
+
+        // Desktop: 7-column grid with task previews
+        function renderMonthGridView() {
             monthGrid.innerHTML = '';
 
             // Weekday headers
@@ -1934,28 +2215,34 @@
                 dayNumber.textContent = day;
                 dayCell.appendChild(dayNumber);
 
-                // Task indicators
+                // Task previews (show up to 2, then "+X more")
                 const tasksForDay = getTasksForDate(date);
+                const maxVisible = 2;
+
                 if (tasksForDay.length > 0) {
-                    const indicators = document.createElement('div');
-                    indicators.className = 'task-indicators';
+                    const tasksToShow = tasksForDay.slice(0, maxVisible);
 
-                    const maxDots = 4;
-                    const showCount = tasksForDay.length;
+                    tasksToShow.forEach(task => {
+                        const preview = document.createElement('div');
+                        preview.className = 'month-task-preview' + (task.completed ? ' completed' : '');
 
-                    for (let i = 0; i < Math.min(showCount, maxDots); i++) {
                         const dot = document.createElement('span');
-                        dot.className = 'task-dot' + (tasksForDay[i].completed ? ' completed' : '');
-                        indicators.appendChild(dot);
-                    }
+                        dot.className = 'month-task-dot';
 
-                    dayCell.appendChild(indicators);
+                        const text = document.createElement('span');
+                        text.className = 'month-task-text';
+                        text.textContent = task.name;
 
-                    if (tasksForDay.length > maxDots) {
-                        const count = document.createElement('div');
-                        count.className = 'task-count';
-                        count.textContent = `+${tasksForDay.length - maxDots}`;
-                        dayCell.appendChild(count);
+                        preview.appendChild(dot);
+                        preview.appendChild(text);
+                        dayCell.appendChild(preview);
+                    });
+
+                    if (tasksForDay.length > maxVisible) {
+                        const moreBtn = document.createElement('div');
+                        moreBtn.className = 'month-more-tasks';
+                        moreBtn.textContent = `+${tasksForDay.length - maxVisible} more`;
+                        dayCell.appendChild(moreBtn);
                     }
                 }
 
