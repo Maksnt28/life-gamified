@@ -2676,7 +2676,7 @@
 
                 <!-- Reset Button (for testing) -->
                 <div class="achievements-reset-container">
-                    <button type="button" class="achievements-reset-btn" id="resetAchievementsBtn">Reset Achievements</button>
+                    <button type="button" class="achievements-reset-btn" id="resetAchievementsBtn" onclick="showResetConfirmation()">Reset Achievements</button>
                 </div>
             </div>
         </div>
@@ -3413,7 +3413,6 @@
             if (isTaskCompletedForDate(completionKey, dateStr)) {
                 totalXp -= 10;
                 if (totalXp < 0) totalXp = 0;
-                updateLevelDisplay();
             }
 
             // Remove completion for this date
@@ -3421,6 +3420,13 @@
                 delete taskCompletions[completionKey][dateStr];
             }
 
+            // Verify XP by recalculating from remaining completions + achievements
+            const calculatedXp = recalculateXpFromCompletions() + calculateAchievementXp();
+            if (totalXp !== calculatedXp) {
+                totalXp = calculatedXp;
+            }
+
+            updateLevelDisplay();
             saveData();
             renderCurrentView();
             closeDeleteModal();
@@ -3448,14 +3454,30 @@
                 if (completedCount > 0) {
                     totalXp -= completedCount * 10;
                     if (totalXp < 0) totalXp = 0;
-                    updateLevelDisplay();
                 }
                 delete taskCompletions[key];
+            }
+
+            // Also check if task ID has separate completions (for edge cases)
+            if (key !== taskId && taskCompletions[taskId]) {
+                const completedCount = Object.values(taskCompletions[taskId]).filter(v => v === true).length;
+                if (completedCount > 0) {
+                    totalXp -= completedCount * 10;
+                    if (totalXp < 0) totalXp = 0;
+                }
+                delete taskCompletions[taskId];
             }
 
             // Remove task from list
             tasks = tasks.filter(t => t.id !== taskId);
 
+            // Verify XP by recalculating from remaining completions + achievements
+            const calculatedXp = recalculateXpFromCompletions() + calculateAchievementXp();
+            if (totalXp !== calculatedXp) {
+                totalXp = calculatedXp;
+            }
+
+            updateLevelDisplay();
             saveData();
             renderCurrentView();
 
@@ -4619,6 +4641,8 @@
         function showResetConfirmation() {
             confirmOverlay.classList.add('active');
         }
+        // Make available for inline onclick
+        window.showResetConfirmation = showResetConfirmation;
 
         function hideResetConfirmation() {
             confirmOverlay.classList.remove('active');
@@ -5046,11 +5070,26 @@
             sheetCloseBtn.addEventListener('click', closeBottomSheet);
 
             // Reset achievements
-            resetAchievementsBtn.addEventListener('click', showResetConfirmation);
-            confirmCancel.addEventListener('click', hideResetConfirmation);
-            confirmReset.addEventListener('click', resetAchievements);
-            confirmOverlay.addEventListener('click', (e) => {
-                if (e.target === confirmOverlay) hideResetConfirmation();
+            if (resetAchievementsBtn) {
+                resetAchievementsBtn.addEventListener('click', showResetConfirmation);
+            }
+            if (confirmCancel) {
+                confirmCancel.addEventListener('click', hideResetConfirmation);
+            }
+            if (confirmReset) {
+                confirmReset.addEventListener('click', resetAchievements);
+            }
+            if (confirmOverlay) {
+                confirmOverlay.addEventListener('click', (e) => {
+                    if (e.target === confirmOverlay) hideResetConfirmation();
+                });
+            }
+
+            // Fallback: Event delegation for reset button
+            document.addEventListener('click', (e) => {
+                if (e.target && (e.target.id === 'resetAchievementsBtn' || e.target.classList.contains('achievements-reset-btn'))) {
+                    showResetConfirmation();
+                }
             });
 
             // Swipe gestures
