@@ -126,8 +126,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            position: relative;
             margin: 0.75rem 0;
+            padding: 0 3.5rem;
+        }
+
+        .date-nav-center {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .today-btn {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
         }
 
         .nav-arrow {
@@ -163,7 +177,7 @@
             background: #0f0f0f;
             border: 1px solid #1a1a1a;
             border-radius: 10px;
-            min-width: 160px;
+            min-width: 140px;
         }
 
         /* Day View: Prominent single date */
@@ -596,9 +610,21 @@
             line-height: 1.2;
         }
 
-        .week-grid-tasks .task-badge,
-        .week-grid-tasks .delete-button {
+        .week-grid-tasks .task-badge {
             display: none;
+        }
+
+        .week-grid-tasks .delete-button {
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        @media (hover: hover) {
+            .week-grid-tasks .task-item:hover .delete-button {
+                opacity: 1;
+            }
         }
 
         .week-grid-empty {
@@ -1218,9 +1244,15 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        /* Mobile: Always show delete button */
+        .delete-button {
+            opacity: 0.4;
+        }
+
+        /* Desktop: Show on hover */
         @media (hover: hover) {
             .delete-button {
-                opacity: 0;
+                opacity: 0.3;
             }
 
             .task-item:hover .delete-button {
@@ -1766,15 +1798,17 @@
             </header>
 
             <div class="date-nav" id="dateNav">
-                <button type="button" class="nav-arrow" id="prevDate">&#8592;</button>
-                <div class="date-display-container" id="dateDisplayContainer">
-                    <div class="date-badge" id="dateBadge">
-                        <span class="date-badge-month" id="dateBadgeMonth">JAN</span>
-                        <span class="date-badge-day" id="dateBadgeDay">15</span>
-                        <span class="date-badge-weekday" id="dateBadgeWeekday">Wednesday</span>
+                <div class="date-nav-center">
+                    <button type="button" class="nav-arrow" id="prevDate">&#8592;</button>
+                    <div class="date-display-container" id="dateDisplayContainer">
+                        <div class="date-badge" id="dateBadge">
+                            <span class="date-badge-month" id="dateBadgeMonth">JAN</span>
+                            <span class="date-badge-day" id="dateBadgeDay">15</span>
+                            <span class="date-badge-weekday" id="dateBadgeWeekday">Wednesday</span>
+                        </div>
                     </div>
+                    <button type="button" class="nav-arrow" id="nextDate">&#8594;</button>
                 </div>
-                <button type="button" class="nav-arrow" id="nextDate">&#8594;</button>
                 <button type="button" class="today-btn" id="todayBtn">Today</button>
             </div>
 
@@ -3457,16 +3491,18 @@
             // Update display
             updateDateDisplay();
 
-            // Check if target month is already loaded
+            // Always re-render the grid view (desktop)
+            renderMonthGridView();
+
+            // For mobile: Check if target month is already loaded in infinite scroll
             const targetHeader = monthList.querySelector(`.month-header-separator[data-month="${targetMonth}"][data-year="${targetYear}"]`);
 
             if (targetHeader) {
                 // Scroll to it
                 targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
-                // Re-render with new center month
+                // Re-render mobile view with new center month
                 renderMonthListView();
-                renderMonthGridView();
             }
         }
 
