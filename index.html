@@ -1103,8 +1103,8 @@
         }
 
         .month-task-checkbox {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border: 1.5px solid #404040;
             border-radius: 2px;
             flex-shrink: 0;
@@ -1112,6 +1112,34 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Larger touch target for month view checkboxes */
+        .month-task-checkbox::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        @media (hover: hover) {
+            .month-task-checkbox:hover {
+                border-color: #525252;
+            }
+            .month-task-checkbox.checked:hover {
+                background: #2563eb;
+                border-color: #2563eb;
+            }
+        }
+
+        .month-task-checkbox:active {
+            transform: scale(0.85);
         }
 
         .month-task-checkbox.checked {
@@ -1121,7 +1149,7 @@
 
         .month-task-checkbox.checked::after {
             content: '';
-            width: 5px;
+            width: 6px;
             height: 3px;
             border: 1.5px solid #ffffff;
             border-top: none;
@@ -1312,7 +1340,34 @@
             justify-content: center;
             transition: all 0.2s ease;
             flex-shrink: 0;
-            pointer-events: none;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Larger touch target for mobile (44x44px minimum) */
+        .task-checkbox::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+        }
+
+        @media (hover: hover) {
+            .task-checkbox:hover {
+                border-color: #525252;
+            }
+            .task-checkbox.checked:hover {
+                background: #2563eb;
+                border-color: #2563eb;
+            }
+        }
+
+        .task-checkbox:active {
+            transform: scale(0.9);
         }
 
         .task-checkbox.checked {
@@ -3311,22 +3366,11 @@
                 <button type="button" class="delete-button">&times;</button>
             `;
 
-            // Event listeners
-            let touchHandled = false;
-
-            taskItem.addEventListener('touchend', function(e) {
-                if (e.target.classList.contains('delete-button')) return;
-                e.preventDefault();
-                touchHandled = true;
-                toggleTask(this);
-                setTimeout(() => { touchHandled = false; }, 300);
-            }, { passive: false });
-
-            taskItem.addEventListener('click', function(e) {
-                if (e.target.classList.contains('delete-button')) return;
-                if (!touchHandled) {
-                    toggleTask(this);
-                }
+            // Event listeners - checkbox only toggles completion
+            const checkbox = taskItem.querySelector('.task-checkbox');
+            checkbox.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTask(taskItem);
             });
 
             const deleteBtn = taskItem.querySelector('.delete-button');
@@ -4206,8 +4250,8 @@
                         preview.appendChild(text);
                         preview.appendChild(deleteBtn);
 
-                        // Click to toggle completion
-                        preview.addEventListener('click', (e) => {
+                        // Only checkbox toggles completion
+                        checkbox.addEventListener('click', (e) => {
                             e.stopPropagation();
                             toggleGridTask(preview);
                         });
