@@ -406,26 +406,102 @@
             gap: 0;
         }
 
+        /* Month Header Separator */
+        .month-header-separator {
+            padding: 1rem 0.75rem 0.5rem;
+            text-align: center;
+            scroll-margin-top: 12rem;
+        }
+
+        .month-header-separator:first-child {
+            padding-top: 0.5rem;
+        }
+
+        .month-header-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #525252;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .month-header-separator.current .month-header-title {
+            color: #3b82f6;
+        }
+
+        /* Month Block Container */
+        .month-block {
+            background: #0f0f0f;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Week Separator */
+        .week-separator {
+            height: 1px;
+            background: #262626;
+            margin: 0.25rem 0.75rem;
+        }
+
         /* Compact date section with tasks */
         .month-date-section {
             background: #0a0a0a;
             border-bottom: 1px solid #1a1a1a;
             scroll-margin-top: 10rem;
-        }
-
-        .month-date-section:first-child {
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s ease;
         }
 
         .month-date-section:last-child {
             border-bottom: none;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
         }
 
         .month-date-section.today {
             background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Hover effect for all date sections */
+        @media (hover: hover) {
+            .month-date-section:hover {
+                background: #0e0e0e;
+            }
+
+            .month-date-section:hover .month-date-header {
+                background: #121212;
+            }
+
+            .month-date-section.today:hover {
+                background: rgba(59, 130, 246, 0.08);
+            }
+
+            .month-date-section.today:hover .month-date-header {
+                background: rgba(59, 130, 246, 0.12);
+            }
+        }
+
+        .month-date-section:active {
+            background: #111111;
+        }
+
+        .month-date-section.today:active {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Add button indicator */
+        .month-add-indicator {
+            font-size: 0.9rem;
+            color: #333333;
+            margin-left: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        @media (hover: hover) {
+            .month-date-section:hover .month-add-indicator {
+                opacity: 1;
+            }
         }
 
         /* Compact header */
@@ -504,36 +580,10 @@
             margin-left: auto;
         }
 
-        .month-date-section.empty-section {
-            transition: background 0.15s ease;
-        }
-
         @media (hover: hover) {
-            .month-date-section.empty-section:hover {
-                background: #111111;
-            }
-
-            .month-date-section.empty-section:hover .month-date-header {
-                background: #141414;
-            }
-
             .month-date-section.empty-section:hover .month-empty-label {
                 color: #525252;
             }
-        }
-
-        .month-date-section.empty-section:active {
-            background: #141414;
-        }
-
-        .month-date-section.today.empty-section:hover,
-        .month-date-section.today.empty-section:active {
-            background: rgba(59, 130, 246, 0.08);
-        }
-
-        .month-date-section.today.empty-section:hover .month-date-header,
-        .month-date-section.today.empty-section:active .month-date-header {
-            background: rgba(59, 130, 246, 0.12);
         }
 
         /* Compact task container */
@@ -751,10 +801,6 @@
         @media (max-width: 599px) {
             .month-list {
                 display: flex;
-                background: #0f0f0f;
-                border: 1px solid #1a1a1a;
-                border-radius: 8px;
-                overflow: hidden;
             }
             .month-grid {
                 display: none !important;
@@ -1814,11 +1860,26 @@
             viewingMonth = viewingDate.getMonth();
             viewingYear = viewingDate.getFullYear();
             updateDateDisplay();
-            renderCurrentView();
+
+            if (currentView === 'month') {
+                // Check if today's month is already loaded
+                const todaySection = monthList.querySelector('.month-date-section.today');
+                if (todaySection) {
+                    todaySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    renderCurrentView();
+                }
+            } else {
+                renderCurrentView();
+            }
         }
 
         function updateDateDisplay() {
-            dateDisplay.textContent = formatDateForDisplay(viewingDate);
+            if (currentView === 'month') {
+                dateDisplay.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
+            } else {
+                dateDisplay.textContent = formatDateForDisplay(viewingDate);
+            }
 
             // Highlight Today button if viewing today
             const isToday = isSameDay(viewingDate, new Date());
@@ -2231,103 +2292,384 @@
             renderMonthGridView();
         }
 
-        // Mobile: Vertical scrollable list - Compact
+        // Track loaded month range for infinite scroll
+        let loadedMonthStart = null;
+        let loadedMonthEnd = null;
+        let monthScrollObserver = null;
+        let isLoadingMonths = false;
+
+        // Mobile: Vertical scrollable list - Compact with infinite scroll
         function renderMonthListView() {
             monthList.innerHTML = '';
 
-            const lastDay = new Date(viewingYear, viewingMonth + 1, 0);
-            const daysInMonth = lastDay.getDate();
+            // Initialize with 3 months: prev, current, next
+            loadedMonthStart = { month: viewingMonth - 1, year: viewingYear };
+            loadedMonthEnd = { month: viewingMonth + 1, year: viewingYear };
+
+            // Normalize months
+            if (loadedMonthStart.month < 0) {
+                loadedMonthStart.month = 11;
+                loadedMonthStart.year--;
+            }
+            if (loadedMonthEnd.month > 11) {
+                loadedMonthEnd.month = 0;
+                loadedMonthEnd.year++;
+            }
+
+            // Render all 3 months
+            renderMonthBlock(loadedMonthStart.year, loadedMonthStart.month);
+            renderMonthBlock(viewingYear, viewingMonth, true);
+            renderMonthBlock(loadedMonthEnd.year, loadedMonthEnd.month);
+
+            // Set up scroll observer
+            setupMonthScrollObserver();
+
+            // Scroll to current month
+            setTimeout(() => {
+                const currentMonthHeader = monthList.querySelector(`.month-header-separator[data-month="${viewingMonth}"][data-year="${viewingYear}"]`);
+                if (currentMonthHeader) {
+                    currentMonthHeader.scrollIntoView({ behavior: 'auto', block: 'start' });
+                }
+            }, 50);
+        }
+
+        // Render a single month block with header, dates, and week separators
+        function renderMonthBlock(year, month, isCurrent = false) {
             const today = new Date();
-            const isCurrentMonth = today.getMonth() === viewingMonth && today.getFullYear() === viewingYear;
+            const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+
+            // Month header separator
+            const monthHeader = document.createElement('div');
+            monthHeader.className = 'month-header-separator' + (isCurrent ? ' current' : '');
+            monthHeader.dataset.month = month;
+            monthHeader.dataset.year = year;
+
+            const headerTitle = document.createElement('div');
+            headerTitle.className = 'month-header-title';
+            headerTitle.textContent = `${monthNames[month]} ${year}`;
+            monthHeader.appendChild(headerTitle);
+
+            monthList.appendChild(monthHeader);
+
+            // Month block container
+            const monthBlock = document.createElement('div');
+            monthBlock.className = 'month-block';
+            monthBlock.dataset.month = month;
+            monthBlock.dataset.year = year;
+
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+
+            let lastWeekNum = -1;
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(viewingYear, viewingMonth, day);
+                const date = new Date(year, month, day);
                 const isToday = isCurrentMonth && day === today.getDate();
                 const dateStr = formatDateForInput(date);
                 const weekdayIndex = getWeekdayFromDate(date);
                 const tasksForDay = getTasksForDate(date);
                 const hasNoTasks = tasksForDay.length === 0;
 
-                const section = document.createElement('div');
-                section.className = 'month-date-section' + (isToday ? ' today' : '') + (hasNoTasks ? ' empty-section' : '');
-                section.dataset.date = dateStr;
+                // Calculate week number (week starts on Monday)
+                const weekNum = Math.floor((day + getWeekdayFromDate(new Date(year, month, 1)) - 1) / 7);
 
-                // Compact Header
-                const header = document.createElement('div');
-                header.className = 'month-date-header';
-
-                const title = document.createElement('div');
-                title.className = 'month-date-title';
-                title.innerHTML = `
-                    <span class="month-date-num">${day}</span>
-                    <span class="month-date-day">${dayAbbrev[weekdayIndex]}</span>
-                `;
-
-                header.appendChild(title);
-
-                // For today, show badge
-                if (isToday) {
-                    const badge = document.createElement('span');
-                    badge.className = 'month-date-badge';
-                    badge.textContent = 'Today';
-                    header.appendChild(badge);
+                // Add week separator
+                if (lastWeekNum >= 0 && weekNum > lastWeekNum) {
+                    const weekSep = document.createElement('div');
+                    weekSep.className = 'week-separator';
+                    monthBlock.appendChild(weekSep);
                 }
+                lastWeekNum = weekNum;
 
-                // For empty dates, show "No tasks" label inline
-                if (hasNoTasks && !isToday) {
-                    const emptyLabel = document.createElement('span');
-                    emptyLabel.className = 'month-empty-label';
-                    emptyLabel.textContent = 'No tasks';
-                    header.appendChild(emptyLabel);
-                }
-
-                // Task count badge for sections with tasks
-                if (!hasNoTasks) {
-                    const countBadge = document.createElement('span');
-                    countBadge.className = 'month-task-count';
-                    countBadge.textContent = `${tasksForDay.length} task${tasksForDay.length > 1 ? 's' : ''}`;
-                    header.appendChild(countBadge);
-                }
-
-                section.appendChild(header);
-
-                // Only add tasks container if there are tasks
-                if (!hasNoTasks) {
-                    const tasksContainer = document.createElement('div');
-                    tasksContainer.className = 'month-date-tasks';
-
-                    const tasksList = document.createElement('div');
-                    tasksList.className = 'day-tasks';
-
-                    tasksForDay.forEach(task => {
-                        const taskEl = createTaskElement(task, dateStr);
-                        tasksList.appendChild(taskEl);
-                    });
-
-                    tasksContainer.appendChild(tasksList);
-                    section.appendChild(tasksContainer);
-                }
-
-                // Make empty sections clickable to add task
-                if (hasNoTasks) {
-                    section.style.cursor = 'pointer';
-                    section.addEventListener('click', () => {
-                        openCreateTaskModal(dateStr);
-                    });
-                }
-
-                monthList.appendChild(section);
+                const section = createDateSection(date, dateStr, day, weekdayIndex, tasksForDay, isToday, hasNoTasks);
+                monthBlock.appendChild(section);
             }
 
-            // Scroll to today if in current month
-            if (isCurrentMonth) {
-                setTimeout(() => {
-                    const todaySection = monthList.querySelector('.month-date-section.today');
-                    if (todaySection) {
-                        todaySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            monthList.appendChild(monthBlock);
+        }
+
+        // Create a single date section element
+        function createDateSection(date, dateStr, day, weekdayIndex, tasksForDay, isToday, hasNoTasks) {
+            const section = document.createElement('div');
+            section.className = 'month-date-section' + (isToday ? ' today' : '') + (hasNoTasks ? ' empty-section' : '');
+            section.dataset.date = dateStr;
+
+            // Compact Header
+            const header = document.createElement('div');
+            header.className = 'month-date-header';
+
+            const title = document.createElement('div');
+            title.className = 'month-date-title';
+            title.innerHTML = `
+                <span class="month-date-num">${day}</span>
+                <span class="month-date-day">${dayAbbrev[weekdayIndex]}</span>
+            `;
+
+            header.appendChild(title);
+
+            // For today, show badge
+            if (isToday) {
+                const badge = document.createElement('span');
+                badge.className = 'month-date-badge';
+                badge.textContent = 'Today';
+                header.appendChild(badge);
+            }
+
+            // For empty dates, show "No tasks" label inline
+            if (hasNoTasks && !isToday) {
+                const emptyLabel = document.createElement('span');
+                emptyLabel.className = 'month-empty-label';
+                emptyLabel.textContent = 'No tasks';
+                header.appendChild(emptyLabel);
+            }
+
+            // Task count badge for sections with tasks
+            if (!hasNoTasks) {
+                const countBadge = document.createElement('span');
+                countBadge.className = 'month-task-count';
+                countBadge.textContent = `${tasksForDay.length} task${tasksForDay.length > 1 ? 's' : ''}`;
+                header.appendChild(countBadge);
+            }
+
+            // Add indicator (shows on hover)
+            const addIndicator = document.createElement('span');
+            addIndicator.className = 'month-add-indicator';
+            addIndicator.textContent = '+';
+            header.appendChild(addIndicator);
+
+            section.appendChild(header);
+
+            // Add tasks container if there are tasks
+            if (!hasNoTasks) {
+                const tasksContainer = document.createElement('div');
+                tasksContainer.className = 'month-date-tasks';
+
+                const tasksList = document.createElement('div');
+                tasksList.className = 'day-tasks';
+
+                tasksForDay.forEach(task => {
+                    const taskEl = createTaskElement(task, dateStr);
+                    tasksList.appendChild(taskEl);
+                });
+
+                tasksContainer.appendChild(tasksList);
+                section.appendChild(tasksContainer);
+            }
+
+            // Make entire section clickable for adding tasks
+            // But don't trigger when clicking on checkboxes, delete buttons, or task items
+            section.addEventListener('click', (e) => {
+                // Check if click was on an interactive element within a task
+                const taskItem = e.target.closest('.task-item');
+                if (taskItem) {
+                    // Let the task item handle its own click events
+                    return;
+                }
+                // Open task creation modal with this date pre-selected
+                openCreateTaskModal(dateStr);
+            });
+
+            return section;
+        }
+
+        // Set up intersection observer for infinite scroll and header updates
+        function setupMonthScrollObserver() {
+            if (monthScrollObserver) {
+                monthScrollObserver.disconnect();
+            }
+
+            // Observer for updating the header date display
+            const headerObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+                        const month = parseInt(entry.target.dataset.month);
+                        const year = parseInt(entry.target.dataset.year);
+                        if (!isNaN(month) && !isNaN(year)) {
+                            viewingMonth = month;
+                            viewingYear = year;
+                            dateDisplay.textContent = `${monthNames[month]} ${year}`;
+                        }
                     }
-                }, 100);
+                });
+            }, {
+                root: null,
+                threshold: 0.5,
+                rootMargin: '-100px 0px -50% 0px'
+            });
+
+            // Observe all month headers
+            monthList.querySelectorAll('.month-header-separator').forEach(header => {
+                headerObserver.observe(header);
+            });
+
+            // Observer for loading more months
+            const loadObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !isLoadingMonths) {
+                        const block = entry.target;
+                        const month = parseInt(block.dataset.month);
+                        const year = parseInt(block.dataset.year);
+
+                        if (month === loadedMonthStart.month && year === loadedMonthStart.year) {
+                            // Near top - load previous month
+                            loadPreviousMonth();
+                        } else if (month === loadedMonthEnd.month && year === loadedMonthEnd.year) {
+                            // Near bottom - load next month
+                            loadNextMonth();
+                        }
+                    }
+                });
+            }, {
+                root: null,
+                threshold: 0.1,
+                rootMargin: '200px 0px'
+            });
+
+            // Observe first and last month blocks
+            const blocks = monthList.querySelectorAll('.month-block');
+            if (blocks.length > 0) {
+                loadObserver.observe(blocks[0]);
+                loadObserver.observe(blocks[blocks.length - 1]);
             }
+
+            monthScrollObserver = { header: headerObserver, load: loadObserver };
+        }
+
+        // Load previous month at the top
+        function loadPreviousMonth() {
+            isLoadingMonths = true;
+
+            let newMonth = loadedMonthStart.month - 1;
+            let newYear = loadedMonthStart.year;
+            if (newMonth < 0) {
+                newMonth = 11;
+                newYear--;
+            }
+
+            // Create elements for the new month
+            const fragment = document.createDocumentFragment();
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === newMonth && today.getFullYear() === newYear;
+
+            // Month header
+            const monthHeader = document.createElement('div');
+            monthHeader.className = 'month-header-separator';
+            monthHeader.dataset.month = newMonth;
+            monthHeader.dataset.year = newYear;
+            const headerTitle = document.createElement('div');
+            headerTitle.className = 'month-header-title';
+            headerTitle.textContent = `${monthNames[newMonth]} ${newYear}`;
+            monthHeader.appendChild(headerTitle);
+            fragment.appendChild(monthHeader);
+
+            // Month block
+            const monthBlock = document.createElement('div');
+            monthBlock.className = 'month-block';
+            monthBlock.dataset.month = newMonth;
+            monthBlock.dataset.year = newYear;
+
+            const lastDay = new Date(newYear, newMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            let lastWeekNum = -1;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(newYear, newMonth, day);
+                const isToday = isCurrentMonth && day === today.getDate();
+                const dateStr = formatDateForInput(date);
+                const weekdayIndex = getWeekdayFromDate(date);
+                const tasksForDay = getTasksForDate(date);
+                const hasNoTasks = tasksForDay.length === 0;
+
+                const weekNum = Math.floor((day + getWeekdayFromDate(new Date(newYear, newMonth, 1)) - 1) / 7);
+                if (lastWeekNum >= 0 && weekNum > lastWeekNum) {
+                    const weekSep = document.createElement('div');
+                    weekSep.className = 'week-separator';
+                    monthBlock.appendChild(weekSep);
+                }
+                lastWeekNum = weekNum;
+
+                const section = createDateSection(date, dateStr, day, weekdayIndex, tasksForDay, isToday, hasNoTasks);
+                monthBlock.appendChild(section);
+            }
+
+            fragment.appendChild(monthBlock);
+
+            // Insert at beginning
+            monthList.insertBefore(fragment, monthList.firstChild);
+
+            // Update loaded range
+            loadedMonthStart = { month: newMonth, year: newYear };
+
+            // Update observers
+            setupMonthScrollObserver();
+
+            isLoadingMonths = false;
+        }
+
+        // Load next month at the bottom
+        function loadNextMonth() {
+            isLoadingMonths = true;
+
+            let newMonth = loadedMonthEnd.month + 1;
+            let newYear = loadedMonthEnd.year;
+            if (newMonth > 11) {
+                newMonth = 0;
+                newYear++;
+            }
+
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === newMonth && today.getFullYear() === newYear;
+
+            // Month header
+            const monthHeader = document.createElement('div');
+            monthHeader.className = 'month-header-separator';
+            monthHeader.dataset.month = newMonth;
+            monthHeader.dataset.year = newYear;
+            const headerTitle = document.createElement('div');
+            headerTitle.className = 'month-header-title';
+            headerTitle.textContent = `${monthNames[newMonth]} ${newYear}`;
+            monthHeader.appendChild(headerTitle);
+            monthList.appendChild(monthHeader);
+
+            // Month block
+            const monthBlock = document.createElement('div');
+            monthBlock.className = 'month-block';
+            monthBlock.dataset.month = newMonth;
+            monthBlock.dataset.year = newYear;
+
+            const lastDay = new Date(newYear, newMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            let lastWeekNum = -1;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(newYear, newMonth, day);
+                const isToday = isCurrentMonth && day === today.getDate();
+                const dateStr = formatDateForInput(date);
+                const weekdayIndex = getWeekdayFromDate(date);
+                const tasksForDay = getTasksForDate(date);
+                const hasNoTasks = tasksForDay.length === 0;
+
+                const weekNum = Math.floor((day + getWeekdayFromDate(new Date(newYear, newMonth, 1)) - 1) / 7);
+                if (lastWeekNum >= 0 && weekNum > lastWeekNum) {
+                    const weekSep = document.createElement('div');
+                    weekSep.className = 'week-separator';
+                    monthBlock.appendChild(weekSep);
+                }
+                lastWeekNum = weekNum;
+
+                const section = createDateSection(date, dateStr, day, weekdayIndex, tasksForDay, isToday, hasNoTasks);
+                monthBlock.appendChild(section);
+            }
+
+            monthList.appendChild(monthBlock);
+
+            // Update loaded range
+            loadedMonthEnd = { month: newMonth, year: newYear };
+
+            // Update observers
+            setupMonthScrollObserver();
+
+            isLoadingMonths = false;
         }
 
         // Desktop: 7-column grid with task previews
@@ -2757,16 +3099,35 @@
         }
 
         function changeMonth(delta) {
-            viewingMonth += delta;
-            if (viewingMonth > 11) {
-                viewingMonth = 0;
-                viewingYear++;
-            } else if (viewingMonth < 0) {
-                viewingMonth = 11;
-                viewingYear--;
+            let targetMonth = viewingMonth + delta;
+            let targetYear = viewingYear;
+
+            if (targetMonth > 11) {
+                targetMonth = 0;
+                targetYear++;
+            } else if (targetMonth < 0) {
+                targetMonth = 11;
+                targetYear--;
             }
+
+            viewingMonth = targetMonth;
+            viewingYear = targetYear;
             viewingDate = new Date(viewingYear, viewingMonth, 1);
-            renderMonthView();
+
+            // Update display
+            dateDisplay.textContent = `${monthNames[viewingMonth]} ${viewingYear}`;
+
+            // Check if target month is already loaded
+            const targetHeader = monthList.querySelector(`.month-header-separator[data-month="${targetMonth}"][data-year="${targetYear}"]`);
+
+            if (targetHeader) {
+                // Scroll to it
+                targetHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                // Re-render with new center month
+                renderMonthListView();
+                renderMonthGridView();
+            }
         }
 
         // Initialize
