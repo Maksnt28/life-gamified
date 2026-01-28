@@ -3309,6 +3309,82 @@
             }
         }
 
+        // Update only a specific date section in Month view (avoids scroll reset)
+        function updateMonthDateSection(dateStr) {
+            const section = monthList.querySelector(`.month-date-section[data-date="${dateStr}"]`);
+            if (!section) return false;
+
+            // Parse the date
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            const tasksForDay = getTasksForDate(date);
+            const hasNoTasks = tasksForDay.length === 0;
+
+            // Update section classes
+            section.classList.toggle('empty-section', hasNoTasks);
+
+            // Update task count badge
+            const countBadge = section.querySelector('.month-task-count');
+            const emptyLabel = section.querySelector('.month-empty-label');
+            const header = section.querySelector('.month-date-header');
+            const isToday = section.classList.contains('today');
+
+            if (hasNoTasks) {
+                // Remove count badge if exists
+                if (countBadge) countBadge.remove();
+                // Add empty label if not today and doesn't exist
+                if (!isToday && !emptyLabel) {
+                    const addIndicator = header.querySelector('.month-add-indicator');
+                    const newEmptyLabel = document.createElement('span');
+                    newEmptyLabel.className = 'month-empty-label';
+                    newEmptyLabel.textContent = 'No tasks';
+                    header.insertBefore(newEmptyLabel, addIndicator);
+                }
+            } else {
+                // Remove empty label if exists
+                if (emptyLabel) emptyLabel.remove();
+                // Update or create count badge
+                if (countBadge) {
+                    countBadge.textContent = `${tasksForDay.length} task${tasksForDay.length > 1 ? 's' : ''}`;
+                } else {
+                    const addIndicator = header.querySelector('.month-add-indicator');
+                    const newCountBadge = document.createElement('span');
+                    newCountBadge.className = 'month-task-count';
+                    newCountBadge.textContent = `${tasksForDay.length} task${tasksForDay.length > 1 ? 's' : ''}`;
+                    header.insertBefore(newCountBadge, addIndicator);
+                }
+            }
+
+            // Update tasks container
+            let tasksContainer = section.querySelector('.month-date-tasks');
+
+            if (hasNoTasks) {
+                // Remove tasks container if exists
+                if (tasksContainer) tasksContainer.remove();
+            } else {
+                // Create container if doesn't exist
+                if (!tasksContainer) {
+                    tasksContainer = document.createElement('div');
+                    tasksContainer.className = 'month-date-tasks';
+                    section.appendChild(tasksContainer);
+                }
+
+                // Rebuild task list
+                tasksContainer.innerHTML = '';
+                const tasksList = document.createElement('div');
+                tasksList.className = 'day-tasks';
+
+                tasksForDay.forEach(task => {
+                    const taskEl = createTaskElement(task, dateStr);
+                    tasksList.appendChild(taskEl);
+                });
+
+                tasksContainer.appendChild(tasksList);
+            }
+
+            return true;
+        }
+
         // Day View
         function renderDayView() {
             const dateStr = formatDateForInput(viewingDate);
@@ -3477,7 +3553,15 @@
 
             updateLevelDisplay();
             saveData();
-            renderCurrentView();
+
+            // In Month view, update only the affected date section to avoid scroll reset
+            if (currentView === 'month' && dateStr) {
+                if (!updateMonthDateSection(dateStr)) {
+                    renderCurrentView();
+                }
+            } else {
+                renderCurrentView();
+            }
             closeDeleteModal();
         }
 
@@ -3487,13 +3571,31 @@
             const { taskId, dailyId } = pendingDeleteContext;
             const completionKey = dailyId || taskId;
 
-            deleteTaskCompletely(taskId, completionKey);
+            // For Month view, save scroll position before deletion
+            const isMonthView = currentView === 'month';
+            const savedScrollY = isMonthView ? window.scrollY : 0;
+
+            // Skip render in deleteTaskCompletely for Month view - we'll handle it with scroll preservation
+            deleteTaskCompletely(taskId, completionKey, isMonthView);
+
+            // For Month view, render with scroll position preservation
+            if (isMonthView) {
+                renderCurrentView();
+                requestAnimationFrame(() => {
+                    window.scrollTo(0, savedScrollY);
+                });
+            }
+
             closeDeleteModal();
         }
 
-        function deleteTaskCompletely(taskId, completionKey = null) {
+        function deleteTaskCompletely(taskId, completionKey = null, skipRender = false) {
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
+
+            // Save task date for one-time tasks before deletion (for targeted Month view update)
+            const isOneTimeTask = task.type === 'onetime';
+            const taskDate = isOneTimeTask ? task.date : null;
 
             const key = completionKey || task.dailyId || taskId;
 
@@ -3528,7 +3630,18 @@
 
             updateLevelDisplay();
             saveData();
-            renderCurrentView();
+
+            // Skip render if caller will handle it (e.g., deleteAllDays with scroll preservation)
+            if (!skipRender) {
+                // In Month view, use targeted update for one-time tasks to avoid scroll reset
+                if (currentView === 'month' && isOneTimeTask && taskDate) {
+                    if (!updateMonthDateSection(taskDate)) {
+                        renderCurrentView();
+                    }
+                } else {
+                    renderCurrentView();
+                }
+            }
 
             // Close bottom sheet if open
             if (bottomSheet.classList.contains('open')) {
