@@ -357,6 +357,31 @@
             gap: 0.5rem;
         }
 
+        /* Click-to-add area for Day view */
+        .day-content {
+            cursor: pointer;
+        }
+
+        .day-add-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border: 1px dashed #262626;
+            border-radius: 8px;
+            color: #333333;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        @media (hover: hover) {
+            .day-add-hint:hover {
+                border-color: #404040;
+                color: #525252;
+            }
+        }
+
         /* Week View */
         .week-view-container {
             display: none;
@@ -662,6 +687,12 @@
                 display: flex;
             }
             .week-grid {
+                display: none !important;
+            }
+
+            /* Hide navigation arrows on mobile for Day/Week views (swipe gestures exist) */
+            body[data-view="day"] .nav-arrow,
+            body[data-view="week"] .nav-arrow {
                 display: none !important;
             }
         }
@@ -1005,16 +1036,48 @@
             border-radius: 4px;
             margin-bottom: 2px;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: all 0.2s ease;
             overflow: hidden;
+            position: relative;
         }
 
         .month-task-preview:hover {
             background: #1a1a1a;
         }
 
+        .month-task-preview:active {
+            transform: scale(0.98);
+        }
+
         .month-task-preview.completed {
-            opacity: 0.5;
+            opacity: 0.6;
+        }
+
+        .month-task-checkbox {
+            width: 10px;
+            height: 10px;
+            border: 1.5px solid #404040;
+            border-radius: 2px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .month-task-checkbox.checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .month-task-checkbox.checked::after {
+            content: '';
+            width: 5px;
+            height: 3px;
+            border: 1.5px solid #ffffff;
+            border-top: none;
+            border-right: none;
+            transform: rotate(-45deg) translateY(-0.5px);
         }
 
         .month-task-dot {
@@ -1023,6 +1086,7 @@
             border-radius: 50%;
             background: #404040;
             flex-shrink: 0;
+            display: none;
         }
 
         .month-task-preview.completed .month-task-dot {
@@ -1041,6 +1105,33 @@
         .month-task-preview.completed .month-task-text {
             text-decoration: line-through;
             color: #525252;
+        }
+
+        .month-task-delete {
+            width: 14px;
+            height: 14px;
+            background: transparent;
+            border: none;
+            color: #404040;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .month-task-preview:hover .month-task-delete {
+            opacity: 1;
+        }
+
+        .month-task-delete:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
         }
 
         .month-more-tasks {
@@ -2250,9 +2341,8 @@
             weekViewBtn.classList.remove('active');
             monthViewBtn.classList.remove('active');
 
-            // Show navigation arrows for all views
-            const arrows = dateNav.querySelectorAll('.nav-arrow');
-            arrows.forEach(a => a.style.display = 'flex');
+            // Update data attribute for CSS (used for arrow visibility on mobile)
+            document.body.dataset.view = view;
 
             if (view === 'day') {
                 dayViewContainer.classList.add('active');
@@ -2263,6 +2353,11 @@
                 weekViewBtn.classList.add('active');
                 renderWeekView();
             } else {
+                // Month view: Update viewingMonth/viewingYear based on viewingDate
+                // If viewing a week that spans two months, use the month of viewingDate
+                viewingMonth = viewingDate.getMonth();
+                viewingYear = viewingDate.getFullYear();
+
                 monthContainer.classList.add('active');
                 monthViewBtn.classList.add('active');
                 renderMonthView();
@@ -2291,13 +2386,22 @@
 
             if (tasksForDay.length === 0) {
                 dayTasks.innerHTML = '<div class="empty-day">No tasks for this day</div>';
-                return;
+            } else {
+                tasksForDay.forEach(task => {
+                    const taskEl = createTaskElement(task, dateStr);
+                    dayTasks.appendChild(taskEl);
+                });
             }
 
-            tasksForDay.forEach(task => {
-                const taskEl = createTaskElement(task, dateStr);
-                dayTasks.appendChild(taskEl);
+            // Add hint for click-to-add
+            const addHint = document.createElement('div');
+            addHint.className = 'day-add-hint';
+            addHint.textContent = '+ Tap to add task';
+            addHint.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openCreateTaskModal(dateStr);
             });
+            dayTasks.appendChild(addHint);
         }
 
         function createTaskElement(task, dateStr) {
@@ -2486,6 +2590,60 @@
             deleteModal.classList.remove('active');
             pendingDeleteTask = null;
             pendingDeleteContext = null;
+        }
+
+        // Toggle task completion in month grid view
+        function toggleGridTask(preview) {
+            const taskId = preview.dataset.taskId;
+            const dateStr = preview.dataset.dateStr;
+            const dailyId = preview.dataset.dailyId;
+
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const completionKey = dailyId || taskId;
+            const completionDate = task.type === 'onetime' ? task.date : dateStr;
+            const wasCompleted = isTaskCompletedForDate(completionKey, completionDate);
+            const isNowCompleted = !wasCompleted;
+
+            setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
+
+            // Update UI
+            const checkbox = preview.querySelector('.month-task-checkbox');
+            const text = preview.querySelector('.month-task-text');
+            checkbox.classList.toggle('checked', isNowCompleted);
+            preview.classList.toggle('completed', isNowCompleted);
+
+            // Update XP
+            totalXp += isNowCompleted ? 10 : -10;
+            if (totalXp < 0) totalXp = 0;
+            updateLevelDisplay();
+
+            saveData();
+        }
+
+        // Handle delete for grid task preview
+        function handleGridTaskDelete(preview) {
+            const taskId = preview.dataset.taskId;
+            const dailyId = preview.dataset.dailyId;
+            const dateStr = preview.dataset.dateStr;
+            const type = preview.dataset.type;
+
+            if (dailyId || type === 'daily' || type === 'custom') {
+                // Recurring task - show modal
+                pendingDeleteTask = preview;
+                pendingDeleteContext = { taskId, dailyId, dateStr, type };
+
+                const task = tasks.find(t => t.id === taskId);
+                const label = getPatternLabel(task?.pattern);
+
+                modalTitle.textContent = 'Delete Repeating Task';
+                modalText.textContent = `This task repeats (${label}). How would you like to delete it?`;
+                deleteModal.classList.add('active');
+            } else {
+                // One-time task - delete directly
+                deleteTaskCompletely(taskId);
+            }
         }
 
         // Week View
@@ -3097,16 +3255,40 @@
                     tasksToShow.forEach(task => {
                         const preview = document.createElement('div');
                         preview.className = 'month-task-preview' + (task.completed ? ' completed' : '');
+                        preview.dataset.taskId = task.id;
+                        preview.dataset.dateStr = dateStr;
+                        if (task.dailyId) preview.dataset.dailyId = task.dailyId;
+                        if (task.pattern) preview.dataset.pattern = task.pattern;
+                        if (task.type) preview.dataset.type = task.type;
 
-                        const dot = document.createElement('span');
-                        dot.className = 'month-task-dot';
+                        // Checkbox
+                        const checkbox = document.createElement('span');
+                        checkbox.className = 'month-task-checkbox' + (task.completed ? ' checked' : '');
 
                         const text = document.createElement('span');
                         text.className = 'month-task-text';
                         text.textContent = task.name;
 
-                        preview.appendChild(dot);
+                        // Delete button
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.type = 'button';
+                        deleteBtn.className = 'month-task-delete';
+                        deleteBtn.innerHTML = '&times;';
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            handleGridTaskDelete(preview);
+                        });
+
+                        preview.appendChild(checkbox);
                         preview.appendChild(text);
+                        preview.appendChild(deleteBtn);
+
+                        // Click to toggle completion
+                        preview.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            toggleGridTask(preview);
+                        });
+
                         dayCell.appendChild(preview);
                     });
 
@@ -3114,13 +3296,19 @@
                         const moreBtn = document.createElement('div');
                         moreBtn.className = 'month-more-tasks';
                         moreBtn.textContent = `+${tasksForDay.length - maxVisible} more`;
+                        moreBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            openBottomSheet(dateStr);
+                        });
                         dayCell.appendChild(moreBtn);
                     }
                 }
 
-                // Click to open bottom sheet
-                dayCell.addEventListener('click', () => {
-                    openBottomSheet(dateStr);
+                // Click on empty space to open bottom sheet
+                dayCell.addEventListener('click', (e) => {
+                    if (!e.target.closest('.month-task-preview')) {
+                        openBottomSheet(dateStr);
+                    }
                 });
 
                 monthGrid.appendChild(dayCell);
@@ -3271,6 +3459,7 @@
 
         // Swipe Gestures for Day View
         function setupSwipeGestures() {
+            // Day view swipe
             dayViewContainer.addEventListener('touchstart', e => {
                 touchStartX = e.changedTouches[0].screenX;
                 touchStartY = e.changedTouches[0].screenY;
@@ -3279,11 +3468,23 @@
             dayViewContainer.addEventListener('touchend', e => {
                 touchEndX = e.changedTouches[0].screenX;
                 touchEndY = e.changedTouches[0].screenY;
-                handleSwipe();
+                handleDaySwipe();
+            }, { passive: true });
+
+            // Week view swipe
+            weekViewContainer.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+
+            weekViewContainer.addEventListener('touchend', e => {
+                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
+                handleWeekSwipe();
             }, { passive: true });
         }
 
-        function handleSwipe() {
+        function handleDaySwipe() {
             const diffX = touchStartX - touchEndX;
             const diffY = touchStartY - touchEndY;
 
@@ -3293,6 +3494,20 @@
                     navigateDay(1); // Swipe left → next day
                 } else {
                     navigateDay(-1); // Swipe right → previous day
+                }
+            }
+        }
+
+        function handleWeekSwipe() {
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            // Only register horizontal swipes (not vertical scrolling)
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD) {
+                if (diffX > 0) {
+                    navigateWeek(1); // Swipe left → next week
+                } else {
+                    navigateWeek(-1); // Swipe right → previous week
                 }
             }
         }
