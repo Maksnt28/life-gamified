@@ -2123,6 +2123,51 @@
             transform: scale(0.99);
         }
 
+        /* Plan view inline task input */
+        .plan-inline-input-container {
+            padding: 0 20px;
+            margin-bottom: 8px;
+        }
+
+        .plan-inline-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.9375rem;
+            color: #e5e5e5;
+            outline: none;
+            transition: all 0.15s ease;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .plan-inline-input::placeholder {
+            color: #404040;
+        }
+
+        .plan-inline-input:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* New task animation */
+        .plan-task-item.new-task {
+            animation: planTaskSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes planTaskSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Mobile optimization for Plan view */
         @media (max-width: 480px) {
             .plan-header {
@@ -2146,13 +2191,23 @@
                 padding: 12px 16px;
             }
 
+            .plan-inline-input-container {
+                padding: 0 16px;
+            }
+
+            .plan-inline-input {
+                font-size: 16px; /* Prevents iOS zoom on focus */
+                padding: 14px 16px;
+                min-height: 48px; /* Easy tap target */
+            }
+
             .plan-day-tasks {
                 padding: 8px 16px 0;
             }
 
             .plan-add-btn {
-                margin: 8px 16px 16px;
-                width: calc(100% - 32px);
+                margin: 8px 0 16px;
+                width: 100%;
             }
         }
 
@@ -2170,13 +2225,25 @@
                 padding: 16px 24px;
             }
 
+            .plan-inline-input-container {
+                padding: 0 24px;
+            }
+
             .plan-day-tasks {
                 padding: 8px 24px 0;
             }
 
             .plan-add-btn {
-                margin: 8px 24px 20px;
-                width: calc(100% - 48px);
+                margin: 8px 0 20px;
+                width: 100%;
+            }
+
+            .plan-day-section {
+                max-width: 800px;
+            }
+
+            .plan-days {
+                padding: 0 24px 100px;
             }
         }
 
@@ -3947,6 +4014,9 @@
 
             currentView = view;
 
+            // Scroll to top when switching views
+            window.scrollTo(0, 0);
+
             // Update data attribute for CSS (used for arrow visibility on mobile)
             document.body.dataset.view = view;
 
@@ -5236,27 +5306,42 @@
 
                 section.appendChild(header);
 
+                // Inline input container
+                const inputContainer = document.createElement('div');
+                inputContainer.className = 'plan-inline-input-container';
+
+                const inlineInput = document.createElement('input');
+                inlineInput.type = 'text';
+                inlineInput.className = 'plan-inline-input';
+                inlineInput.placeholder = `+ Add task to ${dayNames[date.getDay()]}...`;
+                inlineInput.dataset.date = dateStr;
+
+                inlineInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && inlineInput.value.trim()) {
+                        addQuickPlanTask(inlineInput.value.trim(), dateStr);
+                        inlineInput.value = '';
+                    }
+                });
+
+                inputContainer.appendChild(inlineInput);
+                section.appendChild(inputContainer);
+
                 // Tasks container
                 const tasksContainer = document.createElement('div');
                 tasksContainer.className = 'plan-day-tasks';
 
-                if (tasksForDay.length === 0) {
-                    const emptyMsg = document.createElement('div');
-                    emptyMsg.className = 'plan-empty-day';
-                    emptyMsg.textContent = 'No tasks planned';
-                    tasksContainer.appendChild(emptyMsg);
-                } else {
+                if (tasksForDay.length > 0) {
                     tasksForDay.forEach(task => {
                         const taskEl = createPlanTaskElement(task, dateStr);
                         tasksContainer.appendChild(taskEl);
                     });
                 }
 
-                // Add task button
+                // Add task button for full options
                 const addBtn = document.createElement('button');
                 addBtn.type = 'button';
                 addBtn.className = 'plan-add-btn';
-                addBtn.textContent = '+ Add task';
+                addBtn.textContent = '+ Add with options';
                 addBtn.addEventListener('click', () => {
                     openCreateTaskModal(dateStr);
                 });
@@ -5338,6 +5423,9 @@
             taskEl.appendChild(popup);
             setTimeout(() => popup.remove(), 1000);
 
+            // Update week stats
+            updatePlanWeekStats();
+
             // Update XP
             totalXp += isNowCompleted ? 10 : -10;
             if (totalXp < 0) totalXp = 0;
@@ -5362,6 +5450,79 @@
         function goToPlanCurrentWeek() {
             planViewingDate = new Date();
             renderPlanView();
+        }
+
+        function addQuickPlanTask(taskName, dateStr) {
+            const taskId = 'task-' + (++taskIdCounter);
+
+            const newTask = {
+                id: taskId,
+                name: taskName,
+                type: 'onetime',
+                category: 'general',
+                date: dateStr
+            };
+
+            tasks.push(newTask);
+            saveData();
+
+            // Find the day section and add task with animation
+            const daySection = planDays.querySelector(`.plan-day-section[data-date="${dateStr}"]`);
+            if (daySection) {
+                const tasksContainer = daySection.querySelector('.plan-day-tasks');
+                const addBtn = tasksContainer.querySelector('.plan-add-btn');
+
+                // Create task element with completed status
+                const taskWithStatus = {
+                    ...newTask,
+                    completed: false
+                };
+                const taskEl = createPlanTaskElement(taskWithStatus, dateStr);
+                taskEl.classList.add('new-task');
+
+                // Insert before the add button
+                tasksContainer.insertBefore(taskEl, addBtn);
+
+                // Update day count in header
+                const dayHeader = daySection.querySelector('.plan-day-header');
+                let dayCount = dayHeader.querySelector('.plan-day-count');
+                const currentTasks = tasksContainer.querySelectorAll('.plan-task-item').length;
+
+                if (dayCount) {
+                    dayCount.textContent = `${currentTasks} task${currentTasks !== 1 ? 's' : ''}`;
+                } else {
+                    dayCount = document.createElement('span');
+                    dayCount.className = 'plan-day-count';
+                    dayCount.textContent = `${currentTasks} task${currentTasks !== 1 ? 's' : ''}`;
+                    dayHeader.appendChild(dayCount);
+                }
+
+                // Update week stats
+                updatePlanWeekStats();
+
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    taskEl.classList.remove('new-task');
+                }, 300);
+            }
+
+            // Keep focus on the input for continuous adding
+            const input = planDays.querySelector(`.plan-inline-input[data-date="${dateStr}"]`);
+            if (input) input.focus();
+        }
+
+        function updatePlanWeekStats() {
+            const weekDates = getPlanWeekDates(planViewingDate);
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            weekDates.forEach(date => {
+                const tasksForDay = getTasksForDate(date);
+                totalTasks += tasksForDay.length;
+                completedTasks += tasksForDay.filter(t => t.completed).length;
+            });
+
+            planWeekStats.innerHTML = `<span class="plan-stats-text">${completedTasks} of ${totalTasks} tasks completed this week</span>`;
         }
 
         // Stats View
