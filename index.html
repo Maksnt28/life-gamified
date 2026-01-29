@@ -299,9 +299,10 @@
             color: #e5e5e5;
         }
 
-        /* Day View */
+        /* Day View - Optimized for fast switching */
         .day-view-container {
             display: none;
+            content-visibility: auto;
         }
 
         .day-view-container.active {
@@ -314,7 +315,6 @@
             border-radius: 12px;
             padding: 1rem;
             min-height: 300px;
-            animation: slideIn 0.2s ease;
         }
 
         .day-content.slide-left {
@@ -389,9 +389,10 @@
             }
         }
 
-        /* Week View */
+        /* Week View - Optimized for fast switching */
         .week-view-container {
             display: none;
+            content-visibility: auto;
         }
 
         .week-view-container.active {
@@ -741,9 +742,10 @@
             }
         }
 
-        /* Month View */
+        /* Month View - Optimized for fast switching */
         .month-container {
             display: none;
+            content-visibility: auto;
         }
 
         .month-container.active {
@@ -1868,51 +1870,49 @@
             color: #ef4444;
         }
 
-        /* Notes Icon on Tasks */
-        .notes-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            color: #525252;
+        /* All task names are clickable for notes */
+        .task-name {
             cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-            margin-right: 6px;
+            pointer-events: auto;
         }
 
-        .notes-icon svg {
-            width: 14px;
-            height: 14px;
+        .month-task-text {
+            cursor: pointer;
+            pointer-events: auto;
         }
 
-        @media (hover: hover) {
-            .notes-icon:hover {
-                color: #a3a3a3;
-                background: rgba(255, 255, 255, 0.05);
+        /* Notes View Modal - Premium Design */
+        .notes-modal {
+            background: #171717;
+            border: 1px solid #2a2a2a;
+            border-radius: 20px;
+            width: calc(100% - 2rem);
+            max-width: 440px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            animation: notesModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            box-sizing: border-box;
+            margin: 0 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        @keyframes notesModalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
             }
         }
 
-        /* Notes View Modal */
-        .notes-modal {
-            background: #141414;
-            border: 1px solid #262626;
-            border-radius: 16px;
-            width: calc(100% - 2rem);
-            max-width: 420px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            animation: modalSlide 0.2s ease;
-            box-sizing: border-box;
-            margin: 0 1rem;
-        }
-
         .notes-modal-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid #262626;
+            padding: 1.25rem 1.5rem;
+            background: #1a1a1a;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
@@ -1920,9 +1920,9 @@
         }
 
         .notes-modal-title {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #e5e5e5;
+            color: #f5f5f5;
             line-height: 1.4;
             word-break: break-word;
         }
@@ -1930,13 +1930,13 @@
         .notes-modal-close {
             width: 32px;
             height: 32px;
-            background: transparent;
+            background: #262626;
             border: none;
             color: #737373;
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            border-radius: 6px;
-            transition: all 0.2s ease;
+            border-radius: 8px;
+            transition: all 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1945,51 +1945,73 @@
 
         @media (hover: hover) {
             .notes-modal-close:hover {
-                background: #262626;
+                background: #333333;
                 color: #e5e5e5;
             }
         }
 
         .notes-modal-body {
-            padding: 1.25rem;
+            padding: 1.5rem;
             overflow-y: auto;
             flex: 1;
+            background: #141414;
         }
 
-        .notes-modal-content {
+        .notes-modal-textarea {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #333333;
+            border-radius: 10px;
+            padding: 1rem;
             font-size: 0.95rem;
-            color: #d4d4d4;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
+            color: #e5e5e5;
+            outline: none;
+            transition: border-color 0.2s ease;
+            resize: vertical;
+            min-height: 150px;
+            font-family: inherit;
+            line-height: 1.7;
+        }
+
+        .notes-modal-textarea:focus {
+            border-color: #3b82f6;
         }
 
         .notes-modal-footer {
-            padding: 1rem 1.25rem;
-            border-top: 1px solid #262626;
+            padding: 1rem 1.5rem;
+            background: #1a1a1a;
             display: flex;
             gap: 0.75rem;
         }
 
         .notes-modal-btn {
             flex: 1;
-            padding: 0.75rem;
+            padding: 0.875rem 1rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .notes-modal-btn:active {
+            transform: scale(0.98);
         }
 
         .notes-modal-btn-secondary {
             background: #262626;
-            color: #e5e5e5;
+            color: #d4d4d4;
         }
 
         @media (hover: hover) {
             .notes-modal-btn-secondary:hover {
                 background: #333333;
+                color: #ffffff;
             }
         }
 
@@ -2264,9 +2286,10 @@
             pointer-events: none;
         }
 
-        /* Stats View */
+        /* Stats View - Optimized for fast switching */
         .stats-container {
             display: none;
+            content-visibility: auto;
         }
 
         .stats-container.active {
@@ -3039,7 +3062,7 @@
         </div>
     </div>
 
-    <!-- Notes View Modal -->
+    <!-- Notes Modal (Simplified) -->
     <div class="modal-overlay" id="notesModal">
         <div class="notes-modal">
             <div class="notes-modal-header">
@@ -3047,10 +3070,11 @@
                 <button type="button" class="notes-modal-close" id="notesModalClose">&times;</button>
             </div>
             <div class="notes-modal-body">
-                <div class="notes-modal-content" id="notesModalContent">Notes content here...</div>
+                <textarea class="notes-modal-textarea" id="notesModalTextarea" maxlength="500" rows="5" placeholder="Add notes, details, or reminders..."></textarea>
             </div>
             <div class="notes-modal-footer">
-                <button type="button" class="notes-modal-btn notes-modal-btn-secondary" id="notesModalCloseBtn">Close</button>
+                <button type="button" class="notes-modal-btn notes-modal-btn-secondary" id="notesModalCancelBtn">Cancel</button>
+                <button type="button" class="notes-modal-btn notes-modal-btn-primary" id="notesModalSaveBtn">Save</button>
             </div>
         </div>
     </div>
@@ -3127,9 +3151,10 @@
         const notesCharCount = document.getElementById('notesCharCount');
         const notesModal = document.getElementById('notesModal');
         const notesModalTitle = document.getElementById('notesModalTitle');
-        const notesModalContent = document.getElementById('notesModalContent');
+        const notesModalTextarea = document.getElementById('notesModalTextarea');
         const notesModalClose = document.getElementById('notesModalClose');
-        const notesModalCloseBtn = document.getElementById('notesModalCloseBtn');
+        const notesModalCancelBtn = document.getElementById('notesModalCancelBtn');
+        const notesModalSaveBtn = document.getElementById('notesModalSaveBtn');
         const deleteModal = document.getElementById('deleteModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalText = document.getElementById('modalText');
@@ -3175,7 +3200,6 @@
                            'July', 'August', 'September', 'October', 'November', 'December'];
 
         const repeatIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
-        const notesIconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`;
 
         // Category Colors
         const CATEGORY_COLORS = {
@@ -3470,8 +3494,17 @@
             todayBtn.classList.toggle('active', isToday);
         }
 
-        // View Management
+        // View Management - Optimized for fast switching
+        let lastRenderedView = null;
+        let viewRenderTimeout = null;
+
         function setView(view) {
+            // Cancel any pending render
+            if (viewRenderTimeout) {
+                cancelAnimationFrame(viewRenderTimeout);
+                viewRenderTimeout = null;
+            }
+
             currentView = view;
 
             // Update data attribute for CSS (used for arrow visibility on mobile)
@@ -3488,35 +3521,29 @@
                 updateDateDisplay();
             }
 
-            // Remove active classes
-            dayViewContainer.classList.remove('active');
-            weekViewContainer.classList.remove('active');
-            monthContainer.classList.remove('active');
-            statsContainer.classList.remove('active');
+            // Batch all classList operations for faster switching
+            const containers = [dayViewContainer, weekViewContainer, monthContainer, statsContainer];
+            const buttons = [dayViewBtn, weekViewBtn, monthViewBtn, statsViewBtn];
+            const viewMap = { day: 0, week: 1, month: 2, stats: 3 };
+            const viewIndex = viewMap[view];
 
-            dayViewBtn.classList.remove('active');
-            weekViewBtn.classList.remove('active');
-            monthViewBtn.classList.remove('active');
-            statsViewBtn.classList.remove('active');
+            // Single pass to update all classes
+            containers.forEach((c, i) => c.classList.toggle('active', i === viewIndex));
+            buttons.forEach((b, i) => b.classList.toggle('active', i === viewIndex));
 
-            // Activate the selected view
-            if (view === 'day') {
-                dayViewContainer.classList.add('active');
-                dayViewBtn.classList.add('active');
-                renderDayView();
-            } else if (view === 'week') {
-                weekViewContainer.classList.add('active');
-                weekViewBtn.classList.add('active');
-                renderWeekView();
-            } else if (view === 'stats') {
-                statsContainer.classList.add('active');
-                statsViewBtn.classList.add('active');
-                renderStatsView();
-            } else {
-                monthContainer.classList.add('active');
-                monthViewBtn.classList.add('active');
-                renderMonthView();
-            }
+            // Defer rendering to next frame for smoother transitions
+            viewRenderTimeout = requestAnimationFrame(() => {
+                if (view === 'day') {
+                    renderDayView();
+                } else if (view === 'week') {
+                    renderWeekView();
+                } else if (view === 'stats') {
+                    renderStatsView();
+                } else {
+                    renderMonthView();
+                }
+                lastRenderedView = view;
+            });
 
             localStorage.setItem(VIEW_STORAGE_KEY, view);
         }
@@ -3657,9 +3684,6 @@
                 badge = `<div class="task-badge">${repeatIcon}</div>`;
             }
 
-            // Notes icon (only if task has notes)
-            const notesIcon = task.notes ? `<span class="notes-icon" data-task-id="${task.id}" title="View notes">${notesIconSvg}</span>` : '';
-
             const checkedClass = task.completed ? ' checked' : '';
             const completedClass = task.completed ? ' completed' : '';
             const categoryColor = getCategoryColor(task.category);
@@ -3667,7 +3691,6 @@
             taskItem.innerHTML = `
                 <div class="task-checkbox${checkedClass}"></div>
                 <div class="category-indicator" style="background: ${categoryColor};"></div>
-                ${notesIcon}
                 <div class="task-content">
                     <span class="task-name${completedClass}">${escapeHtml(task.name)}</span>
                     ${badge}
@@ -3688,24 +3711,12 @@
                 handleDeleteTask(taskItem);
             });
 
-            // Notes icon click handler
-            const notesIconEl = taskItem.querySelector('.notes-icon');
-            if (notesIconEl) {
-                notesIconEl.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    openNotesModal(task.id);
-                });
-            }
-
-            // Task name click handler (opens notes if available)
-            if (task.notes) {
-                const taskContent = taskItem.querySelector('.task-content');
-                taskContent.style.cursor = 'pointer';
-                taskContent.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    openNotesModal(task.id);
-                });
-            }
+            // Task name click handler - opens notes modal for all tasks
+            const taskNameEl = taskItem.querySelector('.task-name');
+            taskNameEl.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openNotesModal(task.id);
+            });
 
             return taskItem;
         }
@@ -4618,6 +4629,12 @@
                         text.className = 'month-task-text';
                         text.textContent = task.name;
 
+                        // Task text click handler - opens notes modal for all tasks
+                        text.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            openNotesModal(task.id);
+                        });
+
                         // Delete button
                         const deleteBtn = document.createElement('button');
                         deleteBtn.type = 'button';
@@ -5200,31 +5217,48 @@
         }
 
         // Notes Modal Functions
+        let currentNotesTaskId = null;
+
         function openNotesModal(taskId) {
             const task = tasks.find(t => t.id === taskId);
-            if (!task || !task.notes) return;
+            if (!task) return;
 
+            currentNotesTaskId = taskId;
             notesModalTitle.textContent = task.name;
-            notesModalContent.textContent = task.notes;
+            notesModalTextarea.value = task.notes || '';
             notesModal.classList.add('active');
+
+            // Focus textarea after animation
+            setTimeout(() => notesModalTextarea.focus(), 100);
         }
 
         function closeNotesModal() {
             notesModal.classList.remove('active');
+            currentNotesTaskId = null;
+        }
+
+        function saveNotes() {
+            if (!currentNotesTaskId) return;
+
+            const task = tasks.find(t => t.id === currentNotesTaskId);
+            if (!task) return;
+
+            const newNotes = notesModalTextarea.value.trim();
+
+            if (newNotes) {
+                task.notes = newNotes;
+            } else {
+                delete task.notes;
+            }
+
+            saveData();
+            closeNotesModal();
         }
 
         function updateNotesCharCount() {
             const length = modalNotesInput.value.length;
             const maxLength = 500;
             notesCharCount.textContent = `${length}/${maxLength}`;
-
-            // Update styling based on character count
-            notesCharCount.classList.remove('near-limit', 'at-limit');
-            if (length >= maxLength) {
-                notesCharCount.classList.add('at-limit');
-            } else if (length >= maxLength * 0.8) {
-                notesCharCount.classList.add('near-limit');
-            }
         }
 
         function clearModalDayPicker() {
@@ -5550,7 +5584,8 @@
 
             // Notes modal
             notesModalClose.addEventListener('click', closeNotesModal);
-            notesModalCloseBtn.addEventListener('click', closeNotesModal);
+            notesModalCancelBtn.addEventListener('click', closeNotesModal);
+            notesModalSaveBtn.addEventListener('click', saveNotes);
             notesModal.addEventListener('click', (e) => {
                 if (e.target === notesModal) {
                     closeNotesModal();
