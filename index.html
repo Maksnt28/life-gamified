@@ -5346,10 +5346,14 @@
                 inlineInput.addEventListener('keydown', (e) => {
                     if ((e.key === 'Enter' || e.keyCode === 13) && inlineInput.value.trim()) {
                         e.preventDefault();
+                        // Save scroll position before any DOM changes
+                        const scrollY = window.scrollY;
                         addQuickPlanTask(inlineInput.value.trim(), dateStr);
                         inlineInput.value = '';
-                        // Keep input focused for rapid entry
-                        inlineInput.focus();
+                        // Restore scroll position after task creation
+                        requestAnimationFrame(() => {
+                            window.scrollTo(0, scrollY);
+                        });
                     }
                 });
 
@@ -5553,9 +5557,20 @@
                 }, 300);
             }
 
-            // Keep focus on the input for continuous adding
+            // Keep focus on the input for continuous adding (without scrolling)
             const input = planDays.querySelector(`.plan-inline-input[data-date="${dateStr}"]`);
-            if (input) input.focus();
+            if (input) {
+                // Save scroll position
+                const scrollY = window.scrollY;
+                // Focus with preventScroll option (for modern browsers)
+                input.focus({ preventScroll: true });
+                // Restore scroll position (fallback for browsers that don't support preventScroll)
+                requestAnimationFrame(() => {
+                    if (window.scrollY !== scrollY) {
+                        window.scrollTo(0, scrollY);
+                    }
+                });
+            }
         }
 
         function updatePlanWeekStats() {
@@ -6202,7 +6217,14 @@
             saveData();
 
             closeCreateTaskModal();
+
+            // Save scroll position before re-render (especially important for Plan view on mobile)
+            const scrollY = window.scrollY;
             renderCurrentView();
+            // Restore scroll position after render
+            requestAnimationFrame(() => {
+                window.scrollTo(0, scrollY);
+            });
 
             // Refresh bottom sheet if open
             if (bottomSheet.classList.contains('open')) {
