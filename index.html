@@ -1812,6 +1812,198 @@
             }
         }
 
+        /* Notes Textarea in Modal */
+        .modal-textarea {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            font-size: 0.95rem;
+            color: #e5e5e5;
+            outline: none;
+            transition: all 0.2s ease;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .modal-textarea::placeholder {
+            color: #525252;
+        }
+
+        .modal-textarea:focus {
+            border-color: #3b82f6;
+            background: #111111;
+        }
+
+        .notes-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: #525252;
+        }
+
+        .notes-hint {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 1rem;
+        }
+
+        .notes-char-count {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .notes-char-count.near-limit {
+            color: #f59e0b;
+        }
+
+        .notes-char-count.at-limit {
+            color: #ef4444;
+        }
+
+        /* Notes Icon on Tasks */
+        .notes-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            color: #525252;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin-right: 6px;
+        }
+
+        .notes-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        @media (hover: hover) {
+            .notes-icon:hover {
+                color: #a3a3a3;
+                background: rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        /* Notes View Modal */
+        .notes-modal {
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 16px;
+            width: calc(100% - 2rem);
+            max-width: 420px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            animation: modalSlide 0.2s ease;
+            box-sizing: border-box;
+            margin: 0 1rem;
+        }
+
+        .notes-modal-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #262626;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .notes-modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #e5e5e5;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .notes-modal-close {
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: none;
+            color: #737373;
+            font-size: 1.25rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        @media (hover: hover) {
+            .notes-modal-close:hover {
+                background: #262626;
+                color: #e5e5e5;
+            }
+        }
+
+        .notes-modal-body {
+            padding: 1.25rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .notes-modal-content {
+            font-size: 0.95rem;
+            color: #d4d4d4;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .notes-modal-footer {
+            padding: 1rem 1.25rem;
+            border-top: 1px solid #262626;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .notes-modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .notes-modal-btn-secondary {
+            background: #262626;
+            color: #e5e5e5;
+        }
+
+        @media (hover: hover) {
+            .notes-modal-btn-secondary:hover {
+                background: #333333;
+            }
+        }
+
+        .notes-modal-btn-primary {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        @media (hover: hover) {
+            .notes-modal-btn-primary:hover {
+                background: #2563eb;
+            }
+        }
+
         .modal-submit:active {
             transform: scale(0.98);
         }
@@ -2781,6 +2973,14 @@
                     <input type="text" class="modal-input" id="modalTaskInput" placeholder="What do you want to do?">
                 </div>
                 <div class="modal-field">
+                    <label class="modal-label">Notes (optional)</label>
+                    <textarea class="modal-textarea" id="modalNotesInput" placeholder="Add details, links, or reminders..." maxlength="500" rows="3"></textarea>
+                    <div class="notes-meta">
+                        <span class="notes-hint">Tip: Add links, bullet points, or context</span>
+                        <span class="notes-char-count" id="notesCharCount">0/500</span>
+                    </div>
+                </div>
+                <div class="modal-field">
                     <label class="modal-label">Category</label>
                     <div class="category-select-wrapper">
                         <div class="category-select-indicator" id="categoryIndicator" style="background: #9E9E9E;"></div>
@@ -2835,6 +3035,22 @@
                 <button type="button" class="modal-btn modal-btn-secondary" onclick="deleteThisDay()">Delete from this day only</button>
                 <button type="button" class="modal-btn modal-btn-primary" onclick="deleteAllDays()">Delete from all days</button>
                 <button type="button" class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes View Modal -->
+    <div class="modal-overlay" id="notesModal">
+        <div class="notes-modal">
+            <div class="notes-modal-header">
+                <div class="notes-modal-title" id="notesModalTitle">Task Name</div>
+                <button type="button" class="notes-modal-close" id="notesModalClose">&times;</button>
+            </div>
+            <div class="notes-modal-body">
+                <div class="notes-modal-content" id="notesModalContent">Notes content here...</div>
+            </div>
+            <div class="notes-modal-footer">
+                <button type="button" class="notes-modal-btn notes-modal-btn-secondary" id="notesModalCloseBtn">Close</button>
             </div>
         </div>
     </div>
@@ -2907,6 +3123,13 @@
         const modalDayPickerField = document.getElementById('modalDayPickerField');
         const modalDayPicker = document.getElementById('modalDayPicker');
         const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+        const modalNotesInput = document.getElementById('modalNotesInput');
+        const notesCharCount = document.getElementById('notesCharCount');
+        const notesModal = document.getElementById('notesModal');
+        const notesModalTitle = document.getElementById('notesModalTitle');
+        const notesModalContent = document.getElementById('notesModalContent');
+        const notesModalClose = document.getElementById('notesModalClose');
+        const notesModalCloseBtn = document.getElementById('notesModalCloseBtn');
         const deleteModal = document.getElementById('deleteModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalText = document.getElementById('modalText');
@@ -2952,6 +3175,7 @@
                            'July', 'August', 'September', 'October', 'November', 'December'];
 
         const repeatIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`;
+        const notesIconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>`;
 
         // Category Colors
         const CATEGORY_COLORS = {
@@ -3433,6 +3657,9 @@
                 badge = `<div class="task-badge">${repeatIcon}</div>`;
             }
 
+            // Notes icon (only if task has notes)
+            const notesIcon = task.notes ? `<span class="notes-icon" data-task-id="${task.id}" title="View notes">${notesIconSvg}</span>` : '';
+
             const checkedClass = task.completed ? ' checked' : '';
             const completedClass = task.completed ? ' completed' : '';
             const categoryColor = getCategoryColor(task.category);
@@ -3440,6 +3667,7 @@
             taskItem.innerHTML = `
                 <div class="task-checkbox${checkedClass}"></div>
                 <div class="category-indicator" style="background: ${categoryColor};"></div>
+                ${notesIcon}
                 <div class="task-content">
                     <span class="task-name${completedClass}">${escapeHtml(task.name)}</span>
                     ${badge}
@@ -3459,6 +3687,25 @@
                 e.stopPropagation();
                 handleDeleteTask(taskItem);
             });
+
+            // Notes icon click handler
+            const notesIconEl = taskItem.querySelector('.notes-icon');
+            if (notesIconEl) {
+                notesIconEl.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openNotesModal(task.id);
+                });
+            }
+
+            // Task name click handler (opens notes if available)
+            if (task.notes) {
+                const taskContent = taskItem.querySelector('.task-content');
+                taskContent.style.cursor = 'pointer';
+                taskContent.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openNotesModal(task.id);
+                });
+            }
 
             return taskItem;
         }
@@ -4931,6 +5178,8 @@
 
             // Reset form
             modalTaskInput.value = '';
+            modalNotesInput.value = '';
+            updateNotesCharCount();
             modalCategorySelect.value = 'general';
             categoryIndicator.style.background = getCategoryColor('general');
             modalTypeSelect.value = 'onetime';
@@ -4945,6 +5194,37 @@
         function closeCreateTaskModal() {
             createTaskModal.classList.remove('active');
             fabButton.classList.remove('open');
+            // Clear notes input and reset character count
+            modalNotesInput.value = '';
+            updateNotesCharCount();
+        }
+
+        // Notes Modal Functions
+        function openNotesModal(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || !task.notes) return;
+
+            notesModalTitle.textContent = task.name;
+            notesModalContent.textContent = task.notes;
+            notesModal.classList.add('active');
+        }
+
+        function closeNotesModal() {
+            notesModal.classList.remove('active');
+        }
+
+        function updateNotesCharCount() {
+            const length = modalNotesInput.value.length;
+            const maxLength = 500;
+            notesCharCount.textContent = `${length}/${maxLength}`;
+
+            // Update styling based on character count
+            notesCharCount.classList.remove('near-limit', 'at-limit');
+            if (length >= maxLength) {
+                notesCharCount.classList.add('at-limit');
+            } else if (length >= maxLength * 0.8) {
+                notesCharCount.classList.add('near-limit');
+            }
         }
 
         function clearModalDayPicker() {
@@ -4967,6 +5247,7 @@
 
             const type = modalTypeSelect.value;
             const category = modalCategorySelect.value;
+            const notes = modalNotesInput.value.trim();
             const taskId = 'task-' + (++taskIdCounter);
 
             const newTask = {
@@ -4975,6 +5256,11 @@
                 type: type,
                 category: category
             };
+
+            // Add notes only if not empty (keeps data clean)
+            if (notes) {
+                newTask.notes = notes;
+            }
 
             if (type === 'daily') {
                 newTask.dailyId = 'daily-' + (++dailyTaskCounter);
@@ -5259,6 +5545,18 @@
                 if (e.key === 'Enter') addTask();
             });
 
+            // Notes textarea character count
+            modalNotesInput.addEventListener('input', updateNotesCharCount);
+
+            // Notes modal
+            notesModalClose.addEventListener('click', closeNotesModal);
+            notesModalCloseBtn.addEventListener('click', closeNotesModal);
+            notesModal.addEventListener('click', (e) => {
+                if (e.target === notesModal) {
+                    closeNotesModal();
+                }
+            });
+
             // Bottom sheet
             bottomSheetOverlay.addEventListener('click', closeBottomSheet);
             sheetCloseBtn.addEventListener('click', closeBottomSheet);
@@ -5283,6 +5581,21 @@
             document.addEventListener('click', (e) => {
                 if (e.target && (e.target.id === 'resetAchievementsBtn' || e.target.classList.contains('achievements-reset-btn'))) {
                     showResetConfirmation();
+                }
+            });
+
+            // ESC key to close modals
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (notesModal.classList.contains('active')) {
+                        closeNotesModal();
+                    } else if (createTaskModal.classList.contains('active')) {
+                        closeCreateTaskModal();
+                    } else if (deleteModal.classList.contains('active')) {
+                        closeDeleteModal();
+                    } else if (bottomSheet.classList.contains('open')) {
+                        closeBottomSheet();
+                    }
                 }
             });
 
