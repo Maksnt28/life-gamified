@@ -2018,42 +2018,51 @@
         }
 
         .plan-day-tasks {
-            padding: 8px 20px 0;
+            padding: 0 20px;
         }
 
         /* Plan view task items - consistent with other views */
         .plan-day-tasks .task-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            background: transparent;
-            border-radius: 0;
+            gap: 10px;
+            padding: 12px 16px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
             position: relative;
         }
 
         .plan-day-tasks .task-item:last-child {
-            border-bottom: none;
+            margin-bottom: 12px;
         }
 
         .plan-day-tasks .task-item.completed {
-            background: transparent;
+            background: rgba(255, 255, 255, 0.01);
         }
 
         .plan-day-tasks .task-checkbox {
             width: 18px;
             height: 18px;
+            min-width: 18px;
+            min-height: 18px;
             border-width: 2px;
             border-radius: 4px;
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .plan-day-tasks .task-checkbox.checked::after {
-            width: 5px;
-            height: 9px;
-            left: 5px;
-            top: 1px;
+            width: 8px;
+            height: 5px;
+            border-width: 2px;
+            transform: rotate(-45deg);
+            position: relative;
+            left: 0;
+            top: -1px;
         }
 
         .plan-day-tasks .task-name {
@@ -2071,6 +2080,7 @@
             font-size: 1.1rem;
             flex-shrink: 0;
             margin: 0;
+            margin-left: auto;
             opacity: 0;
             transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
         }
@@ -2222,7 +2232,11 @@
             }
 
             .plan-day-tasks {
-                padding: 8px 16px 0;
+                padding: 0 16px;
+            }
+
+            .plan-day-tasks .task-item {
+                padding: 10px 14px;
             }
         }
 
@@ -2245,7 +2259,7 @@
             }
 
             .plan-day-tasks {
-                padding: 8px 24px 0;
+                padding: 0 24px;
             }
 
             .plan-day-section {
@@ -5329,10 +5343,13 @@
                 inlineInput.placeholder = `+ Add task...`;
                 inlineInput.dataset.date = dateStr;
 
-                inlineInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter' && inlineInput.value.trim()) {
+                inlineInput.addEventListener('keydown', (e) => {
+                    if ((e.key === 'Enter' || e.keyCode === 13) && inlineInput.value.trim()) {
+                        e.preventDefault();
                         addQuickPlanTask(inlineInput.value.trim(), dateStr);
                         inlineInput.value = '';
+                        // Keep input focused for rapid entry
+                        inlineInput.focus();
                     }
                 });
 
