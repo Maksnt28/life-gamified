@@ -1937,6 +1937,71 @@
             letter-spacing: -0.01em;
         }
 
+        .plan-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-help-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            color: #737373;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .plan-help-btn:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #a3a3a3;
+        }
+
+        /* Plan Help Overlay */
+        .plan-help-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .plan-help-overlay.active {
+            display: flex;
+        }
+
+        .plan-help-content {
+            text-align: center;
+        }
+
+        .plan-help-tip {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #fafafa;
+            margin-bottom: 16px;
+        }
+
+        .plan-help-dismiss {
+            font-size: 0.8125rem;
+            color: #737373;
+        }
+
         .plan-week-stats {
             padding: 12px 20px;
             background: rgba(255, 255, 255, 0.02);
@@ -2067,6 +2132,22 @@
 
         .plan-day-tasks .task-name {
             font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+        }
+
+        /* Desktop: hover underline */
+        @media (hover: hover) {
+            .plan-day-tasks .task-name:hover {
+                border-bottom-color: rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        /* Long-press visual feedback */
+        .plan-day-tasks .task-name.pressing {
+            opacity: 0.7;
         }
 
         .plan-day-tasks .category-indicator {
@@ -3468,7 +3549,10 @@
         <div class="plan-container" id="planContainer">
             <div class="plan-header">
                 <button type="button" class="plan-nav-btn" id="planPrevWeek">← Prev</button>
-                <div class="plan-week-title" id="planWeekTitle">Week of Jan 27 - Feb 2</div>
+                <div class="plan-title-wrapper">
+                    <div class="plan-week-title" id="planWeekTitle">Week of Jan 27 - Feb 2</div>
+                    <button type="button" class="plan-help-btn" id="planHelpBtn" aria-label="Help">?</button>
+                </div>
                 <button type="button" class="plan-nav-btn" id="planNextWeek">Next →</button>
             </div>
             <div class="plan-week-stats" id="planWeekStats">
@@ -3478,6 +3562,13 @@
                 <!-- Day sections will be rendered here -->
             </div>
         </div>
+
+        <!-- Plan Help Overlay -->
+        <div class="plan-help-overlay" id="planHelpOverlay">
+            <div class="plan-help-content">
+                <div class="plan-help-tip">Tip: Long press any task to edit it</div>
+                <div class="plan-help-dismiss">Tap anywhere to dismiss</div>
+            </div>
         </div>
     </div>
 
@@ -3510,7 +3601,7 @@
     <div class="modal-overlay" id="createTaskModal">
         <div class="task-modal">
             <div class="modal-header">
-                <span>New Task</span>
+                <span id="modalTitleText">New Task</span>
                 <button type="button" class="modal-close" id="modalCloseBtn">&times;</button>
             </div>
             <div class="modal-body">
@@ -3699,6 +3790,9 @@
         const confirmOverlay = document.getElementById('confirmOverlay');
         const confirmCancel = document.getElementById('confirmCancel');
         const confirmReset = document.getElementById('confirmReset');
+        const modalTitleText = document.getElementById('modalTitleText');
+        const planHelpBtn = document.getElementById('planHelpBtn');
+        const planHelpOverlay = document.getElementById('planHelpOverlay');
 
         // State
         let totalXp = 0;
@@ -3713,6 +3807,11 @@
         let selectedSheetDate = null;
         let tasks = []; // Master task list
         let taskCompletions = {}; // Track completions by date
+
+        // Edit mode state
+        let isEditMode = false;
+        let editingTaskId = null;
+        let editingTaskDateStr = null;
 
         // Swipe tracking
         let touchStartX = 0;
@@ -5440,11 +5539,58 @@
                 handleDeleteTask(taskEl);
             });
 
-            // Task name click handler - opens notes modal
+            // Task name edit handlers
             const taskNameEl = taskEl.querySelector('.task-name');
+            let longPressTimer = null;
+            let isLongPress = false;
+
+            // Desktop: click to edit
             taskNameEl.addEventListener('click', (e) => {
                 e.stopPropagation();
-                openNotesModal(task.id);
+                // Only open edit on desktop (non-touch devices)
+                if (!('ontouchstart' in window)) {
+                    openEditTaskModal(task.id, dateStr);
+                }
+            });
+
+            // Mobile: long press to edit
+            taskNameEl.addEventListener('touchstart', (e) => {
+                isLongPress = false;
+                taskNameEl.classList.add('pressing');
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    taskNameEl.classList.remove('pressing');
+                    openEditTaskModal(task.id, dateStr);
+                }, 500);
+            }, { passive: true });
+
+            taskNameEl.addEventListener('touchend', (e) => {
+                taskNameEl.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                // Prevent click if it was a long press
+                if (isLongPress) {
+                    e.preventDefault();
+                }
+            });
+
+            taskNameEl.addEventListener('touchmove', (e) => {
+                // Cancel long press if user moves finger
+                taskNameEl.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }, { passive: true });
+
+            taskNameEl.addEventListener('touchcancel', (e) => {
+                taskNameEl.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
             });
 
             return taskEl;
@@ -6090,8 +6236,17 @@
 
         // Task Creation Modal
         function openCreateTaskModal(presetDate = null, presetName = '') {
+            // Reset edit mode
+            isEditMode = false;
+            editingTaskId = null;
+            editingTaskDateStr = null;
+
             createTaskModal.classList.add('active');
             fabButton.classList.add('open');
+
+            // Set modal title and button for create mode
+            modalTitleText.textContent = 'New Task';
+            modalSubmitBtn.textContent = 'Add Task';
 
             // Reset form (but keep preset name if provided)
             modalTaskInput.value = presetName;
@@ -6108,12 +6263,67 @@
             setTimeout(() => modalTaskInput.focus(), 100);
         }
 
+        function openEditTaskModal(taskId, dateStr) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            // Set edit mode
+            isEditMode = true;
+            editingTaskId = taskId;
+            editingTaskDateStr = dateStr;
+
+            createTaskModal.classList.add('active');
+            fabButton.classList.add('open');
+
+            // Set modal title and button for edit mode
+            modalTitleText.textContent = 'Edit Task';
+            modalSubmitBtn.textContent = 'Save Changes';
+
+            // Pre-fill form with task data
+            modalTaskInput.value = task.name;
+            modalNotesInput.value = task.notes || '';
+            updateNotesCharCount();
+            modalCategorySelect.value = task.category || 'general';
+            categoryIndicator.style.background = getCategoryColor(task.category || 'general');
+            modalTypeSelect.value = task.type || 'onetime';
+
+            // Handle type-specific fields
+            if (task.type === 'onetime') {
+                modalDateInput.value = task.date || formatDateForInput(viewingDate);
+                modalDateField.style.display = 'block';
+                modalDayPickerField.style.display = 'none';
+                clearModalDayPicker();
+            } else if (task.type === 'daily') {
+                modalDateField.style.display = 'none';
+                modalDayPickerField.style.display = 'none';
+                clearModalDayPicker();
+            } else if (task.type === 'custom') {
+                modalDateField.style.display = 'none';
+                modalDayPickerField.style.display = 'block';
+                clearModalDayPicker();
+                // Select the days from the pattern
+                if (task.pattern) {
+                    const days = task.pattern.split(',').map(Number);
+                    days.forEach(day => {
+                        const btn = modalDayPicker.querySelector(`[data-day="${day}"]`);
+                        if (btn) btn.classList.add('selected');
+                    });
+                }
+            }
+
+            setTimeout(() => modalTaskInput.focus(), 100);
+        }
+
         function closeCreateTaskModal() {
             createTaskModal.classList.remove('active');
             fabButton.classList.remove('open');
             // Clear notes input and reset character count
             modalNotesInput.value = '';
             updateNotesCharCount();
+            // Reset edit mode
+            isEditMode = false;
+            editingTaskId = null;
+            editingTaskDateStr = null;
         }
 
         // Notes Modal Functions
@@ -6182,43 +6392,94 @@
             const type = modalTypeSelect.value;
             const category = modalCategorySelect.value;
             const notes = modalNotesInput.value.trim();
-            const taskId = 'task-' + (++taskIdCounter);
 
-            const newTask = {
-                id: taskId,
-                name: taskName,
-                type: type,
-                category: category
-            };
+            if (isEditMode && editingTaskId) {
+                // Edit existing task
+                const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
+                if (taskIndex === -1) return;
 
-            // Add notes only if not empty (keeps data clean)
-            if (notes) {
-                newTask.notes = notes;
-            }
+                const task = tasks[taskIndex];
 
-            if (type === 'daily') {
-                newTask.dailyId = 'daily-' + (++dailyTaskCounter);
-                newTask.pattern = 'daily';
-            } else if (type === 'custom') {
-                const selectedDays = getSelectedModalDays();
-                if (selectedDays.length === 0) {
-                    alert('Please select at least one day');
-                    return;
+                // Update task properties
+                task.name = taskName;
+                task.category = category;
+                task.notes = notes || undefined;
+                if (!notes) delete task.notes;
+
+                // Handle type changes
+                const oldType = task.type;
+                task.type = type;
+
+                if (type === 'daily') {
+                    if (oldType !== 'daily' && oldType !== 'custom') {
+                        task.dailyId = task.dailyId || 'daily-' + (++dailyTaskCounter);
+                    }
+                    task.pattern = 'daily';
+                    delete task.date;
+                } else if (type === 'custom') {
+                    const selectedDays = getSelectedModalDays();
+                    if (selectedDays.length === 0) {
+                        alert('Please select at least one day');
+                        return;
+                    }
+                    if (oldType !== 'daily' && oldType !== 'custom') {
+                        task.dailyId = task.dailyId || 'daily-' + (++dailyTaskCounter);
+                    }
+                    task.pattern = selectedDays.join(',');
+                    delete task.date;
+                } else {
+                    // One-time
+                    const date = modalDateInput.value;
+                    if (!date) {
+                        alert('Please select a date');
+                        return;
+                    }
+                    task.date = date;
+                    delete task.dailyId;
+                    delete task.pattern;
                 }
-                newTask.dailyId = 'daily-' + (++dailyTaskCounter);
-                newTask.pattern = selectedDays.join(',');
+
+                saveData();
             } else {
-                // One-time
-                const date = modalDateInput.value;
-                if (!date) {
-                    alert('Please select a date');
-                    return;
-                }
-                newTask.date = date;
-            }
+                // Create new task
+                const taskId = 'task-' + (++taskIdCounter);
 
-            tasks.push(newTask);
-            saveData();
+                const newTask = {
+                    id: taskId,
+                    name: taskName,
+                    type: type,
+                    category: category
+                };
+
+                // Add notes only if not empty (keeps data clean)
+                if (notes) {
+                    newTask.notes = notes;
+                }
+
+                if (type === 'daily') {
+                    newTask.dailyId = 'daily-' + (++dailyTaskCounter);
+                    newTask.pattern = 'daily';
+                } else if (type === 'custom') {
+                    const selectedDays = getSelectedModalDays();
+                    if (selectedDays.length === 0) {
+                        alert('Please select at least one day');
+                        return;
+                    }
+                    newTask.dailyId = 'daily-' + (++dailyTaskCounter);
+                    newTask.pattern = selectedDays.join(',');
+                } else {
+                    // One-time
+                    const date = modalDateInput.value;
+                    if (!date) {
+                        alert('Please select a date');
+                        return;
+                    }
+                    newTask.date = date;
+                }
+
+                tasks.push(newTask);
+                saveData();
+            }
 
             closeCreateTaskModal();
 
@@ -6451,6 +6712,14 @@
             // Plan view navigation
             planPrevWeek.addEventListener('click', () => navigatePlanWeek(-1));
             planNextWeek.addEventListener('click', () => navigatePlanWeek(1));
+
+            // Plan help button and overlay
+            planHelpBtn.addEventListener('click', () => {
+                planHelpOverlay.classList.add('active');
+            });
+            planHelpOverlay.addEventListener('click', () => {
+                planHelpOverlay.classList.remove('active');
+            });
 
             // FAB
             fabButton.addEventListener('click', () => {
