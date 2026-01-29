@@ -1881,28 +1881,352 @@
             pointer-events: auto;
         }
 
-        /* Notes View Modal - Premium Design */
+        /* ============================================
+           Plan View - Weekly Planning Interface
+           ============================================ */
+
+        .plan-container {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .plan-container.active {
+            display: flex;
+        }
+
+        .plan-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: #0a0a0a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+
+        .plan-nav-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #a3a3a3;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+
+        @media (hover: hover) {
+            .plan-nav-btn:hover {
+                background: rgba(255, 255, 255, 0.05);
+                color: #e5e5e5;
+                border-color: rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        .plan-nav-btn:active {
+            transform: scale(0.97);
+        }
+
+        .plan-week-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fafafa;
+            text-align: center;
+            letter-spacing: -0.01em;
+        }
+
+        .plan-week-stats {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            flex-shrink: 0;
+        }
+
+        .plan-stats-text {
+            font-size: 0.8125rem;
+            color: #737373;
+        }
+
+        .plan-days {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 0 100px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .plan-day-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .plan-day-section:last-child {
+            border-bottom: none;
+        }
+
+        .plan-day-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: #0f0f0f;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .plan-day-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .plan-day-name {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #e5e5e5;
+        }
+
+        .plan-day-date {
+            font-size: 0.8125rem;
+            color: #525252;
+        }
+
+        .plan-day-section.is-today .plan-day-header {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%);
+        }
+
+        .plan-day-section.is-today .plan-day-name {
+            color: #ffffff;
+        }
+
+        .plan-today-badge {
+            font-size: 0.6875rem;
+            font-weight: 500;
+            color: #0a0a0a;
+            background: #fafafa;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .plan-day-count {
+            font-size: 0.75rem;
+            color: #525252;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .plan-day-tasks {
+            padding: 8px 20px 0;
+        }
+
+        .plan-task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .plan-task-item:last-child {
+            border-bottom: none;
+        }
+
+        .plan-task-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #404040;
+            border-radius: 4px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .plan-task-checkbox.checked {
+            background: #fafafa;
+            border-color: #fafafa;
+        }
+
+        .plan-task-checkbox.checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid #0a0a0a;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .plan-task-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .plan-task-name {
+            font-size: 0.9375rem;
+            color: #d4d4d4;
+            cursor: pointer;
+        }
+
+        .plan-task-name.completed {
+            color: #525252;
+        }
+
+        .plan-task-category {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .plan-empty-day {
+            padding: 16px 20px;
+            color: #404040;
+            font-size: 0.875rem;
+            font-style: italic;
+        }
+
+        .plan-add-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px 20px;
+            margin: 8px 0 16px;
+            background: transparent;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #525252;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+
+        @media (hover: hover) {
+            .plan-add-btn:hover {
+                background: rgba(255, 255, 255, 0.03);
+                border-color: rgba(255, 255, 255, 0.2);
+                color: #a3a3a3;
+            }
+        }
+
+        .plan-add-btn:active {
+            transform: scale(0.99);
+        }
+
+        /* Mobile optimization for Plan view */
+        @media (max-width: 480px) {
+            .plan-header {
+                padding: 12px 16px;
+            }
+
+            .plan-nav-btn {
+                padding: 8px 12px;
+                font-size: 0.8125rem;
+            }
+
+            .plan-week-title {
+                font-size: 0.875rem;
+            }
+
+            .plan-week-stats {
+                padding: 10px 16px;
+            }
+
+            .plan-day-header {
+                padding: 12px 16px;
+            }
+
+            .plan-day-tasks {
+                padding: 8px 16px 0;
+            }
+
+            .plan-add-btn {
+                margin: 8px 16px 16px;
+                width: calc(100% - 32px);
+            }
+        }
+
+        /* Desktop optimization for Plan view */
+        @media (min-width: 768px) {
+            .plan-header {
+                padding: 20px 24px;
+            }
+
+            .plan-week-title {
+                font-size: 1.125rem;
+            }
+
+            .plan-day-header {
+                padding: 16px 24px;
+            }
+
+            .plan-day-tasks {
+                padding: 8px 24px 0;
+            }
+
+            .plan-add-btn {
+                margin: 8px 24px 20px;
+                width: calc(100% - 48px);
+            }
+        }
+
+        /* ============================================
+           Notes Modal - Ultra Modern Design
+           Inspired by Linear, Notion, Arc, Apple
+           ============================================ */
+
+        #notesModal {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        #notesModal.active {
+            animation: notesOverlayIn 0.2s ease-out;
+        }
+
+        @keyframes notesOverlayIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .notes-modal {
-            background: #171717;
-            border: 1px solid #2a2a2a;
-            border-radius: 20px;
+            position: relative;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            border-radius: 24px;
             width: calc(100% - 2rem);
-            max-width: 440px;
+            max-width: 520px;
             max-height: 85vh;
             display: flex;
             flex-direction: column;
-            animation: notesModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: notesModalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-sizing: border-box;
             margin: 0 1rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                        0 0 0 1px rgba(255, 255, 255, 0.05);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                0 0 80px rgba(255, 255, 255, 0.02),
+                0 8px 16px rgba(0, 0, 0, 0.4),
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         @keyframes notesModalIn {
             from {
                 opacity: 0;
-                transform: scale(0.95) translateY(10px);
+                transform: scale(0.96) translateY(20px);
             }
             to {
                 opacity: 1;
@@ -1911,118 +2235,210 @@
         }
 
         .notes-modal-header {
-            padding: 1.25rem 1.5rem;
-            background: #1a1a1a;
+            padding: 24px 28px 20px;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 1rem;
+            gap: 16px;
         }
 
         .notes-modal-title {
-            font-size: 1.1rem;
+            margin: 0;
+            font-size: 22px;
             font-weight: 600;
-            color: #f5f5f5;
-            line-height: 1.4;
+            color: #ffffff;
+            line-height: 1.3;
             word-break: break-word;
+            letter-spacing: -0.02em;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
         }
 
         .notes-modal-close {
-            width: 32px;
-            height: 32px;
-            background: #262626;
+            width: 28px;
+            height: 28px;
+            background: transparent;
             border: none;
-            color: #737373;
-            font-size: 1.1rem;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 6px;
             transition: all 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            position: relative;
+            opacity: 0.4;
+            margin-top: 2px;
+        }
+
+        .notes-modal-close::before,
+        .notes-modal-close::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 1.5px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+
+        .notes-modal-close::before {
+            transform: rotate(45deg);
+        }
+
+        .notes-modal-close::after {
+            transform: rotate(-45deg);
         }
 
         @media (hover: hover) {
             .notes-modal-close:hover {
-                background: #333333;
-                color: #e5e5e5;
+                opacity: 0.7;
+                background: rgba(255, 255, 255, 0.08);
             }
         }
 
+        .notes-modal-close:active {
+            transform: scale(0.9);
+            opacity: 0.5;
+        }
+
+        .notes-modal-divider {
+            height: 1px;
+            margin: 0 28px;
+            background: linear-gradient(90deg,
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0.06) 50%,
+                transparent 100%);
+        }
+
         .notes-modal-body {
-            padding: 1.5rem;
+            padding: 20px 28px 0;
             overflow-y: auto;
             flex: 1;
-            background: #141414;
         }
 
         .notes-modal-textarea {
             width: 100%;
-            background: #0f0f0f;
-            border: 1px solid #333333;
-            border-radius: 10px;
-            padding: 1rem;
-            font-size: 0.95rem;
+            background: #151515;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            padding: 16px 18px;
+            font-size: 15px;
             color: #e5e5e5;
             outline: none;
-            transition: border-color 0.2s ease;
-            resize: vertical;
-            min-height: 150px;
-            font-family: inherit;
+            transition: all 0.2s ease;
+            resize: none;
+            min-height: 140px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             line-height: 1.7;
+            box-sizing: border-box;
+        }
+
+        .notes-modal-textarea::placeholder {
+            color: #404040;
         }
 
         .notes-modal-textarea:focus {
-            border-color: #3b82f6;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: #181818;
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
         }
 
         .notes-modal-footer {
-            padding: 1rem 1.5rem;
-            background: #1a1a1a;
+            padding: 20px 28px 28px;
             display: flex;
-            gap: 0.75rem;
+            gap: 12px;
+            justify-content: flex-end;
         }
 
         .notes-modal-btn {
-            flex: 1;
-            padding: 0.875rem 1rem;
+            padding: 12px 24px;
             border: none;
             border-radius: 10px;
-            font-size: 0.9rem;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .notes-modal-btn:active {
-            transform: scale(0.98);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            letter-spacing: -0.01em;
         }
 
         .notes-modal-btn-secondary {
-            background: #262626;
-            color: #d4d4d4;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         @media (hover: hover) {
             .notes-modal-btn-secondary:hover {
-                background: #333333;
-                color: #ffffff;
+                color: rgba(255, 255, 255, 0.8);
+                border-color: rgba(255, 255, 255, 0.25);
+                background: rgba(255, 255, 255, 0.05);
             }
         }
 
+        .notes-modal-btn-secondary:active {
+            transform: scale(0.97);
+        }
+
         .notes-modal-btn-primary {
-            background: #3b82f6;
-            color: #ffffff;
+            background: #ffffff;
+            color: #000000;
+            padding: 12px 28px;
+            font-weight: 600;
         }
 
         @media (hover: hover) {
             .notes-modal-btn-primary:hover {
-                background: #2563eb;
+                transform: translateY(-1px);
+                box-shadow: 0 8px 24px rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        .notes-modal-btn-primary:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: none;
+        }
+
+        /* Mobile optimization */
+        @media (max-width: 480px) {
+            .notes-modal {
+                max-width: none;
+                margin: 0 12px;
+                border-radius: 20px;
+            }
+
+            .notes-modal-header {
+                padding: 20px 24px 16px;
+            }
+
+            .notes-modal-title {
+                font-size: 20px;
+            }
+
+            .notes-modal-divider {
+                margin: 0 24px;
+            }
+
+            .notes-modal-body {
+                padding: 16px 24px 0;
+            }
+
+            .notes-modal-textarea {
+                min-height: 120px;
+                font-size: 16px;
+                padding: 14px 16px;
+            }
+
+            .notes-modal-footer {
+                padding: 16px 24px 24px;
+            }
+
+            .notes-modal-btn {
+                padding: 14px 24px;
+                font-size: 15px;
+            }
+
+            .notes-modal-btn-primary {
+                padding: 14px 28px;
             }
         }
 
@@ -2861,6 +3277,7 @@
                     <button type="button" class="view-btn" id="dayViewBtn">Day</button>
                     <button type="button" class="view-btn" id="weekViewBtn">Week</button>
                     <button type="button" class="view-btn" id="monthViewBtn">Month</button>
+                    <button type="button" class="view-btn" id="planViewBtn">Plan</button>
                     <button type="button" class="view-btn" id="statsViewBtn">Stats</button>
                 </div>
             </div>
@@ -2953,6 +3370,21 @@
                 <div class="achievements-reset-container">
                     <button type="button" class="achievements-reset-btn" id="resetAchievementsBtn" onclick="showResetConfirmation()">Reset Achievements</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Plan View -->
+        <div class="plan-container" id="planContainer">
+            <div class="plan-header">
+                <button type="button" class="plan-nav-btn" id="planPrevWeek">← Prev</button>
+                <div class="plan-week-title" id="planWeekTitle">Week of Jan 27 - Feb 2</div>
+                <button type="button" class="plan-nav-btn" id="planNextWeek">Next →</button>
+            </div>
+            <div class="plan-week-stats" id="planWeekStats">
+                <span class="plan-stats-text">0 of 0 tasks completed</span>
+            </div>
+            <div class="plan-days" id="planDays">
+                <!-- Day sections will be rendered here -->
             </div>
         </div>
         </div>
@@ -3062,15 +3494,16 @@
         </div>
     </div>
 
-    <!-- Notes Modal (Simplified) -->
+    <!-- Notes Modal -->
     <div class="modal-overlay" id="notesModal">
         <div class="notes-modal">
             <div class="notes-modal-header">
-                <div class="notes-modal-title" id="notesModalTitle">Task Name</div>
-                <button type="button" class="notes-modal-close" id="notesModalClose">&times;</button>
+                <h2 class="notes-modal-title" id="notesModalTitle">Task Name</h2>
+                <button type="button" class="notes-modal-close" id="notesModalClose" aria-label="Close"></button>
             </div>
+            <div class="notes-modal-divider"></div>
             <div class="notes-modal-body">
-                <textarea class="notes-modal-textarea" id="notesModalTextarea" maxlength="500" rows="5" placeholder="Add notes, details, or reminders..."></textarea>
+                <textarea class="notes-modal-textarea" id="notesModalTextarea" maxlength="500" placeholder="Add notes, details, or reminders..."></textarea>
             </div>
             <div class="notes-modal-footer">
                 <button type="button" class="notes-modal-btn notes-modal-btn-secondary" id="notesModalCancelBtn">Cancel</button>
@@ -3102,11 +3535,18 @@
         const dayViewBtn = document.getElementById('dayViewBtn');
         const weekViewBtn = document.getElementById('weekViewBtn');
         const monthViewBtn = document.getElementById('monthViewBtn');
+        const planViewBtn = document.getElementById('planViewBtn');
         const statsViewBtn = document.getElementById('statsViewBtn');
         const dayViewContainer = document.getElementById('dayViewContainer');
         const weekViewContainer = document.getElementById('weekViewContainer');
         const monthContainer = document.getElementById('monthContainer');
+        const planContainer = document.getElementById('planContainer');
         const statsContainer = document.getElementById('statsContainer');
+        const planWeekTitle = document.getElementById('planWeekTitle');
+        const planWeekStats = document.getElementById('planWeekStats');
+        const planDays = document.getElementById('planDays');
+        const planPrevWeek = document.getElementById('planPrevWeek');
+        const planNextWeek = document.getElementById('planNextWeek');
         const statTotalCompleted = document.getElementById('statTotalCompleted');
         const statStreak = document.getElementById('statStreak');
         const statCompletionRate = document.getElementById('statCompletionRate');
@@ -3516,15 +3956,15 @@
                 viewingYear = viewingDate.getFullYear();
             }
 
-            // Update header IMMEDIATELY before rendering (not for stats view)
-            if (view !== 'stats') {
+            // Update header IMMEDIATELY before rendering (not for stats/plan views)
+            if (view !== 'stats' && view !== 'plan') {
                 updateDateDisplay();
             }
 
             // Batch all classList operations for faster switching
-            const containers = [dayViewContainer, weekViewContainer, monthContainer, statsContainer];
-            const buttons = [dayViewBtn, weekViewBtn, monthViewBtn, statsViewBtn];
-            const viewMap = { day: 0, week: 1, month: 2, stats: 3 };
+            const containers = [dayViewContainer, weekViewContainer, monthContainer, planContainer, statsContainer];
+            const buttons = [dayViewBtn, weekViewBtn, monthViewBtn, planViewBtn, statsViewBtn];
+            const viewMap = { day: 0, week: 1, month: 2, plan: 3, stats: 4 };
             const viewIndex = viewMap[view];
 
             // Single pass to update all classes
@@ -3537,6 +3977,8 @@
                     renderDayView();
                 } else if (view === 'week') {
                     renderWeekView();
+                } else if (view === 'plan') {
+                    renderPlanView();
                 } else if (view === 'stats') {
                     renderStatsView();
                 } else {
@@ -3553,6 +3995,8 @@
                 renderDayView();
             } else if (currentView === 'week') {
                 renderWeekView();
+            } else if (currentView === 'plan') {
+                renderPlanView();
             } else if (currentView === 'stats') {
                 renderStatsView();
             } else {
@@ -4691,6 +5135,235 @@
             }
         }
 
+        // Plan View - Weekly Planning Interface
+        let planViewingDate = new Date();
+
+        function getPlanWeekDates(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            // Get Monday of the week (adjust for Sunday = 0)
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+            const monday = new Date(d.setDate(diff));
+
+            const weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(monday);
+                date.setDate(monday.getDate() + i);
+                weekDates.push(date);
+            }
+            return weekDates;
+        }
+
+        function formatPlanWeekTitle(weekDates) {
+            const startDate = weekDates[0];
+            const endDate = weekDates[6];
+            const startMonth = monthNames[startDate.getMonth()].slice(0, 3);
+            const endMonth = monthNames[endDate.getMonth()].slice(0, 3);
+
+            if (startDate.getMonth() === endDate.getMonth()) {
+                return `Week of ${startMonth} ${startDate.getDate()} - ${endDate.getDate()}`;
+            } else {
+                return `Week of ${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}`;
+            }
+        }
+
+        function renderPlanView() {
+            const weekDates = getPlanWeekDates(planViewingDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Update header
+            planWeekTitle.textContent = formatPlanWeekTitle(weekDates);
+
+            // Calculate week stats
+            let totalTasks = 0;
+            let completedTasks = 0;
+
+            weekDates.forEach(date => {
+                const tasksForDay = getTasksForDate(date);
+                totalTasks += tasksForDay.length;
+                completedTasks += tasksForDay.filter(t => t.completed).length;
+            });
+
+            planWeekStats.innerHTML = `<span class="plan-stats-text">${completedTasks} of ${totalTasks} tasks completed this week</span>`;
+
+            // Render day sections
+            planDays.innerHTML = '';
+
+            weekDates.forEach(date => {
+                const dateStr = formatDateForInput(date);
+                const isToday = date.getTime() === today.getTime();
+                const tasksForDay = getTasksForDate(date);
+
+                const section = document.createElement('div');
+                section.className = 'plan-day-section' + (isToday ? ' is-today' : '');
+                section.dataset.date = dateStr;
+
+                // Day header
+                const header = document.createElement('div');
+                header.className = 'plan-day-header';
+
+                const dayInfo = document.createElement('div');
+                dayInfo.className = 'plan-day-info';
+
+                const dayName = document.createElement('span');
+                dayName.className = 'plan-day-name';
+                dayName.textContent = dayNames[date.getDay()];
+
+                const dayDate = document.createElement('span');
+                dayDate.className = 'plan-day-date';
+                dayDate.textContent = `${monthNames[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
+
+                dayInfo.appendChild(dayName);
+                dayInfo.appendChild(dayDate);
+
+                if (isToday) {
+                    const todayBadge = document.createElement('span');
+                    todayBadge.className = 'plan-today-badge';
+                    todayBadge.textContent = 'Today';
+                    dayInfo.appendChild(todayBadge);
+                }
+
+                header.appendChild(dayInfo);
+
+                if (tasksForDay.length > 0) {
+                    const dayCount = document.createElement('span');
+                    dayCount.className = 'plan-day-count';
+                    dayCount.textContent = `${tasksForDay.length} task${tasksForDay.length !== 1 ? 's' : ''}`;
+                    header.appendChild(dayCount);
+                }
+
+                section.appendChild(header);
+
+                // Tasks container
+                const tasksContainer = document.createElement('div');
+                tasksContainer.className = 'plan-day-tasks';
+
+                if (tasksForDay.length === 0) {
+                    const emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'plan-empty-day';
+                    emptyMsg.textContent = 'No tasks planned';
+                    tasksContainer.appendChild(emptyMsg);
+                } else {
+                    tasksForDay.forEach(task => {
+                        const taskEl = createPlanTaskElement(task, dateStr);
+                        tasksContainer.appendChild(taskEl);
+                    });
+                }
+
+                // Add task button
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'plan-add-btn';
+                addBtn.textContent = '+ Add task';
+                addBtn.addEventListener('click', () => {
+                    openCreateTaskModal(dateStr);
+                });
+                tasksContainer.appendChild(addBtn);
+
+                section.appendChild(tasksContainer);
+                planDays.appendChild(section);
+            });
+        }
+
+        function createPlanTaskElement(task, dateStr) {
+            const taskEl = document.createElement('div');
+            taskEl.className = 'plan-task-item';
+            taskEl.dataset.taskId = task.id;
+            taskEl.dataset.dateStr = dateStr;
+
+            if (task.dailyId) {
+                taskEl.dataset.dailyId = task.dailyId;
+            }
+
+            // Checkbox
+            const checkbox = document.createElement('div');
+            checkbox.className = 'plan-task-checkbox' + (task.completed ? ' checked' : '');
+            checkbox.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePlanTask(taskEl);
+            });
+
+            // Category indicator
+            const categoryDot = document.createElement('div');
+            categoryDot.className = 'plan-task-category';
+            categoryDot.style.background = getCategoryColor(task.category);
+
+            // Task content
+            const content = document.createElement('div');
+            content.className = 'plan-task-content';
+
+            const taskName = document.createElement('span');
+            taskName.className = 'plan-task-name' + (task.completed ? ' completed' : '');
+            taskName.textContent = task.name;
+            taskName.addEventListener('click', () => {
+                openNotesModal(task.id);
+            });
+
+            content.appendChild(taskName);
+
+            taskEl.appendChild(checkbox);
+            taskEl.appendChild(categoryDot);
+            taskEl.appendChild(content);
+
+            return taskEl;
+        }
+
+        function togglePlanTask(taskEl) {
+            const taskId = taskEl.dataset.taskId;
+            const dateStr = taskEl.dataset.dateStr;
+            const dailyId = taskEl.dataset.dailyId;
+
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const completionKey = dailyId || taskId;
+            const completionDate = task.type === 'onetime' ? task.date : dateStr;
+            const wasCompleted = isTaskCompletedForDate(completionKey, completionDate);
+            const isNowCompleted = !wasCompleted;
+
+            setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
+
+            // Update UI
+            const checkbox = taskEl.querySelector('.plan-task-checkbox');
+            const taskName = taskEl.querySelector('.plan-task-name');
+            checkbox.classList.toggle('checked', isNowCompleted);
+            taskName.classList.toggle('completed', isNowCompleted);
+
+            // XP popup
+            const popup = document.createElement('span');
+            popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
+            popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
+            taskEl.appendChild(popup);
+            setTimeout(() => popup.remove(), 1000);
+
+            // Update XP
+            totalXp += isNowCompleted ? 10 : -10;
+            if (totalXp < 0) totalXp = 0;
+            updateLevelDisplay();
+
+            saveData();
+
+            // Update week stats
+            renderPlanView();
+
+            // Check achievements
+            if (isNowCompleted) {
+                checkAchievements();
+            }
+        }
+
+        function navigatePlanWeek(delta) {
+            planViewingDate.setDate(planViewingDate.getDate() + (delta * 7));
+            renderPlanView();
+        }
+
+        function goToPlanCurrentWeek() {
+            planViewingDate = new Date();
+            renderPlanView();
+        }
+
         // Stats View
         function renderStatsView() {
             const stats = calculateStats();
@@ -5538,7 +6211,12 @@
             dayViewBtn.addEventListener('click', () => setView('day'));
             weekViewBtn.addEventListener('click', () => setView('week'));
             monthViewBtn.addEventListener('click', () => setView('month'));
+            planViewBtn.addEventListener('click', () => setView('plan'));
             statsViewBtn.addEventListener('click', () => setView('stats'));
+
+            // Plan view navigation
+            planPrevWeek.addEventListener('click', () => navigatePlanWeek(-1));
+            planNextWeek.addEventListener('click', () => navigatePlanWeek(1));
 
             // FAB
             fabButton.addEventListener('click', () => {
