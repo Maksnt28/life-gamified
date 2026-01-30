@@ -4153,20 +4153,6 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        .week-nav-bar-btn.today-btn {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-            font-size: 13px;
-            font-weight: 600;
-            width: auto;
-            padding: 0 16px;
-            letter-spacing: 0.3px;
-        }
-
-        .week-nav-bar-btn.today-btn:active {
-            background: rgba(59, 130, 246, 0.4);
-            transform: scale(0.95);
-        }
 
         /* Bottom Sheet */
         .bottom-sheet-overlay {
@@ -5309,7 +5295,6 @@
     <!-- Week Navigation Bottom Bar (mobile only) -->
     <div class="week-nav-bar" id="weekNavBar">
         <button type="button" class="week-nav-bar-btn" id="weekNavPrev" aria-label="Previous week">←</button>
-        <button type="button" class="week-nav-bar-btn today-btn" id="weekNavToday" aria-label="This week">Today</button>
         <button type="button" class="week-nav-bar-btn" id="weekNavNext" aria-label="Next week">→</button>
     </div>
 
@@ -5486,7 +5471,6 @@
         const planHelpBtn = document.getElementById('planHelpBtn');
         const weekNavBar = document.getElementById('weekNavBar');
         const weekNavPrev = document.getElementById('weekNavPrev');
-        const weekNavToday = document.getElementById('weekNavToday');
         const weekNavNext = document.getElementById('weekNavNext');
         const planHelpOverlay = document.getElementById('planHelpOverlay');
         const taskDetailModal = document.getElementById('taskDetailModal');
@@ -9899,15 +9883,6 @@
                     e.stopPropagation();
                     console.log('[Week Nav] Prev button clicked');
                     navigateWeek(-1);
-                });
-            }
-
-            if (weekNavToday) {
-                weekNavToday.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('[Week Nav] Today button clicked');
-                    goToCurrentWeek();
                 });
             }
 
