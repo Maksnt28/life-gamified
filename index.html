@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Life Gamified</title>
     <style>
-        * {
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -2377,22 +2379,27 @@
 
         .modal-body {
             padding: 1.25rem;
+            width: 100%;
             overflow-x: hidden;
-            box-sizing: border-box;
         }
 
         .modal-field {
-            margin-bottom: 1rem;
+            margin-bottom: 20px;
             width: 100%;
-            box-sizing: border-box;
+        }
+
+        .modal-field:last-child {
+            margin-bottom: 0;
         }
 
         .modal-label {
             display: block;
+            width: 100%;
+            text-align: left;
             font-size: 0.8rem;
             font-weight: 500;
             color: #737373;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
         }
 
         .modal-input {
@@ -2449,6 +2456,7 @@
 
         .modal-date-input {
             width: 100%;
+            max-width: 100%;
             background: #0f0f0f;
             border: 1px solid #262626;
             border-radius: 8px;
@@ -2459,8 +2467,9 @@
             cursor: pointer;
             transition: all 0.2s ease;
             color-scheme: dark;
-            box-sizing: border-box;
-            max-width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .modal-date-input:focus {
@@ -2470,8 +2479,9 @@
         /* Day Picker in Modal */
         .modal-day-picker {
             display: none;
-            gap: 0.5rem;
+            gap: 6px;
             flex-wrap: wrap;
+            width: 100%;
         }
 
         .modal-day-picker.active {
@@ -2480,13 +2490,13 @@
 
         .modal-day-toggle {
             flex: 1;
-            min-width: 40px;
-            padding: 0.625rem 0.25rem;
+            min-width: 0;
+            padding: 0.625rem 0.125rem;
             background: #0f0f0f;
             border: 1px solid #262626;
             border-radius: 8px;
             color: #525252;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -2511,15 +2521,18 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            width: 100%;
+            flex-wrap: wrap;
         }
 
         .modal-number-input {
             width: 80px;
+            flex-shrink: 0;
             background: #0f0f0f;
             border: 1px solid #262626;
             border-radius: 8px;
             padding: 0.75rem 1rem;
-            font-size: 1rem;
+            font-size: 16px; /* Prevents iOS zoom */
             color: #e5e5e5;
             outline: none;
             transition: all 0.2s ease;
@@ -2556,6 +2569,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
         }
 
         .toggle-switch {
@@ -2606,6 +2620,7 @@
 
         .time-input-wrapper {
             margin-top: 0.75rem;
+            width: 100%;
         }
 
         .modal-time-input {
@@ -2630,16 +2645,16 @@
         .time-duration-row {
             display: flex;
             gap: 12px;
-            flex-wrap: wrap;
+            width: 100%;
         }
 
         .time-field,
         .duration-field {
             flex: 1;
-            min-width: 120px;
             display: flex;
             flex-direction: column;
             gap: 4px;
+            min-width: 0; /* Allow shrinking below content size */
         }
 
         .time-field-label {
@@ -3957,13 +3972,14 @@
         /* Category Select in Modal */
         .modal-category-select {
             width: 100%;
+            max-width: 100%;
             background: #0f0f0f;
             border: 1px solid #262626;
             border-radius: 8px;
             padding: 0.875rem 1rem;
             padding-right: 2rem;
             padding-left: 2.5rem;
-            font-size: 1rem;
+            font-size: 16px; /* Prevents iOS zoom */
             color: #e5e5e5;
             outline: none;
             cursor: pointer;
@@ -3987,6 +4003,7 @@
 
         .category-select-wrapper {
             position: relative;
+            width: 100%;
         }
 
         .category-select-indicator {
