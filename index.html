@@ -1367,34 +1367,36 @@
                 top: 0;
                 z-index: 30;
                 display: grid;
-                grid-template-columns: 44px repeat(7, 120px);
-                width: 884px; /* 44 + 7*120 = 884px */
-                background: #0a0a0a;
-                border-bottom: 1px solid #252525;
+                grid-template-columns: 50px repeat(7, 1fr); /* CRITICAL: 1fr for perfect alignment */
+                background: #1a1a1a;
+                border-bottom: 2px solid #444;
+                gap: 0;
+                min-width: 100%;
             }
 
             /* Corner cell - sticky both top AND left */
             .week-header-corner {
                 display: block;
-                width: 44px;
-                height: 48px;
-                background: #0a0a0a;
+                width: 50px;
+                min-width: 50px;
+                height: 50px;
+                background: #1a1a1a;
                 position: sticky;
                 left: 0;
                 z-index: 35;
-                border-right: 1px solid #252525;
+                border-right: 1px solid #333;
             }
 
             /* Day header cells */
             .week-day-header-cell {
-                width: 120px;
-                height: 48px;
+                height: 50px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                border-right: 1px solid #1a1a1a;
-                background: #0a0a0a;
+                border-right: 1px solid #333;
+                background: #1a1a1a;
+                min-width: 0; /* Allow flex shrinking */
             }
 
             .week-day-header-cell:last-child {
@@ -1431,8 +1433,9 @@
             /* Timeline content - grid with hours column + days grid */
             .week-timeline-content {
                 display: grid;
-                grid-template-columns: 44px 1fr;
-                width: 884px; /* Must match headers */
+                grid-template-columns: 50px 1fr; /* CRITICAL: 50px must match header corner */
+                gap: 0;
+                min-width: 100%;
             }
 
             /* STICKY HOUR MARKERS - sticks to left when scrolling right */
@@ -1441,9 +1444,10 @@
                 position: sticky;
                 left: 0;
                 z-index: 20;
-                background: #0a0a0a;
-                width: 44px;
-                border-right: 1px solid #252525;
+                background: #1a1a1a;
+                width: 50px;
+                min-width: 50px;
+                border-right: 2px solid #333;
             }
 
             .week-hour-marker {
@@ -1452,28 +1456,28 @@
                 align-items: flex-start;
                 justify-content: center;
                 padding-top: 4px;
-                font-size: 9px;
-                color: #505050;
-                border-bottom: 1px solid #141414;
+                font-size: 10px;
+                color: #555;
+                border-bottom: 1px solid #222;
                 box-sizing: border-box;
-                background: #0a0a0a;
+                background: #1a1a1a;
             }
 
-            /* Days grid - 7 columns */
+            /* Days grid - 7 columns using 1fr for perfect alignment */
             .week-days-grid {
                 display: grid;
-                grid-template-columns: repeat(7, 120px);
-                width: 840px; /* 7*120 = 840px */
+                grid-template-columns: repeat(7, 1fr); /* CRITICAL: Must match header (7 × 1fr) */
+                gap: 0;
             }
 
             /* Individual day column */
             .week-day-column {
                 position: relative;
-                width: 120px;
                 height: 1200px; /* 24 hours × 50px */
-                border-right: 1px solid #1a1a1a;
+                border-right: 1px solid #2a2a2a;
                 background: #0a0a0a;
                 box-sizing: border-box;
+                min-width: 0; /* Allow flex shrinking */
             }
 
             .week-day-column:last-child {
@@ -1481,11 +1485,11 @@
             }
 
             .week-day-column.today {
-                background: rgba(59, 130, 246, 0.03);
+                background: rgba(59, 130, 246, 0.05);
             }
 
             /* Hour grid lines in day columns */
-            .week-day-column::before {
+            .week-day-column::after {
                 content: '';
                 position: absolute;
                 top: 0;
@@ -1496,8 +1500,8 @@
                     to bottom,
                     transparent 0,
                     transparent 49px,
-                    #141414 49px,
-                    #141414 50px
+                    #1a1a1a 49px,
+                    #1a1a1a 50px
                 );
                 pointer-events: none;
             }
@@ -1570,21 +1574,47 @@
             }
         }
 
-        /* Very small mobile screens - narrower columns */
+        /* Very small mobile screens - smaller hour column, smaller fonts */
         @media (max-width: 400px) {
+            .week-day-headers {
+                grid-template-columns: 40px repeat(7, 1fr);
+            }
+
+            .week-header-corner {
+                width: 40px;
+                min-width: 40px;
+            }
+
+            .week-timeline-content {
+                grid-template-columns: 40px 1fr;
+            }
+
+            .week-hour-markers {
+                width: 40px;
+                min-width: 40px;
+            }
+
+            .week-hour-marker {
+                height: 50px;
+                font-size: 9px;
+                padding: 2px 4px;
+            }
+
             .week-day-column {
-                flex: 0 0 100px;
-                min-width: 100px;
-                width: 100px;
+                height: 1200px;
             }
 
             .week-untimed-day {
-                flex: 0 0 92px;
-                min-width: 92px;
+                flex: 0 0 80px;
+                min-width: 80px;
             }
 
-            .week-column-day-num {
-                font-size: 16px;
+            .week-day-header-name {
+                font-size: 9px;
+            }
+
+            .week-day-header-num {
+                font-size: 14px;
             }
 
             .week-task-block .task-block-name {
@@ -7530,11 +7560,14 @@
 
                 // Auto-scroll to today's column and current time
                 setTimeout(() => {
-                    if (weekScrollContainer) {
+                    if (weekScrollContainer && weekDaysGrid) {
+                        // Get actual column width dynamically (since we use 1fr)
+                        const dayColumns = weekDaysGrid.querySelectorAll('.week-day-column');
+                        const hourMarkersWidth = 50;
+
                         // Horizontal scroll to center today's column
-                        if (todayColumnIndex >= 0) {
-                            const hourMarkersWidth = 44;
-                            const columnWidth = 120;
+                        if (todayColumnIndex >= 0 && dayColumns.length > 0) {
+                            const columnWidth = dayColumns[0].offsetWidth;
                             const wrapperWidth = weekScrollContainer.clientWidth;
                             const targetScrollX = Math.max(0, hourMarkersWidth + (todayColumnIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
                             weekScrollContainer.scrollLeft = targetScrollX;
@@ -7542,7 +7575,7 @@
 
                         // Vertical scroll to current time
                         const targetHour = currentHour < 6 ? 8 : currentHour;
-                        const headerHeight = 48;
+                        const headerHeight = 50;
                         const targetScrollY = Math.max(0, (targetHour * hourHeight) + headerHeight - 60);
                         weekScrollContainer.scrollTop = targetScrollY;
                     }
@@ -7801,9 +7834,11 @@
                     const weekDates = getWeekDates(viewingDate);
                     const todayIndex = weekDates.findIndex(d => isSameDay(d, today));
 
-                    if (todayIndex >= 0 && weekScrollContainer) {
-                        const hourMarkersWidth = 44;
-                        const columnWidth = 120;
+                    if (todayIndex >= 0 && weekScrollContainer && weekDaysGrid) {
+                        // Get actual column width dynamically
+                        const dayColumns = weekDaysGrid.querySelectorAll('.week-day-column');
+                        const hourMarkersWidth = 50;
+                        const columnWidth = dayColumns.length > 0 ? dayColumns[0].offsetWidth : 100;
                         const wrapperWidth = weekScrollContainer.clientWidth;
                         const targetScrollX = Math.max(0, hourMarkersWidth + (todayIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
                         weekScrollContainer.scrollTo({ left: targetScrollX, behavior: 'smooth' });
@@ -7811,7 +7846,7 @@
                         // Also scroll to current time vertically
                         const currentHour = new Date().getHours();
                         const targetHour = currentHour < 6 ? 8 : currentHour;
-                        const headerHeight = 48;
+                        const headerHeight = 50;
                         const targetScrollY = Math.max(0, (targetHour * 50) + headerHeight - 60);
                         weekScrollContainer.scrollTo({ top: targetScrollY, behavior: 'smooth' });
                     }
