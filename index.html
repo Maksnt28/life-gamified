@@ -2328,6 +2328,11 @@
                 flex-direction: column;
                 gap: 10px;
             }
+
+            .duration-field {
+                width: 100%;
+                max-width: 100%;
+            }
         }
 
         @keyframes modalSlide {
@@ -2648,13 +2653,21 @@
             width: 100%;
         }
 
-        .time-field,
-        .duration-field {
+        .time-field {
             flex: 1;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            min-width: 0; /* Allow shrinking below content size */
+            min-width: 0;
+        }
+
+        .duration-field {
+            flex: 0 0 auto;
+            width: 120px;
+            max-width: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .time-field-label {
