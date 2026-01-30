@@ -1363,18 +1363,27 @@
             /* Sticky day headers row - stays at top during vertical scroll */
             .week-day-headers {
                 display: grid;
-                grid-template-columns: repeat(7, 120px);
+                grid-template-columns: 36px repeat(7, 120px);
                 width: fit-content;
                 position: sticky;
                 top: 0;
-                z-index: 50;
+                z-index: 20;
                 background: #0a0a0a;
                 border-bottom: 1px solid #1a1a1a;
             }
 
+            .week-day-header-spacer {
+                width: 36px;
+                height: 44px;
+                background: #0a0a0a;
+                position: sticky;
+                left: 0;
+                z-index: 25;
+            }
+
             .week-day-header-cell {
                 width: 120px;
-                height: 48px;
+                height: 44px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -1388,15 +1397,15 @@
             }
 
             .week-day-header-cell.today {
-                background: rgba(59, 130, 246, 0.1);
+                background: rgba(59, 130, 246, 0.15);
             }
 
             .week-day-header-name {
-                font-size: 11px;
+                font-size: 10px;
                 font-weight: 500;
-                color: #707070;
+                color: #606060;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.3px;
             }
 
             .week-day-header-cell.today .week-day-header-name {
@@ -1404,7 +1413,7 @@
             }
 
             .week-day-header-num {
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 600;
                 color: #e0e0e0;
                 margin-top: 1px;
@@ -1414,18 +1423,43 @@
                 color: #3b82f6;
             }
 
-            /* Timeline grid - CSS grid, no scroll (wrapper handles it) */
+            /* Timeline grid - CSS grid with hour markers column */
             .week-timeline-grid {
                 display: grid;
-                grid-template-columns: repeat(7, 120px);
+                grid-template-columns: 36px repeat(7, 120px);
                 width: fit-content;
-                min-height: 1200px; /* 24 hours × 50px */
                 border-radius: 0;
                 border: none;
                 background: transparent;
             }
 
-            /* Day columns */
+            /* Hour markers column - sticky on left */
+            .week-hour-markers {
+                grid-column: 1;
+                grid-row: 1 / -1;
+                position: sticky;
+                left: 0;
+                z-index: 10;
+                background: #0a0a0a;
+                width: 36px;
+            }
+
+            .week-hour-marker {
+                height: 50px;
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+                padding-top: 2px;
+                font-size: 9px;
+                color: #505050;
+                border-bottom: 1px solid #141414;
+            }
+
+            .week-hour-marker:nth-child(odd) {
+                color: transparent;
+            }
+
+            /* Day columns - positioned in grid columns 2-8 */
             .week-day-column {
                 width: 120px;
                 min-width: 120px;
@@ -1433,6 +1467,7 @@
                 display: flex;
                 flex-direction: column;
                 background: #0a0a0a;
+                grid-row: 1;
             }
 
             .week-day-column:last-child {
@@ -1441,6 +1476,11 @@
 
             /* Hide old column headers on mobile - using new sticky header row */
             .week-column-header {
+                display: none;
+            }
+
+            /* Hide hour labels inside day columns on mobile */
+            .week-hour-label {
                 display: none;
             }
 
@@ -7309,6 +7349,12 @@
             // Render sticky day headers (mobile only)
             if (weekDayHeaders) {
                 weekDayHeaders.innerHTML = '';
+
+                // Add spacer for hour markers column
+                const spacer = document.createElement('div');
+                spacer.className = 'week-day-header-spacer';
+                weekDayHeaders.appendChild(spacer);
+
                 weekDates.forEach((date, index) => {
                     const isToday = isSameDay(date, today);
                     const cell = document.createElement('div');
@@ -7397,6 +7443,21 @@
             const isMobile = window.innerWidth < 768;
             const hourHeight = isMobile ? 50 : 60;
             let todayColumnIndex = -1;
+
+            // Add hour markers column (mobile only)
+            if (isMobile) {
+                const hourMarkersCol = document.createElement('div');
+                hourMarkersCol.className = 'week-hour-markers';
+
+                for (let hour = 0; hour < 24; hour++) {
+                    const marker = document.createElement('div');
+                    marker.className = 'week-hour-marker';
+                    marker.textContent = hour.toString().padStart(2, '0');
+                    hourMarkersCol.appendChild(marker);
+                }
+
+                weekTimelineGrid.appendChild(hourMarkersCol);
+            }
 
             // Render timeline columns (timed tasks only)
             weekDates.forEach((date, index) => {
@@ -7501,9 +7562,10 @@
                 setTimeout(() => {
                     // Horizontal scroll (on wrapper) to center today's column
                     if (todayColumnIndex >= 0) {
+                        const hourMarkersWidth = 36;
                         const columnWidth = 120;
                         const wrapperWidth = weekTimelineWrapper.clientWidth;
-                        const targetScrollX = Math.max(0, (todayColumnIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
+                        const targetScrollX = Math.max(0, hourMarkersWidth + (todayColumnIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
                         weekTimelineWrapper.scrollLeft = targetScrollX;
                     }
 
@@ -7673,9 +7735,10 @@
                     const todayIndex = weekDates.findIndex(d => isSameDay(d, today));
 
                     if (todayIndex >= 0 && weekTimelineWrapper) {
+                        const hourMarkersWidth = 36;
                         const columnWidth = 120;
                         const wrapperWidth = weekTimelineWrapper.clientWidth;
-                        const targetScrollX = Math.max(0, (todayIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
+                        const targetScrollX = Math.max(0, hourMarkersWidth + (todayIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
                         weekTimelineWrapper.scrollTo({ left: targetScrollX, behavior: 'smooth' });
 
                         // Also scroll to current time vertically
