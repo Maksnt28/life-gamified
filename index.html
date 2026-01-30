@@ -897,8 +897,8 @@
             gap: 12px;
         }
 
-        /* Day strip - hidden on desktop, shown on mobile */
-        .week-day-strip {
+        /* Sticky day headers - hidden on desktop, shown on mobile */
+        .week-day-headers {
             display: none;
         }
 
@@ -1338,69 +1338,8 @@
             .week-view-container.active {
                 display: flex;
                 flex-direction: column;
-                gap: 0;
+                gap: 8px;
                 overflow: hidden;
-            }
-
-            /* Sticky Day Strip - always visible at top */
-            .week-day-strip {
-                display: flex;
-                background: #0a0a0a;
-                border-bottom: 1px solid #1a1a1a;
-                padding: 8px 4px;
-                gap: 2px;
-                flex-shrink: 0;
-            }
-
-            .week-day-strip-item {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 6px 2px;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: background 0.15s ease;
-                -webkit-tap-highlight-color: transparent;
-            }
-
-            .week-day-strip-item:active {
-                background: rgba(255, 255, 255, 0.1);
-            }
-
-            .week-day-strip-item.today {
-                background: rgba(59, 130, 246, 0.15);
-            }
-
-            .week-day-strip-item.active {
-                background: rgba(255, 255, 255, 0.08);
-            }
-
-            .week-day-strip-item.today.active {
-                background: rgba(59, 130, 246, 0.25);
-            }
-
-            .week-day-strip-name {
-                font-size: 10px;
-                font-weight: 500;
-                color: #707070;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .week-day-strip-item.today .week-day-strip-name {
-                color: #3b82f6;
-            }
-
-            .week-day-strip-num {
-                font-size: 16px;
-                font-weight: 600;
-                color: #e0e0e0;
-                margin-top: 2px;
-            }
-
-            .week-day-strip-item.today .week-day-strip-num {
-                color: #3b82f6;
             }
 
             /* Timeline wrapper - handles BOTH vertical and horizontal scroll */
@@ -1419,6 +1358,60 @@
                 touch-action: pan-x pan-y;
                 /* Visual scroll hint container */
                 position: relative;
+            }
+
+            /* Sticky day headers row - stays at top during vertical scroll */
+            .week-day-headers {
+                display: grid;
+                grid-template-columns: repeat(7, 120px);
+                width: fit-content;
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                background: #0a0a0a;
+                border-bottom: 1px solid #1a1a1a;
+            }
+
+            .week-day-header-cell {
+                width: 120px;
+                height: 48px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border-right: 1px solid #1a1a1a;
+                background: #0a0a0a;
+            }
+
+            .week-day-header-cell:last-child {
+                border-right: none;
+            }
+
+            .week-day-header-cell.today {
+                background: rgba(59, 130, 246, 0.1);
+            }
+
+            .week-day-header-name {
+                font-size: 11px;
+                font-weight: 500;
+                color: #707070;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .week-day-header-cell.today .week-day-header-name {
+                color: #3b82f6;
+            }
+
+            .week-day-header-num {
+                font-size: 18px;
+                font-weight: 600;
+                color: #e0e0e0;
+                margin-top: 1px;
+            }
+
+            .week-day-header-cell.today .week-day-header-num {
+                color: #3b82f6;
             }
 
             /* Timeline grid - CSS grid, no scroll (wrapper handles it) */
@@ -1446,34 +1439,9 @@
                 border-right: none;
             }
 
-            /* Sticky day headers - stick to top while scrolling vertically */
+            /* Hide old column headers on mobile - using new sticky header row */
             .week-column-header {
-                position: sticky;
-                top: 0;
-                z-index: 20;
-                padding: 8px 4px;
-                text-align: center;
-                background: #0d0d0d;
-                border-bottom: 1px solid #1a1a1a;
-                min-height: 50px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            }
-
-            .week-day-column.today .week-column-header {
-                background: rgba(59, 130, 246, 0.15);
-            }
-
-            .week-column-day-name {
-                font-size: 9px;
-                letter-spacing: 0.03em;
-            }
-
-            .week-column-day-num {
-                font-size: 18px;
-                font-weight: 700;
-                margin-top: 1px;
+                display: none;
             }
 
             /* Timeline area - no independent scroll */
@@ -5055,10 +5023,6 @@
 
         <!-- Week View -->
         <div class="week-view-container view-container" id="weekViewContainer">
-            <!-- Sticky Day Strip (mobile only) -->
-            <div class="week-day-strip" id="weekDayStrip">
-                <!-- Days rendered by JS -->
-            </div>
             <!-- Untimed tasks section (above timeline) -->
             <div class="week-untimed-container" id="weekUntimedContainer">
                 <div class="week-untimed-header">
@@ -5071,6 +5035,10 @@
             </div>
             <!-- Timeline wrapper (handles vertical scroll on mobile) -->
             <div class="week-timeline-wrapper" id="weekTimelineWrapper">
+                <!-- Sticky day headers -->
+                <div class="week-day-headers" id="weekDayHeaders">
+                    <!-- Day headers rendered by JS -->
+                </div>
                 <!-- Timeline grid (handles horizontal scroll on mobile) -->
                 <div class="week-timeline-grid" id="weekTimelineGrid">
                     <!-- 7 day columns rendered by JS -->
@@ -5485,7 +5453,7 @@
         const untimedCountBadge = document.getElementById('untimedCountBadge');
         const weekTimelineWrapper = document.getElementById('weekTimelineWrapper');
         const weekTimelineGrid = document.getElementById('weekTimelineGrid');
-        const weekDayStrip = document.getElementById('weekDayStrip');
+        const weekDayHeaders = document.getElementById('weekDayHeaders');
         const weekUntimedContainer = document.getElementById('weekUntimedContainer');
         const weekUntimedCount = document.getElementById('weekUntimedCount');
         const weekUntimedDays = document.getElementById('weekUntimedDays');
@@ -7338,8 +7306,27 @@
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
 
-            // Render the sticky day strip (mobile only)
-            renderWeekDayStrip(weekDates, today);
+            // Render sticky day headers (mobile only)
+            if (weekDayHeaders) {
+                weekDayHeaders.innerHTML = '';
+                weekDates.forEach((date, index) => {
+                    const isToday = isSameDay(date, today);
+                    const cell = document.createElement('div');
+                    cell.className = 'week-day-header-cell' + (isToday ? ' today' : '');
+
+                    const name = document.createElement('div');
+                    name.className = 'week-day-header-name';
+                    name.textContent = dayAbbrev[index];
+
+                    const num = document.createElement('div');
+                    num.className = 'week-day-header-num';
+                    num.textContent = date.getDate();
+
+                    cell.appendChild(name);
+                    cell.appendChild(num);
+                    weekDayHeaders.appendChild(cell);
+                });
+            }
 
             // Collect all untimed tasks for the week
             let totalUntimedCount = 0;
@@ -7648,90 +7635,6 @@
             });
 
             return taskBlock;
-        }
-
-        // Render the sticky day strip for mobile
-        function renderWeekDayStrip(weekDates, today) {
-            if (!weekDayStrip) return;
-
-            weekDayStrip.innerHTML = '';
-
-            weekDates.forEach((date, index) => {
-                const isToday = isSameDay(date, today);
-                const dayItem = document.createElement('div');
-                dayItem.className = 'week-day-strip-item' + (isToday ? ' today' : '');
-                dayItem.dataset.dayIndex = index;
-
-                const dayName = document.createElement('div');
-                dayName.className = 'week-day-strip-name';
-                dayName.textContent = dayAbbrev[index].charAt(0); // Single letter: M, T, W...
-
-                const dayNum = document.createElement('div');
-                dayNum.className = 'week-day-strip-num';
-                dayNum.textContent = date.getDate();
-
-                dayItem.appendChild(dayName);
-                dayItem.appendChild(dayNum);
-
-                // Tap to scroll to that day's column
-                dayItem.addEventListener('click', () => {
-                    scrollToWeekDay(index);
-                });
-
-                weekDayStrip.appendChild(dayItem);
-            });
-
-            // Set up scroll listener to highlight active day
-            if (window.innerWidth < 768) {
-                setupDayStripScrollSync();
-            }
-        }
-
-        // Scroll to a specific day column in the week view
-        function scrollToWeekDay(dayIndex) {
-            if (!weekTimelineWrapper) return;
-
-            const columnWidth = 120;
-            const wrapperWidth = weekTimelineWrapper.clientWidth;
-            const targetScrollX = Math.max(0, (dayIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
-
-            weekTimelineWrapper.scrollTo({ left: targetScrollX, behavior: 'smooth' });
-        }
-
-        // Sync day strip highlighting with horizontal scroll position
-        function setupDayStripScrollSync() {
-            if (!weekTimelineWrapper || !weekDayStrip) return;
-
-            // Debounced scroll handler
-            let scrollTimeout;
-            weekTimelineWrapper.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    updateDayStripActiveState();
-                }, 50);
-            }, { passive: true });
-
-            // Initial update
-            setTimeout(updateDayStripActiveState, 100);
-        }
-
-        // Update which day is highlighted in the strip based on scroll position
-        function updateDayStripActiveState() {
-            if (!weekTimelineWrapper || !weekDayStrip) return;
-
-            const columnWidth = 120;
-            const scrollLeft = weekTimelineWrapper.scrollLeft;
-            const wrapperWidth = weekTimelineWrapper.clientWidth;
-
-            // Calculate which day is most visible (center of viewport)
-            const centerX = scrollLeft + (wrapperWidth / 2);
-            const activeDayIndex = Math.min(6, Math.max(0, Math.floor(centerX / columnWidth)));
-
-            // Update strip items
-            const items = weekDayStrip.querySelectorAll('.week-day-strip-item');
-            items.forEach((item, index) => {
-                item.classList.toggle('active', index === activeDayIndex);
-            });
         }
 
         // Navigate to previous/next week
