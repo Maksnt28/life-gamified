@@ -897,8 +897,13 @@
             gap: 12px;
         }
 
-        /* Sticky day headers - hidden on desktop, shown on mobile */
-        .week-day-headers {
+        /* Mobile-only elements - hidden on desktop */
+        .week-day-headers,
+        .week-scroll-container,
+        .week-timeline-content,
+        .week-days-grid,
+        .week-hour-markers,
+        .week-header-corner {
             display: none;
         }
 
@@ -1332,18 +1337,18 @@
             border-radius: 50%;
         }
 
-        /* Mobile: Horizontally scrollable 7-day grid with proper scroll separation */
+        /* Mobile: Week view with proper sticky positioning */
         @media (max-width: 768px) {
-            /* Week view container - no scroll here */
+            /* Week view container */
             .week-view-container.active {
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: 0;
                 overflow: hidden;
             }
 
-            /* Timeline wrapper - handles BOTH vertical and horizontal scroll */
-            .week-timeline-wrapper {
+            /* Main scroll container - THIS is the scroll parent for sticky elements */
+            .week-scroll-container {
                 flex: 1;
                 min-height: 0;
                 overflow: auto;
@@ -1351,37 +1356,37 @@
                 overscroll-behavior: contain;
                 background: #0a0a0a;
                 border-radius: 8px;
-                /* Touch handling - allow both directions */
                 touch-action: pan-x pan-y;
-                /* NOTE: Do NOT use transform here - it breaks sticky positioning */
+                /* NOTE: Do NOT use transform - it breaks sticky positioning */
             }
 
-            /* Sticky day headers row - stays at top during vertical scroll */
+            /* STICKY DAY HEADERS - sticks to top when scrolling down */
             .week-day-headers {
-                display: grid;
-                grid-template-columns: 40px repeat(7, 120px);
-                width: 880px; /* 40 + 7*120 = 880px */
                 position: sticky;
                 top: 0;
-                z-index: 20;
+                z-index: 30;
+                display: grid;
+                grid-template-columns: 44px repeat(7, 120px);
+                width: 884px; /* 44 + 7*120 = 884px */
                 background: #0a0a0a;
-                border-bottom: 1px solid #1a1a1a;
+                border-bottom: 1px solid #252525;
             }
 
             /* Corner cell - sticky both top AND left */
-            .week-day-header-spacer {
-                width: 40px;
-                height: 44px;
+            .week-header-corner {
+                width: 44px;
+                height: 48px;
                 background: #0a0a0a;
                 position: sticky;
                 left: 0;
-                z-index: 30; /* Highest - above both headers and hour markers */
-                border-right: 1px solid #1a1a1a;
+                z-index: 35;
+                border-right: 1px solid #252525;
             }
 
+            /* Day header cells */
             .week-day-header-cell {
                 width: 120px;
-                height: 44px;
+                height: 48px;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -1411,38 +1416,31 @@
             }
 
             .week-day-header-num {
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: 600;
                 color: #e0e0e0;
-                margin-top: 1px;
+                margin-top: 2px;
             }
 
             .week-day-header-cell.today .week-day-header-num {
                 color: #3b82f6;
             }
 
-            /* Timeline grid - CSS grid with hour markers column */
-            .week-timeline-grid {
+            /* Timeline content - grid with hours column + days grid */
+            .week-timeline-content {
                 display: grid;
-                grid-template-columns: 40px repeat(7, 120px);
-                width: 880px; /* 40 + 7*120 = 880px - must match headers */
-                border-radius: 0;
-                border: none;
-                background: transparent;
+                grid-template-columns: 44px 1fr;
+                width: 884px; /* Must match headers */
             }
 
-            /* Hour markers column - sticky on left */
+            /* STICKY HOUR MARKERS - sticks to left when scrolling right */
             .week-hour-markers {
-                grid-column: 1;
-                grid-row: 1;
-                display: flex;
-                flex-direction: column;
                 position: sticky;
                 left: 0;
-                z-index: 10;
+                z-index: 20;
                 background: #0a0a0a;
-                width: 40px;
-                border-right: 1px solid #1a1a1a;
+                width: 44px;
+                border-right: 1px solid #252525;
             }
 
             .week-hour-marker {
@@ -1450,27 +1448,28 @@
                 display: flex;
                 align-items: flex-start;
                 justify-content: center;
-                padding-top: 2px;
+                padding-top: 4px;
                 font-size: 9px;
                 color: #505050;
                 border-bottom: 1px solid #141414;
                 box-sizing: border-box;
-            }
-
-            /* Show only even hours (00, 02, 04...) for cleaner look */
-            .week-hour-marker:nth-child(even) {
-                color: transparent;
-            }
-
-            /* Day columns - positioned in grid columns 2-8 */
-            .week-day-column {
-                width: 120px;
-                min-width: 120px;
-                border-right: 1px solid #1a1a1a;
-                display: flex;
-                flex-direction: column;
                 background: #0a0a0a;
-                grid-row: 1;
+            }
+
+            /* Days grid - 7 columns */
+            .week-days-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 120px);
+                width: 840px; /* 7*120 = 840px */
+            }
+
+            /* Individual day column */
+            .week-day-column {
+                position: relative;
+                width: 120px;
+                height: 1200px; /* 24 hours × 50px */
+                border-right: 1px solid #1a1a1a;
+                background: #0a0a0a;
                 box-sizing: border-box;
             }
 
@@ -1482,76 +1481,84 @@
                 background: rgba(59, 130, 246, 0.03);
             }
 
-            /* Hide old column headers on mobile - using new sticky header row */
-            .week-column-header {
-                display: none;
+            /* Hour grid lines in day columns */
+            .week-day-column::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-image: repeating-linear-gradient(
+                    to bottom,
+                    transparent 0,
+                    transparent 49px,
+                    #141414 49px,
+                    #141414 50px
+                );
+                pointer-events: none;
             }
 
-            /* Hide hour labels inside day columns on mobile */
-            .week-hour-label {
-                display: none;
+            /* Hide old elements */
+            .week-column-header,
+            .week-hour-label,
+            .week-column-timeline,
+            .week-column-hours,
+            .week-timeline-wrapper,
+            .week-timeline-grid {
+                display: none !important;
             }
 
-            /* Timeline area - no independent scroll */
-            .week-column-timeline {
-                flex: none;
-                overflow: visible;
-                position: relative;
-            }
-
-            /* Hours container - 50px per hour on mobile */
-            .week-column-hours {
-                height: 1200px; /* 24 hours × 50px */
-                position: relative;
-            }
-
-            .week-hour-row {
-                height: 50px;
-                border-bottom-color: #141414;
-            }
-
-            /* Hour labels - only show in first column */
-            .week-hour-label {
-                font-size: 8px;
-                left: 2px;
-                top: -5px;
-                color: #404040;
-            }
-
-            /* Tasks layer adjusted for 50px/hour */
-            .week-tasks-layer {
+            /* Task blocks - positioned absolutely in day columns */
+            .week-task-block {
+                position: absolute;
                 left: 2px;
                 right: 2px;
-            }
-
-            /* Task blocks - compact for mobile */
-            .week-task-block {
+                border-radius: 3px;
+                padding: 3px 4px;
                 font-size: 10px;
-                padding: 2px 3px;
-                min-height: 16px;
-                border-left-width: 2px;
-                border-radius: 2px;
+                color: #fff;
+                cursor: pointer;
+                overflow: hidden;
+                min-height: 18px;
+                box-sizing: border-box;
             }
 
             .week-task-block .task-block-name {
                 font-size: 9px;
+                font-weight: 500;
                 line-height: 1.2;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
             .week-task-block .task-block-time {
                 font-size: 8px;
-            }
-
-            .week-overlap-warning {
-                font-size: 7px;
+                color: rgba(255, 255, 255, 0.7);
+                margin-top: 1px;
             }
 
             /* Current time indicator */
+            .week-current-time {
+                position: absolute;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: #ef4444;
+                z-index: 10;
+                pointer-events: none;
+            }
+
             .week-current-time::before {
-                width: 6px;
-                height: 6px;
-                left: -2px;
-                top: -2px;
+                content: '';
+                position: absolute;
+                left: -3px;
+                top: -3px;
+                width: 8px;
+                height: 8px;
+                background: #ef4444;
+                border-radius: 50%;
             }
 
             /* Hide navigation arrows on mobile for Week view */
@@ -5054,7 +5061,7 @@
 
         <!-- Week View -->
         <div class="week-view-container view-container" id="weekViewContainer">
-            <!-- Untimed tasks section (above timeline) -->
+            <!-- Untimed tasks section (above scroll container) -->
             <div class="week-untimed-container" id="weekUntimedContainer">
                 <div class="week-untimed-header">
                     <span class="week-untimed-title">Untimed Tasks</span>
@@ -5064,15 +5071,26 @@
                     <!-- Day groups rendered by JS -->
                 </div>
             </div>
-            <!-- Timeline wrapper (handles vertical scroll on mobile) -->
-            <div class="week-timeline-wrapper" id="weekTimelineWrapper">
-                <!-- Sticky day headers -->
+
+            <!-- Main scroll container for sticky positioning -->
+            <div class="week-scroll-container" id="weekScrollContainer">
+                <!-- STICKY ROW: Day headers (Mon, Tue, etc.) - direct child of scroll container -->
                 <div class="week-day-headers" id="weekDayHeaders">
-                    <!-- Day headers rendered by JS -->
+                    <div class="week-header-corner"></div>
+                    <!-- Day header cells rendered by JS -->
                 </div>
-                <!-- Timeline grid (handles horizontal scroll on mobile) -->
-                <div class="week-timeline-grid" id="weekTimelineGrid">
-                    <!-- 7 day columns rendered by JS -->
+
+                <!-- Timeline content wrapper -->
+                <div class="week-timeline-content">
+                    <!-- STICKY COLUMN: Hour markers - direct child for sticky left -->
+                    <div class="week-hour-markers" id="weekHourMarkers">
+                        <!-- Hour markers rendered by JS -->
+                    </div>
+
+                    <!-- 7 Day columns grid -->
+                    <div class="week-days-grid" id="weekDaysGrid">
+                        <!-- Day columns rendered by JS -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -5482,9 +5500,10 @@
         const timelineUntimedSection = document.getElementById('timelineUntimedSection');
         const timelineUntimedTasks = document.getElementById('timelineUntimedTasks');
         const untimedCountBadge = document.getElementById('untimedCountBadge');
-        const weekTimelineWrapper = document.getElementById('weekTimelineWrapper');
-        const weekTimelineGrid = document.getElementById('weekTimelineGrid');
+        const weekScrollContainer = document.getElementById('weekScrollContainer');
         const weekDayHeaders = document.getElementById('weekDayHeaders');
+        const weekHourMarkers = document.getElementById('weekHourMarkers');
+        const weekDaysGrid = document.getElementById('weekDaysGrid');
         const weekUntimedContainer = document.getElementById('weekUntimedContainer');
         const weekUntimedCount = document.getElementById('weekUntimedCount');
         const weekUntimedDays = document.getElementById('weekUntimedDays');
@@ -6057,8 +6076,10 @@
                 renderWeekView();
                 // On mobile, scroll to today's column
                 setTimeout(() => {
-                    const todayColumn = weekTimelineGrid.querySelector('.week-day-column.today');
-                    if (todayColumn && window.innerWidth < 768) {
+                    const isMobile = window.innerWidth < 768;
+                    const gridContainer = isMobile ? weekDaysGrid : document.getElementById('weekTimelineGrid');
+                    const todayColumn = gridContainer ? gridContainer.querySelector('.week-day-column.today') : null;
+                    if (todayColumn && isMobile) {
                         todayColumn.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }, 50);
@@ -7328,7 +7349,9 @@
 
         // Week View - 7-column timeline scheduler
         function renderWeekView() {
-            weekTimelineGrid.innerHTML = '';
+            // Clear previous content
+            if (weekDaysGrid) weekDaysGrid.innerHTML = '';
+            if (weekHourMarkers) weekHourMarkers.innerHTML = '';
             weekUntimedDays.innerHTML = '';
 
             const weekDates = getWeekDates(viewingDate);
@@ -7337,17 +7360,26 @@
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
 
-            // Render sticky day headers (mobile only)
-            if (weekDayHeaders) {
+            const isMobile = window.innerWidth < 768;
+            const hourHeight = isMobile ? 50 : 60;
+            let todayColumnIndex = -1;
+
+            // ===== RENDER DAY HEADERS (mobile only) =====
+            if (isMobile && weekDayHeaders) {
+                // Keep the corner cell, clear day headers
+                const existingCorner = weekDayHeaders.querySelector('.week-header-corner');
                 weekDayHeaders.innerHTML = '';
 
-                // Add spacer for hour markers column
-                const spacer = document.createElement('div');
-                spacer.className = 'week-day-header-spacer';
-                weekDayHeaders.appendChild(spacer);
+                // Add corner cell
+                const corner = document.createElement('div');
+                corner.className = 'week-header-corner';
+                weekDayHeaders.appendChild(corner);
 
+                // Add day header cells
                 weekDates.forEach((date, index) => {
                     const isToday = isSameDay(date, today);
+                    if (isToday) todayColumnIndex = index;
+
                     const cell = document.createElement('div');
                     cell.className = 'week-day-header-cell' + (isToday ? ' today' : '');
 
@@ -7365,7 +7397,17 @@
                 });
             }
 
-            // Collect all untimed tasks for the week
+            // ===== RENDER HOUR MARKERS (mobile only) =====
+            if (isMobile && weekHourMarkers) {
+                for (let hour = 0; hour < 24; hour++) {
+                    const marker = document.createElement('div');
+                    marker.className = 'week-hour-marker';
+                    marker.textContent = hour.toString().padStart(2, '0') + ':00';
+                    weekHourMarkers.appendChild(marker);
+                }
+            }
+
+            // ===== COLLECT UNTIMED TASKS =====
             let totalUntimedCount = 0;
             const weekUntimedData = [];
 
@@ -7385,7 +7427,7 @@
                 });
             });
 
-            // Render untimed tasks section (only if there are any)
+            // ===== RENDER UNTIMED TASKS SECTION =====
             weekUntimedCount.textContent = totalUntimedCount;
             if (totalUntimedCount > 0) {
                 weekUntimedContainer.classList.add('has-tasks');
@@ -7394,13 +7436,11 @@
                     const dayGroup = document.createElement('div');
                     dayGroup.className = 'week-untimed-day' + (isToday ? ' today' : '') + (untimedTasks.length === 0 ? ' empty' : '');
 
-                    // Day header
                     const dayHeader = document.createElement('div');
                     dayHeader.className = 'week-untimed-day-header';
                     dayHeader.innerHTML = `${dayAbbrev[dayIndex]} <span class="week-untimed-day-count">(${untimedTasks.length})</span>`;
                     dayGroup.appendChild(dayHeader);
 
-                    // Render untimed tasks for this day
                     untimedTasks.forEach(task => {
                         const isCompleted = isTaskCompletedForDate(task.id, dateStr);
                         const categoryColor = getCategoryColor(task.category);
@@ -7415,7 +7455,6 @@
                             <div class="item-name">${task.name}</div>
                         `;
 
-                        // Click to toggle
                         taskEl.addEventListener('click', (e) => {
                             e.stopPropagation();
                             toggleWeekTask(task.id, dateStr, taskEl);
@@ -7430,41 +7469,107 @@
                 weekUntimedContainer.classList.remove('has-tasks');
             }
 
-            // Detect mobile for different hour heights
-            const isMobile = window.innerWidth < 768;
-            const hourHeight = isMobile ? 50 : 60;
-            let todayColumnIndex = -1;
+            // ===== RENDER DAY COLUMNS (mobile uses new structure) =====
+            if (isMobile && weekDaysGrid) {
+                // Mobile: Render into weekDaysGrid
+                weekDates.forEach((date, index) => {
+                    const isToday = isSameDay(date, today);
+                    if (isToday) todayColumnIndex = index;
 
-            // Add hour markers column (mobile only)
-            if (isMobile) {
-                const hourMarkersCol = document.createElement('div');
-                hourMarkersCol.className = 'week-hour-markers';
+                    const dateStr = formatDateForInput(date);
+                    const tasksForDay = getTasksForDate(date);
+                    const timedTasks = tasksForDay.filter(t => t.time);
 
-                for (let hour = 0; hour < 24; hour++) {
-                    const marker = document.createElement('div');
-                    marker.className = 'week-hour-marker';
-                    marker.textContent = hour.toString().padStart(2, '0');
-                    hourMarkersCol.appendChild(marker);
-                }
+                    // Create day column
+                    const dayCol = document.createElement('div');
+                    dayCol.className = 'week-day-column' + (isToday ? ' today' : '');
+                    dayCol.dataset.date = dateStr;
 
-                weekTimelineGrid.appendChild(hourMarkersCol);
+                    // Calculate overlaps for this day's timed tasks
+                    const overlapInfo = calculateTaskOverlaps(timedTasks);
+
+                    // Render timed task blocks
+                    timedTasks.forEach(task => {
+                        const taskOverlapData = overlapInfo.get(task.id);
+                        const taskBlock = createWeekTaskBlock(task, dateStr, taskOverlapData, hourHeight);
+                        dayCol.appendChild(taskBlock);
+                    });
+
+                    // Current time indicator (only for today)
+                    if (isToday) {
+                        const currentTimePosition = (currentHour * 60 + currentMinute) * (hourHeight / 60);
+                        const currentTimeIndicator = document.createElement('div');
+                        currentTimeIndicator.className = 'week-current-time';
+                        currentTimeIndicator.style.top = `${currentTimePosition}px`;
+                        dayCol.appendChild(currentTimeIndicator);
+                    }
+
+                    // Click on timeline to add task at that time
+                    dayCol.addEventListener('click', (e) => {
+                        if (e.target.closest('.week-task-block')) return;
+
+                        const rect = dayCol.getBoundingClientRect();
+                        const scrollTop = weekScrollContainer ? weekScrollContainer.scrollTop : 0;
+                        const headerHeight = 48; // Day headers height
+                        const clickY = e.clientY - rect.top;
+                        const hour = Math.floor(clickY / hourHeight);
+                        const minuteRatio = (clickY % hourHeight) / hourHeight;
+                        const minutes = Math.floor(minuteRatio * 60 / 15) * 15;
+
+                        if (hour >= 0 && hour < 24) {
+                            const timeStr = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                            openCreateTaskModal(dateStr, timeStr);
+                        }
+                    });
+
+                    weekDaysGrid.appendChild(dayCol);
+                });
+
+                // Auto-scroll to today's column and current time
+                setTimeout(() => {
+                    if (weekScrollContainer) {
+                        // Horizontal scroll to center today's column
+                        if (todayColumnIndex >= 0) {
+                            const hourMarkersWidth = 44;
+                            const columnWidth = 120;
+                            const wrapperWidth = weekScrollContainer.clientWidth;
+                            const targetScrollX = Math.max(0, hourMarkersWidth + (todayColumnIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
+                            weekScrollContainer.scrollLeft = targetScrollX;
+                        }
+
+                        // Vertical scroll to current time
+                        const targetHour = currentHour < 6 ? 8 : currentHour;
+                        const headerHeight = 48;
+                        const targetScrollY = Math.max(0, (targetHour * hourHeight) + headerHeight - 60);
+                        weekScrollContainer.scrollTop = targetScrollY;
+                    }
+                }, 100);
+            } else {
+                // Desktop: Use old structure (for backward compatibility)
+                // This will be handled by the desktop CSS which shows the old elements
+                renderWeekViewDesktop(weekDates, today, currentHour, currentMinute, hourHeight);
             }
+        }
 
-            // Render timeline columns (timed tasks only)
+        // Desktop Week View rendering (backward compatible)
+        function renderWeekViewDesktop(weekDates, today, currentHour, currentMinute, hourHeight) {
+            // For desktop, we'll create the old structure if needed
+            // Desktop uses different selectors, this is a simplified version
+            const weekTimelineGrid = document.getElementById('weekTimelineGrid');
+            if (!weekTimelineGrid) return;
+
+            weekTimelineGrid.innerHTML = '';
+
             weekDates.forEach((date, index) => {
                 const isToday = isSameDay(date, today);
-                if (isToday) todayColumnIndex = index;
-
                 const dateStr = formatDateForInput(date);
                 const tasksForDay = getTasksForDate(date);
                 const timedTasks = tasksForDay.filter(t => t.time);
 
-                // Create day column
                 const dayCol = document.createElement('div');
                 dayCol.className = 'week-day-column' + (isToday ? ' today' : '');
                 dayCol.dataset.date = dateStr;
 
-                // Sticky header
                 const header = document.createElement('div');
                 header.className = 'week-column-header';
                 header.innerHTML = `
@@ -7473,23 +7578,19 @@
                 `;
                 dayCol.appendChild(header);
 
-                // Timeline scroll container
                 const timelineScroll = document.createElement('div');
                 timelineScroll.className = 'week-column-timeline';
 
-                // Hours container (24 hours)
                 const hoursContainer = document.createElement('div');
                 hoursContainer.className = 'week-column-hours';
                 hoursContainer.style.height = `${24 * hourHeight}px`;
 
-                // Create 24 hour rows
                 for (let hour = 0; hour < 24; hour++) {
                     const hourRow = document.createElement('div');
                     hourRow.className = 'week-hour-row';
                     hourRow.style.top = `${hour * hourHeight}px`;
                     hourRow.style.height = `${hourHeight}px`;
 
-                    // Only show hour labels every 2 hours for compactness
                     if (hour % 2 === 0) {
                         const hourLabel = document.createElement('span');
                         hourLabel.className = 'week-hour-label';
@@ -7500,14 +7601,11 @@
                     hoursContainer.appendChild(hourRow);
                 }
 
-                // Tasks layer
                 const tasksLayer = document.createElement('div');
                 tasksLayer.className = 'week-tasks-layer';
 
-                // Calculate overlaps for this day's timed tasks
                 const overlapInfo = calculateTaskOverlaps(timedTasks);
 
-                // Render timed task blocks
                 timedTasks.forEach(task => {
                     const taskOverlapData = overlapInfo.get(task.id);
                     const taskBlock = createWeekTaskBlock(task, dateStr, taskOverlapData, hourHeight);
@@ -7516,7 +7614,6 @@
 
                 hoursContainer.appendChild(tasksLayer);
 
-                // Current time indicator (only for today)
                 if (isToday) {
                     const currentTimePosition = (currentHour * 60 + currentMinute) * (hourHeight / 60);
                     const currentTimeIndicator = document.createElement('div');
@@ -7525,13 +7622,10 @@
                     hoursContainer.appendChild(currentTimeIndicator);
                 }
 
-                // Click on timeline to add task at that time
                 hoursContainer.addEventListener('click', (e) => {
                     if (e.target.closest('.week-task-block')) return;
-
                     const rect = hoursContainer.getBoundingClientRect();
-                    const scrollTop = isMobile ? weekTimelineWrapper.scrollTop : timelineScroll.scrollTop;
-                    const clickY = e.clientY - rect.top + scrollTop;
+                    const clickY = e.clientY - rect.top + timelineScroll.scrollTop;
                     const hour = Math.floor(clickY / hourHeight);
                     const minuteRatio = (clickY % hourHeight) / hourHeight;
                     const minutes = Math.floor(minuteRatio * 60 / 15) * 15;
@@ -7544,58 +7638,37 @@
 
                 timelineScroll.appendChild(hoursContainer);
                 dayCol.appendChild(timelineScroll);
-
                 weekTimelineGrid.appendChild(dayCol);
             });
 
-            // Mobile: Auto-scroll to today's column and current time
-            if (isMobile) {
-                setTimeout(() => {
-                    // Horizontal scroll (on wrapper) to center today's column
-                    if (todayColumnIndex >= 0) {
-                        const hourMarkersWidth = 40;
-                        const columnWidth = 120;
-                        const wrapperWidth = weekTimelineWrapper.clientWidth;
-                        const targetScrollX = Math.max(0, hourMarkersWidth + (todayColumnIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
-                        weekTimelineWrapper.scrollLeft = targetScrollX;
-                    }
+            // Desktop scroll sync
+            const allTimelines = weekTimelineGrid.querySelectorAll('.week-column-timeline');
+            let isScrolling = false;
 
-                    // Vertical scroll (on wrapper) to current time (or 8am if early morning)
-                    const targetHour = currentHour < 6 ? 8 : currentHour;
-                    const targetScrollY = Math.max(0, (targetHour * hourHeight) - 60);
-                    weekTimelineWrapper.scrollTop = targetScrollY;
-                }, 100);
-            } else {
-                // Desktop: Synchronized scrolling for all columns
-                const allTimelines = weekTimelineGrid.querySelectorAll('.week-column-timeline');
-                let isScrolling = false;
+            allTimelines.forEach(timeline => {
+                timeline.addEventListener('scroll', () => {
+                    if (isScrolling) return;
+                    isScrolling = true;
 
-                allTimelines.forEach(timeline => {
-                    timeline.addEventListener('scroll', () => {
-                        if (isScrolling) return;
-                        isScrolling = true;
+                    const scrollTop = timeline.scrollTop;
+                    allTimelines.forEach(other => {
+                        if (other !== timeline) {
+                            other.scrollTop = scrollTop;
+                        }
+                    });
 
-                        const scrollTop = timeline.scrollTop;
-                        allTimelines.forEach(other => {
-                            if (other !== timeline) {
-                                other.scrollTop = scrollTop;
-                            }
-                        });
-
-                        requestAnimationFrame(() => {
-                            isScrolling = false;
-                        });
+                    requestAnimationFrame(() => {
+                        isScrolling = false;
                     });
                 });
+            });
 
-                // Scroll to current time in today's column
-                const todayColumn = weekTimelineGrid.querySelector('.week-day-column.today .week-column-timeline');
-                if (todayColumn) {
-                    setTimeout(() => {
-                        const currentTimePosition = currentHour * hourHeight + currentMinute * (hourHeight / 60);
-                        todayColumn.scrollTop = Math.max(0, currentTimePosition - 60);
-                    }, 50);
-                }
+            const todayColumn = weekTimelineGrid.querySelector('.week-day-column.today .week-column-timeline');
+            if (todayColumn) {
+                setTimeout(() => {
+                    const currentTimePosition = currentHour * hourHeight + currentMinute * (hourHeight / 60);
+                    todayColumn.scrollTop = Math.max(0, currentTimePosition - 60);
+                }, 50);
             }
         }
 
@@ -7725,18 +7798,19 @@
                     const weekDates = getWeekDates(viewingDate);
                     const todayIndex = weekDates.findIndex(d => isSameDay(d, today));
 
-                    if (todayIndex >= 0 && weekTimelineWrapper) {
-                        const hourMarkersWidth = 40;
+                    if (todayIndex >= 0 && weekScrollContainer) {
+                        const hourMarkersWidth = 44;
                         const columnWidth = 120;
-                        const wrapperWidth = weekTimelineWrapper.clientWidth;
+                        const wrapperWidth = weekScrollContainer.clientWidth;
                         const targetScrollX = Math.max(0, hourMarkersWidth + (todayIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
-                        weekTimelineWrapper.scrollTo({ left: targetScrollX, behavior: 'smooth' });
+                        weekScrollContainer.scrollTo({ left: targetScrollX, behavior: 'smooth' });
 
                         // Also scroll to current time vertically
                         const currentHour = new Date().getHours();
                         const targetHour = currentHour < 6 ? 8 : currentHour;
-                        const targetScrollY = Math.max(0, (targetHour * 50) - 60);
-                        weekTimelineWrapper.scrollTo({ top: targetScrollY, behavior: 'smooth' });
+                        const headerHeight = 48;
+                        const targetScrollY = Math.max(0, (targetHour * 50) + headerHeight - 60);
+                        weekScrollContainer.scrollTo({ top: targetScrollY, behavior: 'smooth' });
                     }
                 }, 150);
             }
