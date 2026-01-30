@@ -897,6 +897,11 @@
             gap: 12px;
         }
 
+        /* Day strip - hidden on desktop, shown on mobile */
+        .week-day-strip {
+            display: none;
+        }
+
         /* Week Untimed Tasks Container (above timeline) */
         .week-untimed-container {
             background: #0d0d0d;
@@ -1333,8 +1338,69 @@
             .week-view-container.active {
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: 0;
                 overflow: hidden;
+            }
+
+            /* Sticky Day Strip - always visible at top */
+            .week-day-strip {
+                display: flex;
+                background: #0a0a0a;
+                border-bottom: 1px solid #1a1a1a;
+                padding: 8px 4px;
+                gap: 2px;
+                flex-shrink: 0;
+            }
+
+            .week-day-strip-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 6px 2px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background 0.15s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .week-day-strip-item:active {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .week-day-strip-item.today {
+                background: rgba(59, 130, 246, 0.15);
+            }
+
+            .week-day-strip-item.active {
+                background: rgba(255, 255, 255, 0.08);
+            }
+
+            .week-day-strip-item.today.active {
+                background: rgba(59, 130, 246, 0.25);
+            }
+
+            .week-day-strip-name {
+                font-size: 10px;
+                font-weight: 500;
+                color: #707070;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .week-day-strip-item.today .week-day-strip-name {
+                color: #3b82f6;
+            }
+
+            .week-day-strip-num {
+                font-size: 16px;
+                font-weight: 600;
+                color: #e0e0e0;
+                margin-top: 2px;
+            }
+
+            .week-day-strip-item.today .week-day-strip-num {
+                color: #3b82f6;
             }
 
             /* Timeline wrapper - handles BOTH vertical and horizontal scroll */
@@ -4989,6 +5055,10 @@
 
         <!-- Week View -->
         <div class="week-view-container view-container" id="weekViewContainer">
+            <!-- Sticky Day Strip (mobile only) -->
+            <div class="week-day-strip" id="weekDayStrip">
+                <!-- Days rendered by JS -->
+            </div>
             <!-- Untimed tasks section (above timeline) -->
             <div class="week-untimed-container" id="weekUntimedContainer">
                 <div class="week-untimed-header">
@@ -5415,6 +5485,7 @@
         const untimedCountBadge = document.getElementById('untimedCountBadge');
         const weekTimelineWrapper = document.getElementById('weekTimelineWrapper');
         const weekTimelineGrid = document.getElementById('weekTimelineGrid');
+        const weekDayStrip = document.getElementById('weekDayStrip');
         const weekUntimedContainer = document.getElementById('weekUntimedContainer');
         const weekUntimedCount = document.getElementById('weekUntimedCount');
         const weekUntimedDays = document.getElementById('weekUntimedDays');
@@ -7267,6 +7338,9 @@
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
 
+            // Render the sticky day strip (mobile only)
+            renderWeekDayStrip(weekDates, today);
+
             // Collect all untimed tasks for the week
             let totalUntimedCount = 0;
             const weekUntimedData = [];
@@ -7574,6 +7648,90 @@
             });
 
             return taskBlock;
+        }
+
+        // Render the sticky day strip for mobile
+        function renderWeekDayStrip(weekDates, today) {
+            if (!weekDayStrip) return;
+
+            weekDayStrip.innerHTML = '';
+
+            weekDates.forEach((date, index) => {
+                const isToday = isSameDay(date, today);
+                const dayItem = document.createElement('div');
+                dayItem.className = 'week-day-strip-item' + (isToday ? ' today' : '');
+                dayItem.dataset.dayIndex = index;
+
+                const dayName = document.createElement('div');
+                dayName.className = 'week-day-strip-name';
+                dayName.textContent = dayAbbrev[index].charAt(0); // Single letter: M, T, W...
+
+                const dayNum = document.createElement('div');
+                dayNum.className = 'week-day-strip-num';
+                dayNum.textContent = date.getDate();
+
+                dayItem.appendChild(dayName);
+                dayItem.appendChild(dayNum);
+
+                // Tap to scroll to that day's column
+                dayItem.addEventListener('click', () => {
+                    scrollToWeekDay(index);
+                });
+
+                weekDayStrip.appendChild(dayItem);
+            });
+
+            // Set up scroll listener to highlight active day
+            if (window.innerWidth < 768) {
+                setupDayStripScrollSync();
+            }
+        }
+
+        // Scroll to a specific day column in the week view
+        function scrollToWeekDay(dayIndex) {
+            if (!weekTimelineWrapper) return;
+
+            const columnWidth = 120;
+            const wrapperWidth = weekTimelineWrapper.clientWidth;
+            const targetScrollX = Math.max(0, (dayIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
+
+            weekTimelineWrapper.scrollTo({ left: targetScrollX, behavior: 'smooth' });
+        }
+
+        // Sync day strip highlighting with horizontal scroll position
+        function setupDayStripScrollSync() {
+            if (!weekTimelineWrapper || !weekDayStrip) return;
+
+            // Debounced scroll handler
+            let scrollTimeout;
+            weekTimelineWrapper.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    updateDayStripActiveState();
+                }, 50);
+            }, { passive: true });
+
+            // Initial update
+            setTimeout(updateDayStripActiveState, 100);
+        }
+
+        // Update which day is highlighted in the strip based on scroll position
+        function updateDayStripActiveState() {
+            if (!weekTimelineWrapper || !weekDayStrip) return;
+
+            const columnWidth = 120;
+            const scrollLeft = weekTimelineWrapper.scrollLeft;
+            const wrapperWidth = weekTimelineWrapper.clientWidth;
+
+            // Calculate which day is most visible (center of viewport)
+            const centerX = scrollLeft + (wrapperWidth / 2);
+            const activeDayIndex = Math.min(6, Math.max(0, Math.floor(centerX / columnWidth)));
+
+            // Update strip items
+            const items = weekDayStrip.querySelectorAll('.week-day-strip-item');
+            items.forEach((item, index) => {
+                item.classList.toggle('active', index === activeDayIndex);
+            });
         }
 
         // Navigate to previous/next week
