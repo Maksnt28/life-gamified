@@ -1109,6 +1109,13 @@
             opacity: 0.6;
         }
 
+        .month-task-preview.removing {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+        }
+
         .month-task-checkbox {
             width: 12px;
             height: 12px;
@@ -1203,18 +1210,27 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            opacity: 0;
+            opacity: 0.5;  /* Mobile: always visible */
             transition: all 0.2s ease;
             padding: 0;
+            pointer-events: auto;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .month-task-preview:hover .month-task-delete {
-            opacity: 1;
-        }
+        /* Desktop: Show on hover */
+        @media (hover: hover) {
+            .month-task-delete {
+                opacity: 0;
+            }
 
-        .month-task-delete:hover {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
+            .month-task-preview:hover .month-task-delete {
+                opacity: 1;
+            }
+
+            .month-task-delete:hover {
+                color: #ef4444;
+                background: rgba(239, 68, 68, 0.1);
+            }
         }
 
         .month-more-tasks {
@@ -4786,6 +4802,92 @@
             return true;
         }
 
+        // Update only a specific date cell in Month Grid view (desktop)
+        function updateMonthGridDateCell(dateStr) {
+            const dayCell = monthGrid.querySelector(`.month-day[data-date="${dateStr}"]`);
+            if (!dayCell) return false;
+
+            // Parse the date
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            const tasksForDay = getTasksForDate(date);
+
+            // Remove existing task previews and "more" button (keep day number)
+            const existingPreviews = dayCell.querySelectorAll('.month-task-preview, .month-more-tasks');
+            existingPreviews.forEach(el => el.remove());
+
+            // Rebuild task previews
+            const maxVisible = 2;
+            if (tasksForDay.length > 0) {
+                const tasksToShow = tasksForDay.slice(0, maxVisible);
+
+                tasksToShow.forEach(task => {
+                    const preview = document.createElement('div');
+                    preview.className = 'month-task-preview' + (task.completed ? ' completed' : '');
+                    preview.dataset.taskId = task.id;
+                    preview.dataset.dateStr = dateStr;
+                    if (task.dailyId) preview.dataset.dailyId = task.dailyId;
+                    if (task.pattern) preview.dataset.pattern = task.pattern;
+                    if (task.type) preview.dataset.type = task.type;
+
+                    // Checkbox
+                    const checkbox = document.createElement('span');
+                    checkbox.className = 'month-task-checkbox' + (task.completed ? ' checked' : '');
+
+                    // Category indicator
+                    const indicator = document.createElement('span');
+                    indicator.className = 'category-indicator';
+                    indicator.style.background = getCategoryColor(task.category);
+
+                    const text = document.createElement('span');
+                    text.className = 'month-task-text';
+                    text.textContent = task.name;
+
+                    // Task text click handler - opens notes modal
+                    text.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openNotesModal(task.id);
+                    });
+
+                    // Delete button
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.className = 'month-task-delete';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handleGridTaskDelete(preview);
+                    });
+
+                    preview.appendChild(checkbox);
+                    preview.appendChild(indicator);
+                    preview.appendChild(text);
+                    preview.appendChild(deleteBtn);
+
+                    // Checkbox toggles completion
+                    checkbox.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleGridTask(preview);
+                    });
+
+                    dayCell.appendChild(preview);
+                });
+
+                if (tasksForDay.length > maxVisible) {
+                    const moreBtn = document.createElement('div');
+                    moreBtn.className = 'month-more-tasks';
+                    moreBtn.textContent = `+${tasksForDay.length - maxVisible} more`;
+                    moreBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openBottomSheet(dateStr);
+                    });
+                    dayCell.appendChild(moreBtn);
+                }
+            }
+
+            return true;
+        }
+
         // Day View
         function renderDayView() {
             const dateStr = formatDateForInput(viewingDate);
@@ -4994,7 +5096,11 @@
 
             // In Month view, update only the affected date section to avoid scroll reset
             if (currentView === 'month' && dateStr) {
-                if (!updateMonthDateSection(dateStr)) {
+                // Update both views (mobile list and desktop grid)
+                const listUpdated = updateMonthDateSection(dateStr);
+                const gridUpdated = updateMonthGridDateCell(dateStr);
+                // Fall back to full render if neither worked
+                if (!listUpdated && !gridUpdated) {
                     renderCurrentView();
                 }
             } else {
@@ -5020,23 +5126,40 @@
 
             const { taskId, dailyId } = pendingDeleteContext;
             const completionKey = dailyId || taskId;
+            const preview = pendingDeleteTask;
 
             // For Month view, save scroll position before deletion
             const isMonthView = currentView === 'month';
             const savedScrollY = isMonthView ? window.scrollY : 0;
 
-            // Skip render in deleteTaskCompletely for Month view - we'll handle it with scroll preservation
-            deleteTaskCompletely(taskId, completionKey, isMonthView);
-
-            // For Month view, render with scroll position preservation
-            if (isMonthView) {
-                renderCurrentView();
-                requestAnimationFrame(() => {
-                    window.scrollTo(0, savedScrollY);
-                });
-            }
-
+            // Close modal first
             closeDeleteModal();
+
+            // Animate if in Month grid view and we have the preview element
+            if (isMonthView && preview && preview.classList.contains('month-task-preview')) {
+                preview.classList.add('removing');
+
+                setTimeout(() => {
+                    // Skip render in deleteTaskCompletely - we'll handle it
+                    deleteTaskCompletely(taskId, completionKey, true);
+
+                    // Render with scroll position preservation
+                    renderCurrentView();
+                    requestAnimationFrame(() => {
+                        window.scrollTo(0, savedScrollY);
+                    });
+                }, 200);
+            } else {
+                // Non-Month view or no preview - delete immediately
+                deleteTaskCompletely(taskId, completionKey, isMonthView);
+
+                if (isMonthView) {
+                    renderCurrentView();
+                    requestAnimationFrame(() => {
+                        window.scrollTo(0, savedScrollY);
+                    });
+                }
+            }
         }
 
         function deleteTaskCompletely(taskId, completionKey = null, skipRender = false) {
@@ -5098,7 +5221,11 @@
             if (!skipRender) {
                 // In Month view, use targeted update for one-time tasks to avoid scroll reset
                 if (currentView === 'month' && isOneTimeTask && taskDate) {
-                    if (!updateMonthDateSection(taskDate)) {
+                    // Update both views (mobile list and desktop grid)
+                    const listUpdated = updateMonthDateSection(taskDate);
+                    const gridUpdated = updateMonthGridDateCell(taskDate);
+                    // Fall back to full render if neither worked
+                    if (!listUpdated && !gridUpdated) {
                         renderCurrentView();
                     }
                 } else {
@@ -5187,9 +5314,22 @@
                 modalText.textContent = `This task repeats (${label}). How would you like to delete it?`;
                 deleteModal.classList.add('active');
             } else {
-                // One-time task - delete directly
-                deleteTaskCompletely(taskId);
+                // One-time task - animate then delete
+                animateGridTaskRemoval(preview, () => {
+                    deleteTaskCompletely(taskId);
+                });
             }
+        }
+
+        // Animate task removal in Month grid view
+        function animateGridTaskRemoval(preview, callback) {
+            // Add removing class to trigger animation
+            preview.classList.add('removing');
+
+            // Wait for animation to complete, then execute callback
+            setTimeout(() => {
+                if (callback) callback();
+            }, 200);
         }
 
         // Week View
