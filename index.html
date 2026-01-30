@@ -1392,6 +1392,62 @@
             transform: rotate(-45deg) translateY(-1px);
         }
 
+        /* Enhanced Visual Feedback - Completing Animation */
+        .task-checkbox.completing {
+            animation: checkboxPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .task-checkbox.completing::before {
+            animation: checkboxGlow 0.6s ease-out forwards;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
+        }
+
+        .task-item.completing {
+            animation: taskPulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes checkboxPop {
+            0% {
+                transform: scale(1);
+            }
+            40% {
+                transform: scale(1.3);
+            }
+            70% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes checkboxGlow {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            30% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.8);
+            }
+        }
+
+        @keyframes taskPulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
         .task-content {
             flex: 1;
             min-width: 0;
@@ -1478,16 +1534,18 @@
             font-size: 0.9rem;
         }
 
-        /* XP Popup Animation */
+        /* XP Popup Animation - Enhanced */
         .xp-popup {
             position: absolute;
-            left: 36px;
-            bottom: 100%;
-            font-size: 0.75rem;
-            font-weight: 600;
+            left: 10px;
+            top: -8px;
+            font-size: 0.8rem;
+            font-weight: 700;
             pointer-events: none;
-            animation: xpFloat 1s ease forwards;
+            animation: xpFloatEnhanced 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             white-space: nowrap;
+            text-shadow: 0 0 10px currentColor;
+            z-index: 10;
         }
 
         .xp-popup.gain {
@@ -1498,17 +1556,21 @@
             color: #ef4444;
         }
 
-        @keyframes xpFloat {
+        @keyframes xpFloatEnhanced {
             0% {
                 opacity: 0;
-                transform: translateY(8px);
+                transform: translateY(0) scale(0.5);
             }
             20% {
                 opacity: 1;
+                transform: translateY(-10px) scale(1.2);
+            }
+            40% {
+                transform: translateY(-18px) scale(1);
             }
             100% {
                 opacity: 0;
-                transform: translateY(-16px);
+                transform: translateY(-35px) scale(0.8);
             }
         }
 
@@ -4058,20 +4120,6 @@
             return CATEGORY_COLORS[category] || CATEGORY_COLORS.general;
         }
 
-        // Haptic Feedback
-        function hapticFeedback(duration = 50) {
-            if ('vibrate' in navigator) {
-                navigator.vibrate(duration);
-            }
-        }
-
-        function hapticLevelUp() {
-            hapticFeedback(100);
-        }
-
-        // Track previous level for level-up detection
-        let previousLevel = 1;
-
         // Achievement Definitions
         const ACHIEVEMENTS = {
             streak: [
@@ -4196,12 +4244,6 @@
             const level = getLevel(totalXp);
             const xpInLevel = getXpInCurrentLevel(totalXp);
             const progress = (xpInLevel / XP_PER_LEVEL) * 100;
-
-            // Detect level-up and trigger haptic
-            if (level > previousLevel) {
-                hapticLevelUp();
-            }
-            previousLevel = level;
 
             currentLevelEl.textContent = level;
             currentXpEl.textContent = xpInLevel;
@@ -4605,9 +4647,6 @@
 
             setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
 
-            // Haptic feedback
-            hapticFeedback();
-
             // Update UI
             const checkbox = taskItem.querySelector('.task-checkbox');
             const taskName = taskItem.querySelector('.task-name');
@@ -4615,12 +4654,25 @@
             taskName.classList.toggle('completed', isNowCompleted);
             taskItem.classList.toggle('completed', isNowCompleted);
 
-            // XP popup
+            // Enhanced visual feedback on completion
+            if (isNowCompleted) {
+                // Add completing animations
+                checkbox.classList.add('completing');
+                taskItem.classList.add('completing');
+
+                // Remove animation classes after animation completes
+                setTimeout(() => {
+                    checkbox.classList.remove('completing');
+                    taskItem.classList.remove('completing');
+                }, 600);
+            }
+
+            // XP popup (positioned near checkbox)
             const popup = document.createElement('span');
             popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
             popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
-            taskItem.appendChild(popup);
-            setTimeout(() => popup.remove(), 1000);
+            checkbox.appendChild(popup);
+            setTimeout(() => popup.remove(), 800);
 
             // Update XP
             totalXp += isNowCompleted ? 10 : -10;
@@ -5878,9 +5930,6 @@
 
             setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
 
-            // Haptic feedback
-            hapticFeedback();
-
             // Update UI
             const checkbox = taskEl.querySelector('.task-checkbox');
             const taskName = taskEl.querySelector('.task-name');
@@ -5888,12 +5937,25 @@
             taskName.classList.toggle('completed', isNowCompleted);
             taskEl.classList.toggle('completed', isNowCompleted);
 
-            // XP popup
+            // Enhanced visual feedback on completion
+            if (isNowCompleted) {
+                // Add completing animations
+                checkbox.classList.add('completing');
+                taskEl.classList.add('completing');
+
+                // Remove animation classes after animation completes
+                setTimeout(() => {
+                    checkbox.classList.remove('completing');
+                    taskEl.classList.remove('completing');
+                }, 600);
+            }
+
+            // XP popup (positioned near checkbox)
             const popup = document.createElement('span');
             popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
             popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
-            taskEl.appendChild(popup);
-            setTimeout(() => popup.remove(), 1000);
+            checkbox.appendChild(popup);
+            setTimeout(() => popup.remove(), 800);
 
             // Update week stats
             updatePlanWeekStats();
@@ -6952,8 +7014,6 @@
                 // Recalculate XP from completions + achievements
                 totalXp = recalculateXpFromCompletions();
                 totalXp += calculateAchievementXp();
-                // Initialize previousLevel to avoid false level-up haptic on load
-                previousLevel = getLevel(totalXp);
                 updateLevelDisplay();
             } catch (e) {
                 console.error('Error loading saved data:', e);
