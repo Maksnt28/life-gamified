@@ -442,11 +442,13 @@
             min-height: 300px;
         }
 
-        .day-content.slide-left {
+        .day-content.slide-left,
+        .day-timeline-container.slide-left {
             animation: slideOutLeft 0.2s ease;
         }
 
-        .day-content.slide-right {
+        .day-content.slide-right,
+        .day-timeline-container.slide-right {
             animation: slideOutRight 0.2s ease;
         }
 
@@ -512,6 +514,373 @@
                 border-color: #404040;
                 color: #525252;
             }
+        }
+
+        /* Day View Timeline */
+        .day-timeline-container {
+            position: relative;
+            height: calc(100vh - 180px);
+            min-height: 500px;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            background: #0a0a0a;
+            border-radius: 12px;
+            border: 1px solid #1a1a1a;
+        }
+
+        .day-timeline {
+            position: relative;
+            height: 1440px; /* 24 hours × 60px */
+            width: 100%;
+        }
+
+        .timeline-hour {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 60px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .timeline-hour:nth-child(odd) {
+            background: #0a0a0a;
+        }
+
+        .timeline-hour:nth-child(even) {
+            background: #050505;
+        }
+
+        .timeline-hour-label {
+            position: absolute;
+            left: 8px;
+            top: -8px;
+            font-size: 11px;
+            color: #525252;
+            font-family: -apple-system, BlinkMacSystemFont, monospace;
+            user-select: none;
+            z-index: 1;
+        }
+
+        .timeline-hour:first-child .timeline-hour-label {
+            top: 4px;
+        }
+
+        .timeline-current-time {
+            position: absolute;
+            left: 40px;
+            right: 0;
+            height: 2px;
+            background: #ef4444;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .timeline-current-time::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        .timeline-tasks-layer {
+            position: absolute;
+            top: 0;
+            left: 48px;
+            right: 8px;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .timeline-task-block {
+            position: absolute;
+            left: 0;
+            right: 0;
+            min-height: 40px;
+            border-left: 3px solid #3b82f6;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+            pointer-events: auto;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .timeline-task-block:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            z-index: 5;
+        }
+
+        .timeline-task-block.completed {
+            opacity: 0.5;
+        }
+
+        .timeline-task-block .task-block-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .timeline-task-block .task-block-time {
+            font-weight: 500;
+        }
+
+        .timeline-task-block .task-block-duration {
+            opacity: 0.7;
+        }
+
+        .timeline-task-block .task-block-recurring {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .timeline-task-block .task-block-name {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timeline-task-block.completed .task-block-name {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .timeline-task-block .task-block-notes {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        /* Short blocks (< 60px) - compact layout */
+        .timeline-task-block.compact {
+            padding: 4px 8px;
+            gap: 0;
+        }
+
+        .timeline-task-block.compact .task-block-header {
+            font-size: 10px;
+        }
+
+        .timeline-task-block.compact .task-block-name {
+            font-size: 12px;
+        }
+
+        .timeline-task-block.compact .task-block-notes {
+            display: none;
+        }
+
+        /* Overlapping task blocks */
+        .timeline-task-block.overlapping {
+            position: absolute;
+        }
+
+        .timeline-task-block.overlapping::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 152, 0, 0.15);
+            border-radius: 6px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .timeline-task-block .overlap-warning {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 12px;
+            cursor: help;
+            z-index: 3;
+            opacity: 0.9;
+        }
+
+        .timeline-task-block .overlap-warning::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #262626;
+            color: #e5e5e5;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+            z-index: 100;
+            margin-top: 4px;
+            max-width: 200px;
+            white-space: normal;
+        }
+
+        .timeline-task-block .overlap-warning:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Ensure content is above the orange overlay */
+        .timeline-task-block.overlapping .task-block-header,
+        .timeline-task-block.overlapping .task-block-name,
+        .timeline-task-block.overlapping .task-block-notes {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Untimed tasks section - sticky at top of timeline */
+        .timeline-untimed-section {
+            position: sticky;
+            top: 0;
+            background: #0a0a0a;
+            border-bottom: 1px solid #262626;
+            padding: 12px;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-untimed-section.has-tasks {
+            display: block;
+        }
+
+        .timeline-untimed-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .untimed-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: #262626;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .timeline-untimed-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .timeline-untimed-task {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #141414;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .timeline-untimed-task:hover {
+            background: #1a1a1a;
+        }
+
+        .timeline-untimed-task.completed {
+            opacity: 0.6;
+        }
+
+        .timeline-untimed-task .task-checkbox {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .timeline-untimed-task .category-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .timeline-untimed-task .task-name {
+            font-size: 14px;
+            color: #e5e5e5;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timeline-untimed-task.completed .task-name {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .timeline-untimed-task .delete-button {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 4px;
+            transition: opacity 0.15s ease, color 0.15s ease;
+        }
+
+        .timeline-untimed-task:hover .delete-button {
+            opacity: 1;
+        }
+
+        .timeline-untimed-task .delete-button:hover {
+            color: #ef4444;
+        }
+
+        /* Day view add hint in timeline */
+        .timeline-add-hint {
+            position: absolute;
+            bottom: 8px;
+            left: 48px;
+            right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            border: 1px dashed #262626;
+            border-radius: 6px;
+            color: #333;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+
+        .timeline-add-hint:hover {
+            border-color: #404040;
+            color: #525252;
         }
 
         /* Week View - Optimized for fast switching */
@@ -2095,6 +2464,183 @@
             color: #ffffff;
         }
 
+        /* Every N Days Input */
+        .every-n-days-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .modal-number-input {
+            width: 80px;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            color: #e5e5e5;
+            outline: none;
+            transition: all 0.2s ease;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+
+        .modal-number-input::-webkit-outer-spin-button,
+        .modal-number-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .modal-number-input:focus {
+            border-color: #3b82f6;
+            background: #111111;
+        }
+
+        .every-n-days-label {
+            color: #737373;
+            font-size: 0.95rem;
+        }
+
+        /* Monthly Day Select */
+        .monthly-hint {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #525252;
+        }
+
+        /* Time Toggle and Input */
+        .time-toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #262626;
+            transition: 0.2s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider::before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #666;
+            transition: 0.2s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #3b82f6;
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background-color: #fff;
+        }
+
+        .time-input-wrapper {
+            margin-top: 0.75rem;
+        }
+
+        .modal-time-input {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            color: #e5e5e5;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color-scheme: dark;
+        }
+
+        .modal-time-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .time-duration-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .time-field,
+        .duration-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .time-field-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-duration-select {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            color: #e5e5e5;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .modal-duration-select:focus {
+            border-color: #3b82f6;
+        }
+
+        /* Task Time Display */
+        .task-time {
+            font-size: 0.8rem;
+            color: #666;
+            margin-right: 6px;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+
+        /* Time divider in Plan view */
+        .time-section-divider {
+            height: 1px;
+            background: #262626;
+            margin: 8px 0;
+        }
+
         .modal-footer {
             padding: 1rem 1.25rem;
             border-top: 1px solid #262626;
@@ -3287,6 +3833,42 @@
             }
         }
 
+        /* Recurring Task Indicator */
+        .recurring-indicator {
+            font-size: 14px;
+            color: #666;
+            margin-right: 4px;
+            flex-shrink: 0;
+            cursor: help;
+            position: relative;
+            line-height: 1;
+        }
+
+        .recurring-indicator::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #262626;
+            color: #e5e5e5;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            pointer-events: none;
+            z-index: 100;
+            margin-bottom: 4px;
+        }
+
+        .recurring-indicator:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
         /* Category Indicator */
         .category-indicator {
             width: 6px;
@@ -3305,6 +3887,22 @@
         .month-task-preview .category-indicator {
             width: 4px;
             height: 4px;
+        }
+
+        /* Smaller recurring indicator in compact views */
+        .week-grid-tasks .recurring-indicator,
+        .month-task-preview .recurring-indicator {
+            font-size: 12px;
+            margin-right: 3px;
+        }
+
+        /* Mobile tooltip positioning - align left to prevent cutoff */
+        @media (max-width: 600px) {
+            .recurring-indicator::after {
+                left: 0;
+                transform: translateX(0);
+                max-width: 180px;
+            }
         }
 
         /* Category Select in Modal */
@@ -3938,8 +4536,17 @@
         <div class="main-content">
         <!-- Day View -->
         <div class="day-view-container view-container" id="dayViewContainer">
-            <div class="day-content" id="dayContent">
-                <div class="day-tasks" id="dayTasks"></div>
+            <div class="day-timeline-container" id="dayTimelineContainer">
+                <div class="timeline-untimed-section" id="timelineUntimedSection">
+                    <div class="timeline-untimed-header">
+                        Untimed Tasks
+                        <span class="untimed-count-badge" id="untimedCountBadge">0</span>
+                    </div>
+                    <div class="timeline-untimed-tasks" id="timelineUntimedTasks"></div>
+                </div>
+                <div class="day-timeline" id="dayTimeline">
+                    <!-- Hour rows and tasks rendered by JS -->
+                </div>
             </div>
         </div>
 
@@ -4118,12 +4725,58 @@
                     <select class="modal-select" id="modalTypeSelect">
                         <option value="onetime">One-time</option>
                         <option value="daily">Daily</option>
+                        <option value="every-n-days">Every N Days</option>
                         <option value="custom">Custom Days</option>
+                        <option value="monthly">Monthly</option>
                     </select>
                 </div>
                 <div class="modal-field" id="modalDateField">
-                    <label class="modal-label">Date</label>
+                    <label class="modal-label" id="modalDateLabel">Date</label>
                     <input type="date" class="modal-date-input" id="modalDateInput">
+                </div>
+                <div class="modal-field" id="modalEveryNDaysField" style="display: none;">
+                    <label class="modal-label">Repeat every</label>
+                    <div class="every-n-days-input-wrapper">
+                        <input type="number" class="modal-number-input" id="modalEveryNDaysInput" min="2" max="30" value="2">
+                        <span class="every-n-days-label">days</span>
+                    </div>
+                </div>
+                <div class="modal-field" id="modalMonthlyField" style="display: none;">
+                    <label class="modal-label">Day of month</label>
+                    <select class="modal-select" id="modalMonthlyDaySelect">
+                        <option value="1">1st</option>
+                        <option value="2">2nd</option>
+                        <option value="3">3rd</option>
+                        <option value="4">4th</option>
+                        <option value="5">5th</option>
+                        <option value="6">6th</option>
+                        <option value="7">7th</option>
+                        <option value="8">8th</option>
+                        <option value="9">9th</option>
+                        <option value="10">10th</option>
+                        <option value="11">11th</option>
+                        <option value="12">12th</option>
+                        <option value="13">13th</option>
+                        <option value="14">14th</option>
+                        <option value="15">15th</option>
+                        <option value="16">16th</option>
+                        <option value="17">17th</option>
+                        <option value="18">18th</option>
+                        <option value="19">19th</option>
+                        <option value="20">20th</option>
+                        <option value="21">21st</option>
+                        <option value="22">22nd</option>
+                        <option value="23">23rd</option>
+                        <option value="24">24th</option>
+                        <option value="25">25th</option>
+                        <option value="26">26th</option>
+                        <option value="27">27th</option>
+                        <option value="28">28th</option>
+                        <option value="29">29th</option>
+                        <option value="30">30th</option>
+                        <option value="31">31st</option>
+                    </select>
+                    <span class="monthly-hint">Task appears on this day each month</span>
                 </div>
                 <div class="modal-field" id="modalDayPickerField" style="display: none;">
                     <label class="modal-label">Select Days</label>
@@ -4135,6 +4788,36 @@
                         <button type="button" class="modal-day-toggle" data-day="4">Fri</button>
                         <button type="button" class="modal-day-toggle" data-day="5">Sat</button>
                         <button type="button" class="modal-day-toggle" data-day="6">Sun</button>
+                    </div>
+                </div>
+                <div class="modal-field" id="modalTimeField">
+                    <div class="time-toggle-row">
+                        <label class="modal-label">Add time</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="modalTimeToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="time-input-wrapper" id="timeInputWrapper" style="display: none;">
+                        <div class="time-duration-row">
+                            <div class="time-field">
+                                <label class="time-field-label">Start time</label>
+                                <input type="time" class="modal-time-input" id="modalTimeInput" value="09:00">
+                            </div>
+                            <div class="duration-field">
+                                <label class="time-field-label">Duration</label>
+                                <select class="modal-duration-select" id="modalDurationSelect">
+                                    <option value="15">15 min</option>
+                                    <option value="30" selected>30 min</option>
+                                    <option value="45">45 min</option>
+                                    <option value="60">1 hour</option>
+                                    <option value="90">1.5 hours</option>
+                                    <option value="120">2 hours</option>
+                                    <option value="180">3 hours</option>
+                                    <option value="240">4 hours</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4267,8 +4950,11 @@
         const celebrationName = document.getElementById('celebrationName');
         const celebrationReq = document.getElementById('celebrationReq');
         const celebrationXp = document.getElementById('celebrationXp');
-        const dayContent = document.getElementById('dayContent');
-        const dayTasks = document.getElementById('dayTasks');
+        const dayTimelineContainer = document.getElementById('dayTimelineContainer');
+        const dayTimeline = document.getElementById('dayTimeline');
+        const timelineUntimedSection = document.getElementById('timelineUntimedSection');
+        const timelineUntimedTasks = document.getElementById('timelineUntimedTasks');
+        const untimedCountBadge = document.getElementById('untimedCountBadge');
         const weekList = document.getElementById('weekList');
         const weekGrid = document.getElementById('weekGrid');
         const monthGrid = document.getElementById('monthGrid');
@@ -4287,8 +4973,17 @@
         const modalTypeSelect = document.getElementById('modalTypeSelect');
         const modalDateInput = document.getElementById('modalDateInput');
         const modalDateField = document.getElementById('modalDateField');
+        const modalDateLabel = document.getElementById('modalDateLabel');
+        const modalEveryNDaysField = document.getElementById('modalEveryNDaysField');
+        const modalEveryNDaysInput = document.getElementById('modalEveryNDaysInput');
+        const modalMonthlyField = document.getElementById('modalMonthlyField');
+        const modalMonthlyDaySelect = document.getElementById('modalMonthlyDaySelect');
         const modalDayPickerField = document.getElementById('modalDayPickerField');
         const modalDayPicker = document.getElementById('modalDayPicker');
+        const modalTimeToggle = document.getElementById('modalTimeToggle');
+        const timeInputWrapper = document.getElementById('timeInputWrapper');
+        const modalTimeInput = document.getElementById('modalTimeInput');
+        const modalDurationSelect = document.getElementById('modalDurationSelect');
         const modalSubmitBtn = document.getElementById('modalSubmitBtn');
         const modalNotesInput = document.getElementById('modalNotesInput');
         const notesCharCount = document.getElementById('notesCharCount');
@@ -4472,6 +5167,58 @@
             if (indices.length === 2 && indices.join(',') === '5,6') return 'Weekends';
 
             return indices.map(i => dayAbbrev[i]).join(', ');
+        }
+
+        function getRepeatLabel(task) {
+            if (!task) return 'Repeating';
+            if (task.type === 'daily') return 'Daily';
+            if (task.type === 'every-n-days' && task.repeatInterval) {
+                return `Every ${task.repeatInterval} days`;
+            }
+            if (task.type === 'monthly' && task.monthlyDate) {
+                const daySuffix = (day) => {
+                    if (day >= 11 && day <= 13) return 'th';
+                    switch (day % 10) {
+                        case 1: return 'st';
+                        case 2: return 'nd';
+                        case 3: return 'rd';
+                        default: return 'th';
+                    }
+                };
+                return `Monthly on ${task.monthlyDate}${daySuffix(task.monthlyDate)}`;
+            }
+            if (task.type === 'custom' && task.pattern) {
+                return getPatternLabel(task.pattern);
+            }
+            return 'Repeating';
+        }
+
+        function getRecurringTooltip(task) {
+            if (!task) return '';
+            if (task.type === 'daily') return 'Repeats daily';
+            if (task.type === 'every-n-days' && task.repeatInterval) {
+                return `Repeats every ${task.repeatInterval} days`;
+            }
+            if (task.type === 'monthly' && task.monthlyDate) {
+                const daySuffix = (day) => {
+                    if (day >= 11 && day <= 13) return 'th';
+                    switch (day % 10) {
+                        case 1: return 'st';
+                        case 2: return 'nd';
+                        case 3: return 'rd';
+                        default: return 'th';
+                    }
+                };
+                return `Monthly on the ${task.monthlyDate}${daySuffix(task.monthlyDate)}`;
+            }
+            if (task.type === 'custom' && task.pattern) {
+                const label = getPatternLabel(task.pattern);
+                if (label === 'Daily') return 'Repeats daily';
+                if (label === 'Weekdays') return 'Repeats on weekdays';
+                if (label === 'Weekends') return 'Repeats on weekends';
+                return `Weekly: ${label}`;
+            }
+            return 'Repeating task';
         }
 
         // Completion Tracking
@@ -4661,17 +5408,56 @@
                 } else if (task.type === 'custom') {
                     const taskDays = task.pattern.split(',').map(Number);
                     return taskDays.includes(weekdayIndex);
+                } else if (task.type === 'every-n-days') {
+                    // Calculate if this date falls on the interval from startDate
+                    if (!task.startDate || !task.repeatInterval) return false;
+                    const startDate = new Date(task.startDate + 'T00:00:00');
+                    const checkDate = new Date(dateStr + 'T00:00:00');
+                    const diffTime = checkDate.getTime() - startDate.getTime();
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                    // Show on start date (diffDays === 0) and every N days after
+                    return diffDays >= 0 && diffDays % task.repeatInterval === 0;
+                } else if (task.type === 'monthly') {
+                    // Show on the same day of each month
+                    if (!task.monthlyDate) return false;
+                    const checkDateObj = new Date(dateStr + 'T00:00:00');
+                    const dayOfMonth = checkDateObj.getDate();
+                    // Handle months with fewer days (e.g., Feb 30 → Feb 28)
+                    const lastDayOfMonth = new Date(checkDateObj.getFullYear(), checkDateObj.getMonth() + 1, 0).getDate();
+                    if (task.monthlyDate > lastDayOfMonth) {
+                        return dayOfMonth === lastDayOfMonth;
+                    }
+                    return dayOfMonth === task.monthlyDate;
                 } else {
                     // One-time task
                     return task.date === dateStr;
                 }
             }).map(task => {
                 const completionKey = task.dailyId || task.id;
-                const completionDate = task.type === 'onetime' ? task.date : dateStr;
+                const isRepeating = task.type !== 'onetime';
+                const completionDate = isRepeating ? dateStr : task.date;
                 return {
                     ...task,
                     completed: isTaskCompletedForDate(completionKey, completionDate)
                 };
+            }).sort((a, b) => {
+                // Tasks with times come first, sorted by time
+                // Tasks without times come after, in original order
+                const aHasTime = !!a.time;
+                const bHasTime = !!b.time;
+
+                if (aHasTime && bHasTime) {
+                    // Both have times - sort by time (earliest first)
+                    return a.time.localeCompare(b.time);
+                } else if (aHasTime && !bHasTime) {
+                    // a has time, b doesn't - a comes first
+                    return -1;
+                } else if (!aHasTime && bHasTime) {
+                    // b has time, a doesn't - b comes first
+                    return 1;
+                }
+                // Neither has time - keep original order
+                return 0;
             });
         }
 
@@ -4689,9 +5475,10 @@
             if (currentView === 'day') {
                 // Animate transition
                 const direction = delta > 0 ? 'left' : 'right';
-                dayContent.classList.add(`slide-${direction}`);
+                dayTimelineContainer.classList.add(`slide-${direction}`);
                 setTimeout(() => {
-                    dayContent.classList.remove(`slide-${direction}`);
+                    dayTimelineContainer.classList.remove(`slide-${direction}`);
+                    dayTimelineContainer._hasScrolled = false; // Reset scroll flag for new day
                     renderDayView();
                 }, 150);
             } else if (currentView === 'week') {
@@ -4741,6 +5528,10 @@
                         todaySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }, 50);
+            } else if (currentView === 'day') {
+                // Reset scroll flag so we scroll to current time
+                dayTimelineContainer._hasScrolled = false;
+                renderDayView();
             } else {
                 renderCurrentView();
             }
@@ -5035,6 +5826,16 @@
                     const checkbox = document.createElement('span');
                     checkbox.className = 'month-task-checkbox' + (task.completed ? ' checked' : '');
 
+                    // Recurring indicator
+                    const isRepeatingTask = task.type === 'daily' || task.type === 'custom' || task.type === 'every-n-days' || task.type === 'monthly';
+                    let recurringEl = null;
+                    if (isRepeatingTask) {
+                        recurringEl = document.createElement('span');
+                        recurringEl.className = 'recurring-indicator';
+                        recurringEl.textContent = '↻';
+                        recurringEl.dataset.tooltip = getRecurringTooltip(task);
+                    }
+
                     // Category indicator
                     const indicator = document.createElement('span');
                     indicator.className = 'category-indicator';
@@ -5061,6 +5862,7 @@
                     });
 
                     preview.appendChild(checkbox);
+                    if (recurringEl) preview.appendChild(recurringEl);
                     preview.appendChild(indicator);
                     preview.appendChild(text);
                     preview.appendChild(deleteBtn);
@@ -5089,32 +5891,436 @@
             return true;
         }
 
-        // Day View
+        // Calculate task time ranges and detect overlaps
+        function calculateTaskOverlaps(timedTasks) {
+            const overlapInfo = new Map();
+
+            // Calculate time ranges for each task
+            const taskRanges = timedTasks.map(task => {
+                const [hours, minutes] = task.time.split(':').map(Number);
+                const startMinutes = hours * 60 + minutes;
+                const duration = task.duration || 30;
+                const endMinutes = startMinutes + duration;
+                return {
+                    task,
+                    start: startMinutes,
+                    end: endMinutes
+                };
+            });
+
+            // Find overlapping tasks for each task
+            taskRanges.forEach((range, index) => {
+                const overlappingTasks = [];
+
+                taskRanges.forEach((otherRange, otherIndex) => {
+                    if (index === otherIndex) return;
+
+                    // Check if ranges overlap
+                    // Two ranges overlap if: start1 < end2 AND start2 < end1
+                    if (range.start < otherRange.end && otherRange.start < range.end) {
+                        overlappingTasks.push(otherRange.task);
+                    }
+                });
+
+                overlapInfo.set(range.task.id, {
+                    hasOverlap: overlappingTasks.length > 0,
+                    overlappingWith: overlappingTasks,
+                    totalInGroup: 0,
+                    positionInGroup: 0
+                });
+            });
+
+            // Group overlapping tasks and assign positions
+            // Use a sweep line algorithm to find concurrent overlap groups
+            const events = [];
+            taskRanges.forEach((range, index) => {
+                events.push({ time: range.start, type: 'start', index, range });
+                events.push({ time: range.end, type: 'end', index, range });
+            });
+
+            // Sort events: by time, then starts before ends
+            events.sort((a, b) => {
+                if (a.time !== b.time) return a.time - b.time;
+                return a.type === 'start' ? -1 : 1;
+            });
+
+            // Track active tasks and assign columns
+            const activeRanges = new Set();
+            const columnAssignments = new Map(); // task id -> column index
+            const maxColumns = new Map(); // task id -> max concurrent tasks
+
+            events.forEach(event => {
+                if (event.type === 'start') {
+                    // Find the first available column
+                    const usedColumns = new Set();
+                    activeRanges.forEach(r => {
+                        const col = columnAssignments.get(r.task.id);
+                        if (col !== undefined) usedColumns.add(col);
+                    });
+
+                    let col = 0;
+                    while (usedColumns.has(col)) col++;
+                    columnAssignments.set(event.range.task.id, col);
+
+                    activeRanges.add(event.range);
+
+                    // Update max columns for all active tasks
+                    const currentCount = activeRanges.size;
+                    activeRanges.forEach(r => {
+                        const currentMax = maxColumns.get(r.task.id) || 1;
+                        maxColumns.set(r.task.id, Math.max(currentMax, currentCount));
+                    });
+                } else {
+                    activeRanges.delete(event.range);
+                }
+            });
+
+            // Update overlap info with position data
+            taskRanges.forEach(range => {
+                const info = overlapInfo.get(range.task.id);
+                const total = maxColumns.get(range.task.id) || 1;
+                const position = columnAssignments.get(range.task.id) || 0;
+
+                info.totalInGroup = total;
+                info.positionInGroup = position;
+            });
+
+            return overlapInfo;
+        }
+
+        // Day View - Timeline Layout
         function renderDayView() {
             const dateStr = formatDateForInput(viewingDate);
             const tasksForDay = getTasksForDate(viewingDate);
 
-            dayTasks.innerHTML = '';
+            // Clear timeline
+            dayTimeline.innerHTML = '';
+            timelineUntimedTasks.innerHTML = '';
 
-            if (tasksForDay.length === 0) {
-                dayTasks.innerHTML = '<div class="empty-day">No tasks for this day</div>';
-            } else {
-                tasksForDay.forEach(task => {
-                    const taskEl = createTaskElement(task, dateStr);
-                    dayTasks.appendChild(taskEl);
+            // Separate timed and untimed tasks
+            const timedTasks = tasksForDay.filter(t => t.time);
+            const untimedTasks = tasksForDay.filter(t => !t.time);
+
+            // Render untimed section (sticky at top, always visible when has tasks)
+            untimedCountBadge.textContent = untimedTasks.length;
+            if (untimedTasks.length > 0) {
+                timelineUntimedSection.classList.add('has-tasks');
+                untimedTasks.forEach(task => {
+                    const taskEl = createTimelineUntimedTask(task, dateStr);
+                    timelineUntimedTasks.appendChild(taskEl);
                 });
+            } else {
+                timelineUntimedSection.classList.remove('has-tasks');
             }
 
-            // Add hint for click-to-add
-            const addHint = document.createElement('div');
-            addHint.className = 'day-add-hint';
-            addHint.textContent = '+ Tap to add task';
-            addHint.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openCreateTaskModal(dateStr);
+            // Create 24 hour rows
+            for (let hour = 0; hour < 24; hour++) {
+                const hourRow = document.createElement('div');
+                hourRow.className = 'timeline-hour';
+                hourRow.style.top = `${hour * 60}px`;
+
+                const label = document.createElement('span');
+                label.className = 'timeline-hour-label';
+                label.textContent = `${hour.toString().padStart(2, '0')}:00`;
+                hourRow.appendChild(label);
+
+                // Click on hour row to add task at that time
+                hourRow.addEventListener('click', (e) => {
+                    const rect = hourRow.getBoundingClientRect();
+                    const clickY = e.clientY - rect.top;
+                    const minutes = Math.floor(clickY / 60 * 60);
+                    const roundedMinutes = Math.round(minutes / 15) * 15;
+                    const timeStr = `${hour.toString().padStart(2, '0')}:${roundedMinutes.toString().padStart(2, '0')}`;
+                    openCreateTaskModal(dateStr, timeStr);
+                });
+
+                dayTimeline.appendChild(hourRow);
+            }
+
+            // Tasks layer
+            const tasksLayer = document.createElement('div');
+            tasksLayer.className = 'timeline-tasks-layer';
+            dayTimeline.appendChild(tasksLayer);
+
+            // Calculate overlaps for timed tasks
+            const overlapInfo = calculateTaskOverlaps(timedTasks);
+
+            // Render timed tasks with overlap information
+            timedTasks.forEach(task => {
+                const taskOverlapData = overlapInfo.get(task.id);
+                const taskBlock = createTimelineTaskBlock(task, dateStr, taskOverlapData);
+                tasksLayer.appendChild(taskBlock);
             });
-            dayTasks.appendChild(addHint);
+
+            // Current time indicator (only for today)
+            const today = formatDateForInput(new Date());
+            if (dateStr === today) {
+                updateCurrentTimeIndicator();
+            }
         }
+
+        // Create untimed task element for timeline
+        function createTimelineUntimedTask(task, dateStr) {
+            const taskEl = document.createElement('div');
+            taskEl.className = 'timeline-untimed-task' + (task.completed ? ' completed' : '');
+            taskEl.dataset.taskId = task.id;
+            taskEl.dataset.dateStr = dateStr;
+            if (task.dailyId) taskEl.dataset.dailyId = task.dailyId;
+            if (task.pattern) taskEl.dataset.pattern = task.pattern;
+            if (task.type) taskEl.dataset.type = task.type;
+
+            const checkedClass = task.completed ? ' checked' : '';
+            const completedClass = task.completed ? ' completed' : '';
+            const categoryColor = getCategoryColor(task.category);
+
+            taskEl.innerHTML = `
+                <div class="task-checkbox${checkedClass}"></div>
+                <div class="category-indicator" style="background: ${categoryColor};"></div>
+                <span class="task-name${completedClass}">${escapeHtml(task.name)}</span>
+                <button type="button" class="delete-button">&times;</button>
+            `;
+
+            // Checkbox click handler
+            const checkbox = taskEl.querySelector('.task-checkbox');
+            checkbox.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleTimelineTask(taskEl, task);
+            });
+
+            // Delete button handler
+            const deleteBtn = taskEl.querySelector('.delete-button');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleDeleteTask(taskEl);
+            });
+
+            // Task name click opens edit modal
+            const taskNameEl = taskEl.querySelector('.task-name');
+            taskNameEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEditTaskModal(task.id, dateStr);
+            });
+
+            return taskEl;
+        }
+
+        // Create timed task block for timeline
+        function createTimelineTaskBlock(task, dateStr, overlapData = null) {
+            const taskBlock = document.createElement('div');
+            taskBlock.dataset.taskId = task.id;
+            taskBlock.dataset.dateStr = dateStr;
+            if (task.dailyId) taskBlock.dataset.dailyId = task.dailyId;
+
+            // Calculate position from time (format: "HH:MM")
+            const [hours, minutes] = task.time.split(':').map(Number);
+            const topPosition = hours * 60 + minutes;
+            taskBlock.style.top = `${topPosition}px`;
+
+            // Calculate height from duration (default 30 min, minimum 40px for touch)
+            const duration = task.duration || 30;
+            const calculatedHeight = duration; // 1 minute = 1px
+            const blockHeight = Math.max(calculatedHeight, 40); // Minimum 40px for touch
+            taskBlock.style.height = `${blockHeight}px`;
+
+            // Handle overlap positioning
+            const hasOverlap = overlapData && overlapData.hasOverlap;
+            const totalInGroup = overlapData ? overlapData.totalInGroup : 1;
+            const positionInGroup = overlapData ? overlapData.positionInGroup : 0;
+
+            if (hasOverlap && totalInGroup > 1) {
+                // Calculate width and left position based on number of overlapping tasks
+                let widthPercent, gapPercent, leftPercent;
+
+                if (totalInGroup === 2) {
+                    // 2 tasks: 48% width each, 2% gap
+                    widthPercent = 48;
+                    gapPercent = 2;
+                    leftPercent = positionInGroup * (widthPercent + gapPercent);
+                } else {
+                    // 3+ tasks: 32% width each, 2% gaps
+                    widthPercent = 32;
+                    gapPercent = 2;
+                    leftPercent = positionInGroup * (widthPercent + gapPercent);
+                }
+
+                taskBlock.style.width = `${widthPercent}%`;
+                taskBlock.style.left = `${leftPercent}%`;
+                taskBlock.style.right = 'auto';
+            }
+
+            // Add compact class for short blocks
+            const isCompact = blockHeight < 60;
+            taskBlock.className = 'timeline-task-block' +
+                (task.completed ? ' completed' : '') +
+                (isCompact ? ' compact' : '') +
+                (hasOverlap ? ' overlapping' : '');
+
+            // Get category color and set styles
+            const categoryColor = getCategoryColor(task.category);
+            taskBlock.style.borderLeftColor = categoryColor;
+            // Set background with 20% opacity
+            taskBlock.style.background = hexToRgba(categoryColor, 0.2);
+
+            // Format duration for display
+            const durationDisplay = formatDuration(duration);
+
+            // Check if task is recurring
+            const isRepeating = task.type === 'daily' || task.type === 'custom' ||
+                               task.type === 'every-n-days' || task.type === 'monthly';
+            const recurringIcon = isRepeating ? '<span class="task-block-recurring">↻</span>' : '';
+
+            // Build overlap warning if needed
+            let overlapWarning = '';
+            if (hasOverlap && overlapData.overlappingWith.length > 0) {
+                const otherTaskNames = overlapData.overlappingWith
+                    .map(t => t.name)
+                    .slice(0, 3) // Limit to 3 names
+                    .join(', ');
+                const suffix = overlapData.overlappingWith.length > 3
+                    ? ` +${overlapData.overlappingWith.length - 3} more`
+                    : '';
+                const tooltip = `Overlaps with: ${otherTaskNames}${suffix}`;
+                overlapWarning = `<span class="overlap-warning" data-tooltip="${escapeHtml(tooltip)}">⚠️</span>`;
+            }
+
+            // Build content
+            let content = `
+                ${overlapWarning}
+                <div class="task-block-header">
+                    <span class="task-block-time">${task.time}</span>
+                    <span class="task-block-duration">• ${durationDisplay}</span>
+                    ${recurringIcon}
+                </div>
+                <div class="task-block-name">${escapeHtml(task.name)}</div>
+            `;
+
+            // Add notes preview if exists and block is tall enough
+            if (task.notes && !isCompact && !hasOverlap) {
+                const truncatedNotes = task.notes.length > 50
+                    ? task.notes.substring(0, 50) + '...'
+                    : task.notes;
+                content += `<div class="task-block-notes">${escapeHtml(truncatedNotes)}</div>`;
+            }
+
+            taskBlock.innerHTML = content;
+
+            // Click to open edit modal
+            taskBlock.addEventListener('click', (e) => {
+                openEditTaskModal(task.id, dateStr);
+            });
+
+            return taskBlock;
+        }
+
+        // Helper function to convert hex color to rgba
+        function hexToRgba(hex, alpha) {
+            // Handle shorthand hex
+            let r, g, b;
+            if (hex.length === 4) {
+                r = parseInt(hex[1] + hex[1], 16);
+                g = parseInt(hex[2] + hex[2], 16);
+                b = parseInt(hex[3] + hex[3], 16);
+            } else {
+                r = parseInt(hex.slice(1, 3), 16);
+                g = parseInt(hex.slice(3, 5), 16);
+                b = parseInt(hex.slice(5, 7), 16);
+            }
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // Helper function to format duration
+        function formatDuration(minutes) {
+            if (minutes < 60) {
+                return `${minutes}m`;
+            } else if (minutes % 60 === 0) {
+                return `${minutes / 60}h`;
+            } else {
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                return `${hours}h ${mins}m`;
+            }
+        }
+
+        // Toggle task completion from timeline
+        function toggleTimelineTask(taskEl, task) {
+            const dateStr = taskEl.dataset.dateStr;
+            const dailyId = taskEl.dataset.dailyId;
+
+            const completionKey = dailyId || task.id;
+            const completionDate = task.type === 'onetime' ? task.date : dateStr;
+            const wasCompleted = isTaskCompletedForDate(completionKey, completionDate);
+            const isNowCompleted = !wasCompleted;
+
+            setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
+
+            // Update UI
+            const checkbox = taskEl.querySelector('.task-checkbox');
+            const taskName = taskEl.querySelector('.task-name');
+            checkbox.classList.toggle('checked', isNowCompleted);
+            if (taskName) taskName.classList.toggle('completed', isNowCompleted);
+            taskEl.classList.toggle('completed', isNowCompleted);
+
+            // Visual feedback
+            if (isNowCompleted) {
+                checkbox.classList.add('completing');
+                taskEl.classList.add('completing');
+                setTimeout(() => {
+                    checkbox.classList.remove('completing');
+                    taskEl.classList.remove('completing');
+                }, 500);
+            }
+
+            // XP popup
+            const popup = document.createElement('span');
+            popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
+            popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
+            checkbox.appendChild(popup);
+            setTimeout(() => popup.remove(), 600);
+
+            // Update XP
+            totalXp += isNowCompleted ? 10 : -10;
+            if (totalXp < 0) totalXp = 0;
+            updateLevelDisplay();
+
+            saveData();
+        }
+
+        // Update current time indicator
+        function updateCurrentTimeIndicator() {
+            // Remove existing indicator
+            const existing = dayTimeline.querySelector('.timeline-current-time');
+            if (existing) existing.remove();
+
+            const now = new Date();
+            const currentDateStr = formatDateForInput(now);
+            const viewingDateStr = formatDateForInput(viewingDate);
+
+            // Only show for today
+            if (currentDateStr !== viewingDateStr) return;
+
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const topPosition = hours * 60 + minutes;
+
+            const indicator = document.createElement('div');
+            indicator.className = 'timeline-current-time';
+            indicator.style.top = `${topPosition}px`;
+            dayTimeline.appendChild(indicator);
+
+            // Scroll to current time on initial render
+            if (!dayTimelineContainer._hasScrolled) {
+                const scrollTarget = Math.max(0, topPosition - 100);
+                dayTimelineContainer.scrollTop = scrollTarget;
+                dayTimelineContainer._hasScrolled = true;
+            }
+        }
+
+        // Update current time indicator every minute
+        setInterval(() => {
+            if (currentView === 'day') {
+                updateCurrentTimeIndicator();
+            }
+        }, 60000);
 
         function createTaskElement(task, dateStr, isNewTask = false) {
             const taskItem = document.createElement('div');
@@ -5137,21 +6343,25 @@
                 taskItem.dataset.type = task.type;
             }
 
-            let badge = '';
-            if (task.type === 'daily' || task.type === 'custom') {
-                badge = `<div class="task-badge">${repeatIcon}</div>`;
+            const isRepeatingTask = task.type === 'daily' || task.type === 'custom' || task.type === 'every-n-days' || task.type === 'monthly';
+            let recurringIndicator = '';
+            if (isRepeatingTask) {
+                const tooltip = getRecurringTooltip(task);
+                recurringIndicator = `<span class="recurring-indicator" data-tooltip="${tooltip}">↻</span>`;
             }
 
             const checkedClass = task.completed ? ' checked' : '';
             const completedClass = task.completed ? ' completed' : '';
             const categoryColor = getCategoryColor(task.category);
+            const timeDisplay = task.time ? `<span class="task-time">${task.time}</span>` : '';
 
             taskItem.innerHTML = `
                 <div class="task-checkbox${checkedClass}"></div>
+                ${recurringIndicator}
                 <div class="category-indicator" style="background: ${categoryColor};"></div>
                 <div class="task-content">
+                    ${timeDisplay}
                     <span class="task-name${completedClass}">${escapeHtml(task.name)}</span>
-                    ${badge}
                 </div>
                 <button type="button" class="delete-button">&times;</button>
             `;
@@ -5240,13 +6450,15 @@
             const dateStr = taskItem.dataset.dateStr;
             const type = taskItem.dataset.type;
 
-            if (dailyId || type === 'daily' || type === 'custom') {
+            const isRepeating = dailyId || type === 'daily' || type === 'custom' || type === 'every-n-days' || type === 'monthly';
+
+            if (isRepeating) {
                 // Recurring task - show modal
                 pendingDeleteTask = taskItem;
                 pendingDeleteContext = { taskId, dailyId, dateStr, type };
 
                 const task = tasks.find(t => t.id === taskId);
-                const label = getPatternLabel(task?.pattern);
+                const label = getRepeatLabel(task);
 
                 modalTitle.textContent = 'Delete Repeating Task';
                 modalText.textContent = `This task repeats (${label}). How would you like to delete it?`;
@@ -6206,6 +7418,16 @@
                         const checkbox = document.createElement('span');
                         checkbox.className = 'month-task-checkbox' + (task.completed ? ' checked' : '');
 
+                        // Recurring indicator
+                        const isRepeatingTask = task.type === 'daily' || task.type === 'custom' || task.type === 'every-n-days' || task.type === 'monthly';
+                        let recurringEl = null;
+                        if (isRepeatingTask) {
+                            recurringEl = document.createElement('span');
+                            recurringEl.className = 'recurring-indicator';
+                            recurringEl.textContent = '↻';
+                            recurringEl.dataset.tooltip = getRecurringTooltip(task);
+                        }
+
                         // Category indicator
                         const indicator = document.createElement('span');
                         indicator.className = 'category-indicator';
@@ -6232,6 +7454,7 @@
                         });
 
                         preview.appendChild(checkbox);
+                        if (recurringEl) preview.appendChild(recurringEl);
                         preview.appendChild(indicator);
                         preview.appendChild(text);
                         preview.appendChild(deleteBtn);
@@ -6443,7 +7666,25 @@
                 tasksContainer.className = 'plan-day-tasks';
 
                 if (tasksForDay.length > 0) {
-                    tasksForDay.forEach(task => {
+                    // Separate timed and untimed tasks
+                    const timedTasks = tasksForDay.filter(t => t.time);
+                    const untimedTasks = tasksForDay.filter(t => !t.time);
+
+                    // Render timed tasks first
+                    timedTasks.forEach(task => {
+                        const taskEl = createPlanTaskElement(task, dateStr);
+                        tasksContainer.appendChild(taskEl);
+                    });
+
+                    // Add divider if both timed and untimed tasks exist
+                    if (timedTasks.length > 0 && untimedTasks.length > 0) {
+                        const divider = document.createElement('div');
+                        divider.className = 'time-section-divider';
+                        tasksContainer.appendChild(divider);
+                    }
+
+                    // Render untimed tasks
+                    untimedTasks.forEach(task => {
                         const taskEl = createPlanTaskElement(task, dateStr);
                         tasksContainer.appendChild(taskEl);
                     });
@@ -6473,18 +7714,22 @@
             const checkedClass = task.completed ? ' checked' : '';
             const completedClass = task.completed ? ' completed' : '';
             const categoryColor = getCategoryColor(task.category);
+            const timeDisplay = task.time ? `<span class="task-time">${task.time}</span>` : '';
 
-            let badge = '';
-            if (task.type === 'daily' || task.type === 'custom') {
-                badge = `<div class="task-badge">${repeatIcon}</div>`;
+            const isRepeatingTask = task.type === 'daily' || task.type === 'custom' || task.type === 'every-n-days' || task.type === 'monthly';
+            let recurringIndicator = '';
+            if (isRepeatingTask) {
+                const tooltip = getRecurringTooltip(task);
+                recurringIndicator = `<span class="recurring-indicator" data-tooltip="${tooltip}">↻</span>`;
             }
 
             taskEl.innerHTML = `
                 <div class="task-checkbox${checkedClass}"></div>
+                ${recurringIndicator}
                 <div class="category-indicator" style="background: ${categoryColor};"></div>
                 <div class="task-content">
+                    ${timeDisplay}
                     <span class="task-name${completedClass}">${escapeHtml(task.name)}</span>
-                    ${badge}
                 </div>
                 <button type="button" class="delete-button">&times;</button>
             `;
@@ -7244,7 +8489,7 @@
         }
 
         // Task Creation Modal
-        function openCreateTaskModal(presetDate = null, presetName = '') {
+        function openCreateTaskModal(presetDate = null, presetTime = null) {
             // Reset edit mode
             isEditMode = false;
             editingTaskId = null;
@@ -7257,17 +8502,35 @@
             modalTitleText.textContent = 'New Task';
             modalSubmitBtn.textContent = 'Add Task';
 
-            // Reset form (but keep preset name if provided)
-            modalTaskInput.value = presetName;
+            // Reset form
+            modalTaskInput.value = '';
             modalNotesInput.value = '';
             updateNotesCharCount();
             modalCategorySelect.value = 'general';
             categoryIndicator.style.background = getCategoryColor('general');
             modalTypeSelect.value = 'onetime';
             modalDateInput.value = presetDate || formatDateForInput(viewingDate);
+            modalDateLabel.textContent = 'Date';
             modalDateField.style.display = 'block';
+            modalEveryNDaysField.style.display = 'none';
+            modalEveryNDaysInput.value = '2';
+            modalMonthlyField.style.display = 'none';
+            modalMonthlyDaySelect.value = new Date().getDate().toString();
             modalDayPickerField.style.display = 'none';
             clearModalDayPicker();
+
+            // Set time field based on presetTime
+            if (presetTime) {
+                modalTimeToggle.checked = true;
+                modalTimeInput.value = presetTime;
+                modalDurationSelect.value = '60'; // Default 1 hour for timeline clicks
+                timeInputWrapper.style.display = 'block';
+            } else {
+                modalTimeToggle.checked = false;
+                modalTimeInput.value = '09:00';
+                modalDurationSelect.value = '30';
+                timeInputWrapper.style.display = 'none';
+            }
 
             setTimeout(() => modalTaskInput.focus(), 100);
         }
@@ -7296,20 +8559,31 @@
             categoryIndicator.style.background = getCategoryColor(task.category || 'general');
             modalTypeSelect.value = task.type || 'onetime';
 
-            // Handle type-specific fields
-            if (task.type === 'onetime') {
+            // Handle type-specific fields - hide all first
+            modalDateField.style.display = 'none';
+            modalEveryNDaysField.style.display = 'none';
+            modalMonthlyField.style.display = 'none';
+            modalDayPickerField.style.display = 'none';
+            clearModalDayPicker();
+
+            if (task.type === 'onetime' || !task.type) {
+                modalDateLabel.textContent = 'Date';
                 modalDateInput.value = task.date || formatDateForInput(viewingDate);
                 modalDateField.style.display = 'block';
-                modalDayPickerField.style.display = 'none';
-                clearModalDayPicker();
             } else if (task.type === 'daily') {
-                modalDateField.style.display = 'none';
-                modalDayPickerField.style.display = 'none';
-                clearModalDayPicker();
+                // No extra fields for daily
+            } else if (task.type === 'every-n-days') {
+                modalEveryNDaysInput.value = task.repeatInterval || 2;
+                modalEveryNDaysField.style.display = 'block';
+                // Show date field for start date reference
+                modalDateLabel.textContent = 'Starting from';
+                modalDateInput.value = task.startDate || formatDateForInput(viewingDate);
+                modalDateField.style.display = 'block';
+            } else if (task.type === 'monthly') {
+                modalMonthlyDaySelect.value = (task.monthlyDate || 1).toString();
+                modalMonthlyField.style.display = 'block';
             } else if (task.type === 'custom') {
-                modalDateField.style.display = 'none';
                 modalDayPickerField.style.display = 'block';
-                clearModalDayPicker();
                 // Select the days from the pattern
                 if (task.pattern) {
                     const days = task.pattern.split(',').map(Number);
@@ -7318,6 +8592,19 @@
                         if (btn) btn.classList.add('selected');
                     });
                 }
+            }
+
+            // Handle time field
+            if (task.time) {
+                modalTimeToggle.checked = true;
+                modalTimeInput.value = task.time;
+                modalDurationSelect.value = (task.duration || 30).toString();
+                timeInputWrapper.style.display = 'block';
+            } else {
+                modalTimeToggle.checked = false;
+                modalTimeInput.value = '09:00';
+                modalDurationSelect.value = '30';
+                timeInputWrapper.style.display = 'none';
             }
 
             setTimeout(() => modalTaskInput.focus(), 100);
@@ -7368,6 +8655,19 @@
             let typeLabel = 'One-time';
             if (task.type === 'daily') {
                 typeLabel = 'Daily';
+            } else if (task.type === 'every-n-days' && task.repeatInterval) {
+                typeLabel = `Every ${task.repeatInterval} days`;
+            } else if (task.type === 'monthly' && task.monthlyDate) {
+                const daySuffix = (day) => {
+                    if (day >= 11 && day <= 13) return 'th';
+                    switch (day % 10) {
+                        case 1: return 'st';
+                        case 2: return 'nd';
+                        case 3: return 'rd';
+                        default: return 'th';
+                    }
+                };
+                typeLabel = `Monthly (${task.monthlyDate}${daySuffix(task.monthlyDate)})`;
             } else if (task.type === 'custom' && task.pattern) {
                 const patternDays = task.pattern.split(',').map(Number);
                 if (patternDays.length === 7) {
@@ -7380,6 +8680,10 @@
                     const dayAbbrevs = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                     typeLabel = patternDays.map(d => dayAbbrevs[d]).join(', ');
                 }
+            }
+            // Add time to type label if set
+            if (task.time) {
+                typeLabel += ` at ${task.time}`;
             }
             taskDetailType.textContent = typeLabel;
 
@@ -7481,27 +8785,57 @@
                 task.notes = notes || undefined;
                 if (!notes) delete task.notes;
 
+                // Handle time field
+                if (modalTimeToggle.checked && modalTimeInput.value) {
+                    task.time = modalTimeInput.value;
+                    task.duration = parseInt(modalDurationSelect.value) || 30;
+                } else {
+                    delete task.time;
+                    delete task.duration;
+                }
+
                 // Handle type changes
                 const oldType = task.type;
                 task.type = type;
 
+                // Clean up old fields based on new type
+                const isRepeating = type !== 'onetime';
+                if (isRepeating && !task.dailyId) {
+                    task.dailyId = 'daily-' + (++dailyTaskCounter);
+                } else if (!isRepeating) {
+                    delete task.dailyId;
+                }
+
+                // Save old values before cleanup
+                const oldStartDate = task.startDate;
+
+                // Remove fields not needed for this type
+                delete task.pattern;
+                delete task.date;
+                delete task.repeatInterval;
+                delete task.startDate;
+                delete task.monthlyDate;
+
                 if (type === 'daily') {
-                    if (oldType !== 'daily' && oldType !== 'custom') {
-                        task.dailyId = task.dailyId || 'daily-' + (++dailyTaskCounter);
-                    }
                     task.pattern = 'daily';
-                    delete task.date;
                 } else if (type === 'custom') {
                     const selectedDays = getSelectedModalDays();
                     if (selectedDays.length === 0) {
                         alert('Please select at least one day');
                         return;
                     }
-                    if (oldType !== 'daily' && oldType !== 'custom') {
-                        task.dailyId = task.dailyId || 'daily-' + (++dailyTaskCounter);
-                    }
                     task.pattern = selectedDays.join(',');
-                    delete task.date;
+                } else if (type === 'every-n-days') {
+                    const interval = parseInt(modalEveryNDaysInput.value) || 2;
+                    if (interval < 2 || interval > 30) {
+                        alert('Please enter a number between 2 and 30');
+                        return;
+                    }
+                    task.repeatInterval = interval;
+                    task.startDate = modalDateInput.value || oldStartDate || formatDateForInput(viewingDate);
+                } else if (type === 'monthly') {
+                    const monthlyDay = parseInt(modalMonthlyDaySelect.value) || 1;
+                    task.monthlyDate = monthlyDay;
                 } else {
                     // One-time
                     const date = modalDateInput.value;
@@ -7510,8 +8844,6 @@
                         return;
                     }
                     task.date = date;
-                    delete task.dailyId;
-                    delete task.pattern;
                 }
 
                 saveData();
@@ -7531,6 +8863,12 @@
                     newTask.notes = notes;
                 }
 
+                // Add time and duration if toggle is on
+                if (modalTimeToggle.checked && modalTimeInput.value) {
+                    newTask.time = modalTimeInput.value;
+                    newTask.duration = parseInt(modalDurationSelect.value) || 30;
+                }
+
                 if (type === 'daily') {
                     newTask.dailyId = 'daily-' + (++dailyTaskCounter);
                     newTask.pattern = 'daily';
@@ -7542,6 +8880,19 @@
                     }
                     newTask.dailyId = 'daily-' + (++dailyTaskCounter);
                     newTask.pattern = selectedDays.join(',');
+                } else if (type === 'every-n-days') {
+                    const interval = parseInt(modalEveryNDaysInput.value) || 2;
+                    if (interval < 2 || interval > 30) {
+                        alert('Please enter a number between 2 and 30');
+                        return;
+                    }
+                    newTask.dailyId = 'daily-' + (++dailyTaskCounter);
+                    newTask.repeatInterval = interval;
+                    newTask.startDate = modalDateInput.value || formatDateForInput(viewingDate);
+                } else if (type === 'monthly') {
+                    const monthlyDay = parseInt(modalMonthlyDaySelect.value) || 1;
+                    newTask.dailyId = 'daily-' + (++dailyTaskCounter);
+                    newTask.monthlyDate = monthlyDay;
                 } else {
                     // One-time
                     const date = modalDateInput.value;
@@ -7838,14 +9189,37 @@
 
             modalTypeSelect.addEventListener('change', () => {
                 const type = modalTypeSelect.value;
-                modalDateField.style.display = type === 'onetime' ? 'block' : 'none';
-                modalDayPickerField.style.display = type === 'custom' ? 'block' : 'none';
+                // Hide all conditional fields first
+                modalDateField.style.display = 'none';
+                modalEveryNDaysField.style.display = 'none';
+                modalMonthlyField.style.display = 'none';
+                modalDayPickerField.style.display = 'none';
+
+                // Show relevant fields based on type
+                if (type === 'onetime') {
+                    modalDateLabel.textContent = 'Date';
+                    modalDateField.style.display = 'block';
+                } else if (type === 'every-n-days') {
+                    modalDateLabel.textContent = 'Starting from';
+                    modalEveryNDaysField.style.display = 'block';
+                    modalDateField.style.display = 'block'; // Start date
+                } else if (type === 'monthly') {
+                    modalMonthlyField.style.display = 'block';
+                } else if (type === 'custom') {
+                    modalDayPickerField.style.display = 'block';
+                }
+                // 'daily' shows no extra fields
             });
 
             modalDayPicker.querySelectorAll('.modal-day-toggle').forEach(btn => {
                 btn.addEventListener('click', () => {
                     btn.classList.toggle('selected');
                 });
+            });
+
+            // Time toggle
+            modalTimeToggle.addEventListener('change', () => {
+                timeInputWrapper.style.display = modalTimeToggle.checked ? 'block' : 'none';
             });
 
             modalSubmitBtn.addEventListener('click', addTask);
