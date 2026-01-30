@@ -1616,6 +1616,62 @@
             color: #fbbf24;
         }
 
+        /* Undo Toast */
+        .undo-toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 12px 16px;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            max-width: calc(100vw - 40px);
+        }
+
+        .undo-toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+
+        .undo-toast-message {
+            font-size: 0.875rem;
+            color: #d4d4d4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .undo-toast-btn {
+            background: transparent;
+            border: none;
+            color: #3b82f6;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .undo-toast-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .undo-toast-btn:active {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
         /* FAB */
         .fab {
             position: fixed;
@@ -4019,6 +4075,12 @@
         </div>
     </div>
 
+    <!-- Undo Toast -->
+    <div class="undo-toast" id="undoToast">
+        <span class="undo-toast-message" id="undoToastMessage">Action completed</span>
+        <button type="button" class="undo-toast-btn" id="undoToastBtn">Undo</button>
+    </div>
+
     <script>
         // DOM Elements
         const currentLevelEl = document.getElementById('currentLevel');
@@ -4116,6 +4178,9 @@
         const taskDetailEditBtn = document.getElementById('taskDetailEditBtn');
         const levelUpToast = document.getElementById('levelUpToast');
         const toastLevel = document.getElementById('toastLevel');
+        const undoToast = document.getElementById('undoToast');
+        const undoToastMessage = document.getElementById('undoToastMessage');
+        const undoToastBtn = document.getElementById('undoToastBtn');
 
         // State
         let totalXp = 0;
@@ -4139,6 +4204,10 @@
         // Task detail modal state
         let currentDetailTaskId = null;
         let currentDetailDateStr = null;
+
+        // Undo system state
+        let lastAction = null;
+        let undoTimeout = null;
 
         // Swipe tracking
         let touchStartX = 0;
@@ -4378,6 +4447,48 @@
                 levelUpToast.classList.remove('visible');
             }, 3000);
         }
+
+        // Undo System
+        function showUndoToast(message, undoCallback) {
+            // Clear any existing timeout
+            if (undoTimeout) {
+                clearTimeout(undoTimeout);
+            }
+
+            // Store the action
+            lastAction = {
+                callback: undoCallback,
+                timestamp: Date.now()
+            };
+
+            // Update and show toast
+            undoToastMessage.textContent = message;
+            undoToast.classList.add('visible');
+
+            // Auto-hide after 5 seconds
+            undoTimeout = setTimeout(() => {
+                hideUndoToast();
+            }, 5000);
+        }
+
+        function hideUndoToast() {
+            undoToast.classList.remove('visible');
+            lastAction = null;
+            if (undoTimeout) {
+                clearTimeout(undoTimeout);
+                undoTimeout = null;
+            }
+        }
+
+        function executeUndo() {
+            if (lastAction && lastAction.callback) {
+                lastAction.callback();
+            }
+            hideUndoToast();
+        }
+
+        // Undo button click handler
+        undoToastBtn.addEventListener('click', executeUndo);
 
         // Task Data Functions
         function getTasksForDate(date) {
@@ -4813,6 +4924,18 @@
             if (isNowCompleted) {
                 checkAchievements();
             }
+
+            // Show undo toast
+            const actionMsg = isNowCompleted ? `"${task.name}" completed` : `"${task.name}" unchecked`;
+            showUndoToast(actionMsg, () => {
+                // Revert the completion state
+                setTaskCompletedForDate(completionKey, completionDate, wasCompleted);
+                totalXp += wasCompleted ? 10 : -10;
+                if (totalXp < 0) totalXp = 0;
+                updateLevelDisplay();
+                saveData();
+                renderCurrentView();
+            });
         }
 
         function handleDeleteTask(taskItem) {
@@ -4843,9 +4966,14 @@
 
             const { taskId, dailyId, dateStr } = pendingDeleteContext;
             const completionKey = dailyId || taskId;
+            const task = tasks.find(t => t.id === taskId);
+            const taskName = task ? task.name : 'Task';
+
+            // Save completion state for undo
+            const wasCompleted = isTaskCompletedForDate(completionKey, dateStr);
 
             // Remove XP if completed for this date
-            if (isTaskCompletedForDate(completionKey, dateStr)) {
+            if (wasCompleted) {
                 totalXp -= 10;
                 if (totalXp < 0) totalXp = 0;
             }
@@ -4873,6 +5001,18 @@
                 renderCurrentView();
             }
             closeDeleteModal();
+
+            // Show undo toast
+            showUndoToast(`"${taskName}" removed for this day`, () => {
+                // Restore completion state if it was completed
+                if (wasCompleted) {
+                    setTaskCompletedForDate(completionKey, dateStr, true);
+                }
+                totalXp = recalculateXpFromCompletions() + calculateAchievementXp();
+                updateLevelDisplay();
+                saveData();
+                renderCurrentView();
+            });
         }
 
         function deleteAllDays() {
@@ -4903,11 +5043,24 @@
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
 
+            // Save task data for undo
+            const deletedTask = { ...task };
+            const taskName = task.name;
+
             // Save task date for one-time tasks before deletion (for targeted Month view update)
             const isOneTimeTask = task.type === 'onetime';
             const taskDate = isOneTimeTask ? task.date : null;
 
             const key = completionKey || task.dailyId || taskId;
+
+            // Save completions for undo
+            const savedCompletions = {};
+            if (taskCompletions[key]) {
+                savedCompletions[key] = { ...taskCompletions[key] };
+            }
+            if (key !== taskId && taskCompletions[taskId]) {
+                savedCompletions[taskId] = { ...taskCompletions[taskId] };
+            }
 
             // Remove XP for all completed dates
             if (taskCompletions[key]) {
@@ -4957,6 +5110,21 @@
             if (bottomSheet.classList.contains('open')) {
                 renderBottomSheetTasks();
             }
+
+            // Show undo toast
+            showUndoToast(`"${taskName}" deleted`, () => {
+                // Restore task
+                tasks.push(deletedTask);
+                // Restore completions
+                for (const compKey in savedCompletions) {
+                    taskCompletions[compKey] = savedCompletions[compKey];
+                }
+                // Recalculate XP
+                totalXp = recalculateXpFromCompletions() + calculateAchievementXp();
+                updateLevelDisplay();
+                saveData();
+                renderCurrentView();
+            });
         }
 
         function closeDeleteModal() {
@@ -6128,6 +6296,14 @@
             tasks.push(newTask);
             saveData();
 
+            // Show undo toast
+            showUndoToast(`"${taskName}" added`, () => {
+                // Remove the task
+                tasks = tasks.filter(t => t.id !== newTask.id);
+                saveData();
+                renderPlanView();
+            });
+
             // Find the day section and add task with animation
             const daySection = planDays.querySelector(`.plan-day-section[data-date="${dateStr}"]`);
             if (daySection) {
@@ -7005,6 +7181,14 @@
 
                 tasks.push(newTask);
                 saveData();
+
+                // Show undo toast for new task
+                showUndoToast(`"${taskName}" added`, () => {
+                    // Remove the task
+                    tasks = tasks.filter(t => t.id !== newTask.id);
+                    saveData();
+                    renderCurrentView();
+                });
             }
 
             closeCreateTaskModal();
