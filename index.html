@@ -117,7 +117,7 @@
             height: 100%;
             background: linear-gradient(90deg, #3b82f6, #60a5fa);
             border-radius: 2px;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
             width: 0%;
             position: relative;
             overflow: hidden;
@@ -127,21 +127,32 @@
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
+            left: 0;
+            width: 200%;
             height: 100%;
             background: linear-gradient(
                 90deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
+                transparent 0%,
+                transparent 25%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 75%,
+                transparent 100%
             );
-            animation: shimmer 2s infinite;
+            animation: shimmer 2s ease-in-out infinite;
         }
 
         @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Glow effect when near level-up (>90%) */
+        .progress-bar.near-levelup {
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 0 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .progress-bar.near-levelup::after {
+            animation-duration: 1.2s;
         }
 
         /* Date Navigation */
@@ -327,6 +338,93 @@
         }
 
         /* Day View - Optimized for fast switching */
+        /* View Transition Animation */
+        .view-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .view-container.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .view-container.fade-out {
+            opacity: 0;
+        }
+
+        .view-container.fade-in {
+            display: block;
+            animation: viewFadeIn 0.2s ease forwards;
+        }
+
+        @keyframes viewFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Skeleton Loading States */
+        .skeleton-row {
+            height: 44px;
+            background: linear-gradient(90deg, #1a1a1a 0%, #252525 50%, #1a1a1a 100%);
+            background-size: 200% 100%;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            animation: skeletonShimmer 1.2s ease-in-out infinite;
+        }
+
+        .skeleton-row:last-child {
+            width: 70%;
+        }
+
+        @keyframes skeletonShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .month-skeleton-container {
+            padding: 1rem;
+            opacity: 0;
+            animation: skeletonFadeIn 0.15s ease forwards;
+        }
+
+        @keyframes skeletonFadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Quick-add Loading State */
+        .plan-input-wrapper.loading .plan-inline-input {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .plan-input-wrapper.loading .plan-gear-btn {
+            display: none;
+        }
+
+        .plan-input-spinner {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: inputSpinner 0.6s linear infinite;
+            display: none;
+        }
+
+        .plan-input-wrapper.loading .plan-input-spinner {
+            display: block;
+        }
+
+        @keyframes inputSpinner {
+            to { transform: translateY(-50%) rotate(360deg); }
+        }
+
         .day-view-container {
             display: none;
             content-visibility: auto;
@@ -1346,8 +1444,7 @@
             border: 1px solid #1a1a1a;
             border-radius: 8px;
             padding: 0.875rem 1rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: taskSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
             position: relative;
             cursor: pointer;
             user-select: none;
@@ -1355,9 +1452,13 @@
             touch-action: manipulation;
         }
 
+        /* Animation only for newly added tasks */
+        .task-item.new-task {
+            animation: taskSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .task-item.completed {
             background: #181818;
-            transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes taskSlideIn {
@@ -1438,11 +1539,11 @@
 
         /* Enhanced Visual Feedback - Completing Animation */
         .task-checkbox.completing {
-            animation: checkboxPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: checkboxPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
         .task-checkbox.completing::before {
-            animation: checkboxGlow 0.6s ease-out forwards;
+            animation: checkboxGlow 0.5s ease-out forwards;
             background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
         }
 
@@ -1454,11 +1555,8 @@
             0% {
                 transform: scale(1);
             }
-            40% {
+            50% {
                 transform: scale(1.3);
-            }
-            70% {
-                transform: scale(0.95);
             }
             100% {
                 transform: scale(1);
@@ -3839,26 +3937,26 @@
 
         <div class="main-content">
         <!-- Day View -->
-        <div class="day-view-container" id="dayViewContainer">
+        <div class="day-view-container view-container" id="dayViewContainer">
             <div class="day-content" id="dayContent">
                 <div class="day-tasks" id="dayTasks"></div>
             </div>
         </div>
 
         <!-- Week View -->
-        <div class="week-view-container" id="weekViewContainer">
+        <div class="week-view-container view-container" id="weekViewContainer">
             <div class="week-list" id="weekList"></div>
             <div class="week-grid" id="weekGrid"></div>
         </div>
 
         <!-- Month View -->
-        <div class="month-container" id="monthContainer">
+        <div class="month-container view-container" id="monthContainer">
             <div class="month-list" id="monthList"></div>
             <div class="month-grid" id="monthGrid"></div>
         </div>
 
         <!-- Stats View -->
-        <div class="stats-container" id="statsContainer">
+        <div class="stats-container view-container" id="statsContainer">
             <!-- Quick Stats Grid -->
             <div class="stats-grid" id="statsGrid">
                 <div class="stat-card">
@@ -3928,7 +4026,7 @@
         </div>
 
         <!-- Plan View -->
-        <div class="plan-container" id="planContainer">
+        <div class="plan-container view-container" id="planContainer">
             <div class="plan-header">
                 <button type="button" class="plan-nav-btn" id="planPrevWeek">← Prev</button>
                 <div class="plan-title-wrapper">
@@ -4429,6 +4527,13 @@
             currentXpEl.textContent = xpInLevel;
             xpToNextEl.textContent = XP_PER_LEVEL;
             progressBar.style.width = progress + '%';
+
+            // Add glow effect when near level-up (>90%)
+            if (progress > 90) {
+                progressBar.classList.add('near-levelup');
+            } else {
+                progressBar.classList.remove('near-levelup');
+            }
         }
 
         // Level Up Celebration
@@ -4696,73 +4801,130 @@
         let lastRenderedView = null;
         let viewRenderTimeout = null;
 
+        let viewTransitionTimeout = null;
+        let isInitialViewLoad = true;
+
         function setView(view) {
-            // Cancel any pending render
+            // Cancel any pending transitions or renders
             if (viewRenderTimeout) {
                 cancelAnimationFrame(viewRenderTimeout);
                 viewRenderTimeout = null;
             }
-
-            currentView = view;
-
-            // Scroll to top when switching views
-            window.scrollTo(0, 0);
-
-            // Update data attribute for CSS (used for arrow visibility on mobile)
-            document.body.dataset.view = view;
-
-            // For Month view, update viewingMonth/viewingYear FIRST
-            if (view === 'month') {
-                viewingMonth = viewingDate.getMonth();
-                viewingYear = viewingDate.getFullYear();
+            if (viewTransitionTimeout) {
+                clearTimeout(viewTransitionTimeout);
+                viewTransitionTimeout = null;
             }
 
-            // Update header IMMEDIATELY before rendering (not for stats/plan views)
-            if (view !== 'stats' && view !== 'plan') {
-                updateDateDisplay();
-            }
-
-            // Batch all classList operations for faster switching
             const containers = [dayViewContainer, weekViewContainer, monthContainer, planContainer, statsContainer];
             const buttons = [dayViewBtn, weekViewBtn, monthViewBtn, planViewBtn, statsViewBtn];
             const viewMap = { day: 0, week: 1, month: 2, plan: 3, stats: 4 };
             const viewIndex = viewMap[view];
+            const oldViewIndex = viewMap[currentView];
 
-            // Single pass to update all classes
-            containers.forEach((c, i) => c.classList.toggle('active', i === viewIndex));
+            // If same view, just update
+            if (view === currentView && !isInitialViewLoad) {
+                renderViewContent(view);
+                return;
+            }
+
+            // Update buttons immediately
             buttons.forEach((b, i) => b.classList.toggle('active', i === viewIndex));
 
-            // Defer rendering to next frame for smoother transitions
-            viewRenderTimeout = requestAnimationFrame(() => {
-                if (view === 'day') {
-                    renderDayView();
-                } else if (view === 'week') {
-                    renderWeekView();
-                } else if (view === 'plan') {
-                    renderPlanView();
-                } else if (view === 'stats') {
-                    renderStatsView();
-                } else {
-                    renderMonthView();
-                }
-                lastRenderedView = view;
-            });
+            // Get old and new containers
+            const oldContainer = containers[oldViewIndex];
+            const newContainer = containers[viewIndex];
 
-            localStorage.setItem(VIEW_STORAGE_KEY, view);
+            // Skip animation on initial load
+            if (isInitialViewLoad) {
+                isInitialViewLoad = false;
+                currentView = view;
+                document.body.dataset.view = view;
+
+                if (view === 'month') {
+                    viewingMonth = viewingDate.getMonth();
+                    viewingYear = viewingDate.getFullYear();
+                }
+
+                if (view !== 'stats' && view !== 'plan') {
+                    updateDateDisplay();
+                }
+
+                containers.forEach((c, i) => {
+                    c.classList.remove('active', 'fade-out', 'fade-in');
+                    if (i === viewIndex) {
+                        c.classList.add('active');
+                    }
+                });
+
+                renderViewContent(view);
+                lastRenderedView = view;
+                localStorage.setItem(VIEW_STORAGE_KEY, view);
+                return;
+            }
+
+            // Fade out old view
+            if (oldContainer) {
+                oldContainer.classList.add('fade-out');
+            }
+
+            // After fade-out, switch views
+            viewTransitionTimeout = setTimeout(() => {
+                // Update state
+                currentView = view;
+                document.body.dataset.view = view;
+
+                // For Month view, update viewingMonth/viewingYear FIRST
+                if (view === 'month') {
+                    viewingMonth = viewingDate.getMonth();
+                    viewingYear = viewingDate.getFullYear();
+                }
+
+                // Update header (not for stats/plan views)
+                if (view !== 'stats' && view !== 'plan') {
+                    updateDateDisplay();
+                }
+
+                // Hide old, show new
+                containers.forEach((c, i) => {
+                    c.classList.remove('active', 'fade-out', 'fade-in');
+                    if (i === viewIndex) {
+                        c.classList.add('fade-in');
+                    }
+                });
+
+                // Scroll to top
+                window.scrollTo(0, 0);
+
+                // Render content
+                renderViewContent(view);
+
+                // Clean up fade-in class after animation
+                setTimeout(() => {
+                    newContainer.classList.remove('fade-in');
+                    newContainer.classList.add('active');
+                }, 200);
+
+                lastRenderedView = view;
+                localStorage.setItem(VIEW_STORAGE_KEY, view);
+            }, 200);
         }
 
-        function renderCurrentView() {
-            if (currentView === 'day') {
+        function renderViewContent(view) {
+            if (view === 'day') {
                 renderDayView();
-            } else if (currentView === 'week') {
+            } else if (view === 'week') {
                 renderWeekView();
-            } else if (currentView === 'plan') {
+            } else if (view === 'plan') {
                 renderPlanView();
-            } else if (currentView === 'stats') {
+            } else if (view === 'stats') {
                 renderStatsView();
             } else {
                 renderMonthView();
             }
+        }
+
+        function renderCurrentView() {
+            renderViewContent(currentView);
         }
 
         // Update only a specific date section in Month view (avoids scroll reset)
@@ -4954,10 +5116,15 @@
             dayTasks.appendChild(addHint);
         }
 
-        function createTaskElement(task, dateStr) {
+        function createTaskElement(task, dateStr, isNewTask = false) {
             const taskItem = document.createElement('div');
-            taskItem.className = 'task-item' + (task.completed ? ' completed' : '');
+            taskItem.className = 'task-item' + (task.completed ? ' completed' : '') + (isNewTask ? ' new-task' : '');
             taskItem.dataset.taskId = task.id;
+
+            // Remove animation class after animation completes
+            if (isNewTask) {
+                setTimeout(() => taskItem.classList.remove('new-task'), 400);
+            }
             taskItem.dataset.dateStr = dateStr;
 
             if (task.dailyId) {
@@ -5044,7 +5211,7 @@
                 setTimeout(() => {
                     checkbox.classList.remove('completing');
                     taskItem.classList.remove('completing');
-                }, 600);
+                }, 500);
             }
 
             // XP popup (positioned near checkbox)
@@ -5052,7 +5219,7 @@
             popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
             popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
             checkbox.appendChild(popup);
-            setTimeout(() => popup.remove(), 800);
+            setTimeout(() => popup.remove(), 600);
 
             // Update XP
             totalXp += isNowCompleted ? 10 : -10;
@@ -5792,6 +5959,18 @@
             monthScrollObserver = { header: headerObserver, load: loadObserver };
         }
 
+        // Create skeleton placeholder for month loading
+        function createMonthSkeleton() {
+            const skeleton = document.createElement('div');
+            skeleton.className = 'month-skeleton-container';
+            for (let i = 0; i < 5; i++) {
+                const row = document.createElement('div');
+                row.className = 'skeleton-row';
+                skeleton.appendChild(row);
+            }
+            return skeleton;
+        }
+
         // Load previous month at the top
         function loadPreviousMonth() {
             isLoadingMonths = true;
@@ -5803,12 +5982,21 @@
                 newYear--;
             }
 
-            // Record scroll position before inserting content
-            const scrollContainer = document.documentElement;
-            const scrollTop = scrollContainer.scrollTop || document.body.scrollTop;
-            const oldHeight = monthList.scrollHeight;
+            // Show skeleton placeholder
+            const skeleton = createMonthSkeleton();
+            monthList.insertBefore(skeleton, monthList.firstChild);
 
-            // Create elements for the new month
+            // Brief delay for skeleton visibility
+            setTimeout(() => {
+                // Remove skeleton
+                skeleton.remove();
+
+                // Record scroll position before inserting content
+                const scrollContainer = document.documentElement;
+                const scrollTop = scrollContainer.scrollTop || document.body.scrollTop;
+                const oldHeight = monthList.scrollHeight;
+
+                // Create elements for the new month
             const fragment = document.createDocumentFragment();
             const today = new Date();
             const isCurrentMonth = today.getMonth() === newMonth && today.getFullYear() === newYear;
@@ -5874,6 +6062,7 @@
                 setupMonthScrollObserver();
                 isLoadingMonths = false;
             }, 50);
+            }, 100); // End skeleton delay
         }
 
         // Load next month at the bottom
@@ -5887,11 +6076,20 @@
                 newYear++;
             }
 
-            const today = new Date();
-            const isCurrentMonth = today.getMonth() === newMonth && today.getFullYear() === newYear;
+            // Show skeleton placeholder
+            const skeleton = createMonthSkeleton();
+            monthList.appendChild(skeleton);
 
-            // Month header
-            const monthHeader = document.createElement('div');
+            // Brief delay for skeleton visibility
+            setTimeout(() => {
+                // Remove skeleton
+                skeleton.remove();
+
+                const today = new Date();
+                const isCurrentMonth = today.getMonth() === newMonth && today.getFullYear() === newYear;
+
+                // Month header
+                const monthHeader = document.createElement('div');
             monthHeader.className = 'month-header-separator';
             monthHeader.dataset.month = newMonth;
             monthHeader.dataset.year = newYear;
@@ -5940,6 +6138,7 @@
             setupMonthScrollObserver();
 
             isLoadingMonths = false;
+            }, 100); // End skeleton delay
         }
 
         // Desktop: 7-column grid with task previews
@@ -6195,14 +6394,24 @@
                 inlineInput.addEventListener('keydown', (e) => {
                     if ((e.key === 'Enter' || e.keyCode === 13) && inlineInput.value.trim()) {
                         e.preventDefault();
+                        const taskName = inlineInput.value.trim();
                         // Save scroll position before any DOM changes
                         const scrollY = window.scrollY;
-                        addQuickPlanTask(inlineInput.value.trim(), dateStr);
-                        inlineInput.value = '';
-                        // Restore scroll position after task creation
-                        requestAnimationFrame(() => {
-                            window.scrollTo(0, scrollY);
-                        });
+
+                        // Show loading state
+                        inputWrapper.classList.add('loading');
+
+                        // Brief delay for perceived responsiveness
+                        setTimeout(() => {
+                            addQuickPlanTask(taskName, dateStr);
+                            inlineInput.value = '';
+                            inputWrapper.classList.remove('loading');
+                            inlineInput.focus();
+                            // Restore scroll position after task creation
+                            requestAnimationFrame(() => {
+                                window.scrollTo(0, scrollY);
+                            });
+                        }, 150);
                     }
                 });
 
@@ -6219,8 +6428,13 @@
                     inlineInput.value = '';
                 });
 
+                // Spinner element for loading state
+                const spinner = document.createElement('div');
+                spinner.className = 'plan-input-spinner';
+
                 inputWrapper.appendChild(inlineInput);
                 inputWrapper.appendChild(gearBtn);
+                inputWrapper.appendChild(spinner);
                 inputContainer.appendChild(inputWrapper);
                 section.appendChild(inputContainer);
 
@@ -6410,7 +6624,7 @@
                 setTimeout(() => {
                     checkbox.classList.remove('completing');
                     taskEl.classList.remove('completing');
-                }, 600);
+                }, 500);
             }
 
             // XP popup (positioned near checkbox)
@@ -6418,7 +6632,7 @@
             popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
             popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
             checkbox.appendChild(popup);
-            setTimeout(() => popup.remove(), 800);
+            setTimeout(() => popup.remove(), 600);
 
             // Update week stats
             updatePlanWeekStats();
