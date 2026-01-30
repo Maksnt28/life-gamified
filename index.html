@@ -2195,6 +2195,7 @@
         /* Plan view inline task input */
         .plan-inline-input-container {
             padding: 0 20px;
+            margin-top: 10px;
             margin-bottom: 8px;
         }
 
@@ -4057,6 +4058,20 @@
             return CATEGORY_COLORS[category] || CATEGORY_COLORS.general;
         }
 
+        // Haptic Feedback
+        function hapticFeedback(duration = 50) {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(duration);
+            }
+        }
+
+        function hapticLevelUp() {
+            hapticFeedback(100);
+        }
+
+        // Track previous level for level-up detection
+        let previousLevel = 1;
+
         // Achievement Definitions
         const ACHIEVEMENTS = {
             streak: [
@@ -4181,6 +4196,12 @@
             const level = getLevel(totalXp);
             const xpInLevel = getXpInCurrentLevel(totalXp);
             const progress = (xpInLevel / XP_PER_LEVEL) * 100;
+
+            // Detect level-up and trigger haptic
+            if (level > previousLevel) {
+                hapticLevelUp();
+            }
+            previousLevel = level;
 
             currentLevelEl.textContent = level;
             currentXpEl.textContent = xpInLevel;
@@ -4583,6 +4604,9 @@
             const isNowCompleted = !wasCompleted;
 
             setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
+
+            // Haptic feedback
+            hapticFeedback();
 
             // Update UI
             const checkbox = taskItem.querySelector('.task-checkbox');
@@ -5854,6 +5878,9 @@
 
             setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
 
+            // Haptic feedback
+            hapticFeedback();
+
             // Update UI
             const checkbox = taskEl.querySelector('.task-checkbox');
             const taskName = taskEl.querySelector('.task-name');
@@ -6925,6 +6952,8 @@
                 // Recalculate XP from completions + achievements
                 totalXp = recalculateXpFromCompletions();
                 totalXp += calculateAchievementXp();
+                // Initialize previousLevel to avoid false level-up haptic on load
+                previousLevel = getLevel(totalXp);
                 updateLevelDisplay();
             } catch (e) {
                 console.error('Error loading saved data:', e);
