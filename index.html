@@ -6255,6 +6255,7 @@
         }
 
         function updateLevelDisplay() {
+            console.log('[DEBUG] updateLevelDisplay called - isCompletingWeekTask:', isCompletingWeekTask);
             const level = getLevel(totalXp);
             const xpInLevel = getXpInCurrentLevel(totalXp);
             const progress = (xpInLevel / XP_PER_LEVEL) * 100;
@@ -6713,6 +6714,12 @@
         }
 
         function renderCurrentView() {
+            console.log('[DEBUG] renderCurrentView called - currentView:', currentView, 'isCompletingWeekTask:', isCompletingWeekTask);
+            // Don't re-render Week view during task completion (prevents position jumping)
+            if (isCompletingWeekTask && currentView === 'week') {
+                console.log('[DEBUG] renderCurrentView BLOCKED for week view');
+                return;
+            }
             renderViewContent(currentView);
         }
 
@@ -7259,11 +7266,13 @@
 
         // Toggle task completion for week view (works with taskId and dateStr)
         function toggleWeekTask(taskId, dateStr, taskEl) {
+            console.log('[DEBUG] toggleWeekTask START - setting flag to TRUE');
             // Set flag to prevent re-renders during completion
             isCompletingWeekTask = true;
 
             const task = tasks.find(t => t.id === taskId);
             if (!task) {
+                console.log('[DEBUG] Task not found, clearing flag');
                 isCompletingWeekTask = false;
                 return;
             }
@@ -7290,7 +7299,7 @@
                 taskEl.classList.toggle('completed', isNowCompleted);
             }
 
-            // XP popup
+            // XP popup - use different approach for absolutely positioned elements
             const popup = document.createElement('span');
             popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
             popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
@@ -7298,7 +7307,9 @@
             popup.style.top = '50%';
             popup.style.left = '50%';
             popup.style.transform = 'translate(-50%, -50%)';
-            taskEl.style.position = 'relative';
+            popup.style.pointerEvents = 'none';
+            popup.style.zIndex = '100';
+            // DON'T change taskEl.style.position - it breaks absolute positioning!
             taskEl.appendChild(popup);
             setTimeout(() => popup.remove(), 600);
 
@@ -7309,10 +7320,12 @@
 
             saveData();
 
+            console.log('[DEBUG] toggleWeekTask END - will clear flag in 300ms');
             // Clear flag after a short delay to allow any pending operations
             setTimeout(() => {
+                console.log('[DEBUG] Clearing isCompletingWeekTask flag');
                 isCompletingWeekTask = false;
-            }, 100);
+            }, 300);
         }
 
         // Toggle task completion from timeline
@@ -7820,9 +7833,11 @@
         function renderWeekView() {
             // Prevent re-render during task completion (prevents position jumping)
             if (isCompletingWeekTask) {
-                console.log('[Week View] Blocked re-render during task completion');
+                console.log('[DEBUG] renderWeekView() BLOCKED - isCompletingWeekTask =', isCompletingWeekTask);
                 return;
             }
+
+            console.log('[DEBUG] renderWeekView() EXECUTING');
 
             // Clear previous content
             if (weekDaysGrid) weekDaysGrid.innerHTML = '';
@@ -10419,6 +10434,7 @@
 
         // Data Persistence
         function saveData() {
+            console.log('[DEBUG] saveData called - isCompletingWeekTask:', isCompletingWeekTask);
             const data = {
                 tasks: tasks,
                 xp: totalXp,
