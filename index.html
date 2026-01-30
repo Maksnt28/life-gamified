@@ -602,7 +602,7 @@
         .timeline-task-block {
             position: absolute;
             left: 0;
-            right: 0;
+            width: 100%;
             min-height: 40px;
             border-left: 3px solid #3b82f6;
             border-radius: 6px;
@@ -1023,7 +1023,8 @@
         .week-task-block {
             position: absolute;
             left: 0;
-            right: 0;
+            width: 100%;
+            /* left and width overridden by JS for overlap handling */
             min-height: 20px;
             border-left: 2px solid #3b82f6;
             border-radius: 3px;
@@ -1086,6 +1087,17 @@
         .week-task-block .task-block-time {
             position: relative;
             z-index: 1;
+        }
+
+        /* Warning icon for overlapping tasks */
+        .week-overlap-warning {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            font-size: 8px;
+            line-height: 1;
+            z-index: 2;
+            opacity: 0.8;
         }
 
         /* Untimed tasks section at top of each column */
@@ -6318,10 +6330,11 @@
             }
 
             // Build content
+            const timeFormatted = formatTime24Hour(task.time);
             let content = `
                 ${overlapWarning}
                 <div class="task-block-header">
-                    <span class="task-block-time">${task.time}</span>
+                    <span class="task-block-time">${timeFormatted}</span>
                     <span class="task-block-duration">• ${durationDisplay}</span>
                     ${recurringIcon}
                 </div>
@@ -6375,12 +6388,10 @@
             }
         }
 
-        // Helper function to format time as 12-hour (compact)
-        function formatTime12Hour(timeStr) {
+        // Helper function to format time as 24-hour (HH:MM)
+        function formatTime24Hour(timeStr) {
             const [hours, minutes] = timeStr.split(':').map(Number);
-            const h = hours % 12 || 12;
-            const ampm = hours < 12 ? 'a' : 'p';
-            return minutes === 0 ? `${h}${ampm}` : `${h}:${minutes.toString().padStart(2, '0')}${ampm}`;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         }
 
         // Toggle task completion for week view (works with taskId and dateStr)
@@ -6540,7 +6551,7 @@
             const checkedClass = task.completed ? ' checked' : '';
             const completedClass = task.completed ? ' completed' : '';
             const categoryColor = getCategoryColor(task.category);
-            const timeDisplay = task.time ? `<span class="task-time">${task.time}</span>` : '';
+            const timeDisplay = task.time ? `<span class="task-time">${formatTime24Hour(task.time)}</span>` : '';
 
             taskItem.innerHTML = `
                 <div class="task-checkbox${checkedClass}"></div>
@@ -7004,10 +7015,7 @@
                     if (hour % 2 === 0) {
                         const hourLabel = document.createElement('span');
                         hourLabel.className = 'week-hour-label';
-                        hourLabel.textContent = hour === 0 ? '12a' :
-                                               hour < 12 ? `${hour}a` :
-                                               hour === 12 ? '12p' :
-                                               `${hour - 12}p`;
+                        hourLabel.textContent = `${hour.toString().padStart(2, '0')}`;
                         hourRow.appendChild(hourLabel);
                     }
 
@@ -7105,7 +7113,6 @@
             const blockHeight = Math.max(duration, 20); // Minimum 20px for week view
 
             const taskBlock = document.createElement('div');
-            taskBlock.className = 'week-task-block' + (isCompleted ? ' completed' : '');
             taskBlock.dataset.taskId = task.id;
             taskBlock.dataset.date = dateStr;
 
@@ -7113,46 +7120,62 @@
             taskBlock.style.top = `${topPosition}px`;
             taskBlock.style.height = `${blockHeight}px`;
 
-            // Handle overlapping
+            // Handle overlap positioning (use correct property names)
+            const hasOverlap = overlapData && overlapData.hasOverlap;
+            const totalInGroup = overlapData ? overlapData.totalInGroup : 1;
+            const positionInGroup = overlapData ? overlapData.positionInGroup : 0;
+
             let widthPercent = 100;
             let leftPercent = 0;
-            let hasOverlap = false;
 
-            if (overlapData) {
-                const { column, maxInGroup, totalInGroup } = overlapData;
-                hasOverlap = totalInGroup > 1;
-
-                if (hasOverlap) {
-                    if (totalInGroup === 2) {
-                        widthPercent = 48;
-                        leftPercent = column * 50;
-                    } else {
-                        widthPercent = 32;
-                        leftPercent = column * 33;
-                    }
-
-                    taskBlock.classList.add('overlapping');
+            if (hasOverlap && totalInGroup > 1) {
+                // Calculate width and position based on number of overlapping tasks
+                if (totalInGroup === 2) {
+                    // 2 tasks: 48% width each, 2% gap
+                    widthPercent = 48;
+                    leftPercent = positionInGroup * 50;
+                } else if (totalInGroup === 3) {
+                    // 3 tasks: 32% width each, 2% gaps
+                    widthPercent = 32;
+                    leftPercent = positionInGroup * 34;
+                } else {
+                    // 4+ tasks: equal distribution
+                    widthPercent = Math.floor(96 / totalInGroup);
+                    leftPercent = positionInGroup * (100 / totalInGroup);
                 }
             }
 
             taskBlock.style.width = `${widthPercent}%`;
             taskBlock.style.left = `${leftPercent}%`;
 
+            // Set class with overlap state
+            taskBlock.className = 'week-task-block' +
+                (isCompleted ? ' completed' : '') +
+                (hasOverlap ? ' overlapping' : '');
+
             // Category color background
             taskBlock.style.background = hexToRgba(categoryColor, 0.25);
             taskBlock.style.borderLeftColor = categoryColor;
 
             // Content - compact for week view
-            const timeFormatted = formatTime12Hour(task.time);
+            const timeFormatted = formatTime24Hour(task.time);
+
+            // Build warning icon for overlapping tasks
+            let overlapWarning = '';
+            if (hasOverlap) {
+                overlapWarning = '<span class="week-overlap-warning">⚠️</span>';
+            }
 
             // Only show time if block is tall enough
             if (blockHeight >= 30) {
                 taskBlock.innerHTML = `
+                    ${overlapWarning}
                     <div class="task-block-name">${task.name}</div>
                     <div class="task-block-time">${timeFormatted}</div>
                 `;
             } else {
                 taskBlock.innerHTML = `
+                    ${overlapWarning}
                     <div class="task-block-name">${task.name}</div>
                 `;
             }
@@ -7992,7 +8015,7 @@
             const checkedClass = task.completed ? ' checked' : '';
             const completedClass = task.completed ? ' completed' : '';
             const categoryColor = getCategoryColor(task.category);
-            const timeDisplay = task.time ? `<span class="task-time">${task.time}</span>` : '';
+            const timeDisplay = task.time ? `<span class="task-time">${formatTime24Hour(task.time)}</span>` : '';
 
             const isRepeatingTask = task.type === 'daily' || task.type === 'custom' || task.type === 'every-n-days' || task.type === 'monthly';
             let recurringIndicator = '';
@@ -8964,7 +8987,7 @@
             }
             // Add time to type label if set
             if (task.time) {
-                typeLabel += ` at ${task.time}`;
+                typeLabel += ` at ${formatTime24Hour(task.time)}`;
             }
             taskDetailType.textContent = typeLabel;
 
