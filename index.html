@@ -1994,7 +1994,11 @@
             font-size: 1.125rem;
             font-weight: 500;
             color: #fafafa;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
+        }
+
+        .plan-help-tip:last-of-type {
+            margin-bottom: 20px;
         }
 
         .plan-help-dismiss {
@@ -2133,21 +2137,22 @@
         .plan-day-tasks .task-name {
             font-size: 0.9375rem;
             cursor: pointer;
-            transition: all 0.15s ease;
-            text-decoration: none;
-            border-bottom: 1px solid transparent;
+            transition: background-color 0.2s ease;
+            padding: 2px 6px;
+            margin: -2px -6px;
+            border-radius: 4px;
         }
 
-        /* Desktop: hover underline */
+        /* Desktop: hover background highlight */
         @media (hover: hover) {
             .plan-day-tasks .task-name:hover {
-                border-bottom-color: rgba(255, 255, 255, 0.3);
+                background-color: rgba(255, 255, 255, 0.05);
             }
         }
 
         /* Long-press visual feedback */
         .plan-day-tasks .task-name.pressing {
-            opacity: 0.7;
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         .plan-day-tasks .category-indicator {
@@ -2611,6 +2616,174 @@
 
             .notes-modal-btn-primary {
                 padding: 14px 28px;
+            }
+        }
+
+        /* Task Detail Modal (Read-only) */
+        #taskDetailModal {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #taskDetailModal.active {
+            display: flex;
+        }
+
+        .task-detail-modal {
+            background: #0a0a0a;
+            border: 1px solid #262626;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 100%;
+            animation: taskDetailModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes taskDetailModalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .task-detail-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 12px 16px 0;
+        }
+
+        .task-detail-close {
+            background: none;
+            border: none;
+            color: #737373;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            line-height: 1;
+            transition: color 0.15s ease;
+        }
+
+        .task-detail-close:hover {
+            color: #fafafa;
+        }
+
+        .task-detail-body {
+            padding: 0 24px 24px;
+        }
+
+        .task-detail-name {
+            margin: 0 0 16px;
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #fafafa;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .task-detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .task-detail-category {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .task-detail-category-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #9E9E9E;
+        }
+
+        .task-detail-category-name {
+            font-size: 0.875rem;
+            color: #a3a3a3;
+        }
+
+        .task-detail-type {
+            font-size: 0.875rem;
+            color: #737373;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        .task-detail-notes-section {
+            border-top: 1px solid #262626;
+            padding-top: 16px;
+        }
+
+        .task-detail-notes-label {
+            font-size: 0.75rem;
+            color: #737373;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .task-detail-notes {
+            font-size: 0.9375rem;
+            color: #d4d4d4;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .task-detail-notes.empty {
+            color: #525252;
+            font-style: italic;
+        }
+
+        .task-detail-footer {
+            padding: 16px 24px 20px;
+            border-top: 1px solid #262626;
+        }
+
+        .task-detail-edit-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: transparent;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            color: #fafafa;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .task-detail-edit-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #525252;
+        }
+
+        .task-detail-edit-btn:active {
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 480px) {
+            .task-detail-modal {
+                max-width: none;
+                margin: 0;
+                border-radius: 16px;
+            }
+
+            .task-detail-body {
+                padding: 0 20px 20px;
+            }
+
+            .task-detail-footer {
+                padding: 16px 20px 20px;
             }
         }
 
@@ -3566,7 +3739,8 @@
         <!-- Plan Help Overlay -->
         <div class="plan-help-overlay" id="planHelpOverlay">
             <div class="plan-help-content">
-                <div class="plan-help-tip">Tip: Long press any task to edit it</div>
+                <div class="plan-help-tip">Tap to view details</div>
+                <div class="plan-help-tip">Long press to edit</div>
                 <div class="plan-help-dismiss">Tap anywhere to dismiss</div>
             </div>
         </div>
@@ -3694,6 +3868,32 @@
         </div>
     </div>
 
+    <!-- Task Detail Modal (Read-only view) -->
+    <div class="modal-overlay" id="taskDetailModal">
+        <div class="task-detail-modal">
+            <div class="task-detail-header">
+                <button type="button" class="task-detail-close" id="taskDetailClose" aria-label="Close">&times;</button>
+            </div>
+            <div class="task-detail-body">
+                <h2 class="task-detail-name" id="taskDetailName">Task Name</h2>
+                <div class="task-detail-meta">
+                    <div class="task-detail-category" id="taskDetailCategory">
+                        <span class="task-detail-category-dot"></span>
+                        <span class="task-detail-category-name">General</span>
+                    </div>
+                    <div class="task-detail-type" id="taskDetailType">One-time</div>
+                </div>
+                <div class="task-detail-notes-section">
+                    <div class="task-detail-notes-label">Notes</div>
+                    <div class="task-detail-notes" id="taskDetailNotes">No notes added yet</div>
+                </div>
+            </div>
+            <div class="task-detail-footer">
+                <button type="button" class="task-detail-edit-btn" id="taskDetailEditBtn">Edit Task</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Bottom Sheet -->
     <div class="bottom-sheet-overlay" id="bottomSheetOverlay"></div>
     <div class="bottom-sheet" id="bottomSheet">
@@ -3793,6 +3993,13 @@
         const modalTitleText = document.getElementById('modalTitleText');
         const planHelpBtn = document.getElementById('planHelpBtn');
         const planHelpOverlay = document.getElementById('planHelpOverlay');
+        const taskDetailModal = document.getElementById('taskDetailModal');
+        const taskDetailClose = document.getElementById('taskDetailClose');
+        const taskDetailName = document.getElementById('taskDetailName');
+        const taskDetailCategory = document.getElementById('taskDetailCategory');
+        const taskDetailType = document.getElementById('taskDetailType');
+        const taskDetailNotes = document.getElementById('taskDetailNotes');
+        const taskDetailEditBtn = document.getElementById('taskDetailEditBtn');
 
         // State
         let totalXp = 0;
@@ -3812,6 +4019,10 @@
         let isEditMode = false;
         let editingTaskId = null;
         let editingTaskDateStr = null;
+
+        // Task detail modal state
+        let currentDetailTaskId = null;
+        let currentDetailDateStr = null;
 
         // Swipe tracking
         let touchStartX = 0;
@@ -5539,21 +5750,52 @@
                 handleDeleteTask(taskEl);
             });
 
-            // Task name edit handlers
+            // Task name interaction handlers
+            // Quick tap/click → view details, Long press (500ms+) → edit
             const taskNameEl = taskEl.querySelector('.task-name');
             let longPressTimer = null;
             let isLongPress = false;
+            let mouseDownTime = 0;
 
-            // Desktop: click to edit
-            taskNameEl.addEventListener('click', (e) => {
-                e.stopPropagation();
-                // Only open edit on desktop (non-touch devices)
-                if (!('ontouchstart' in window)) {
+            // Mouse events for desktop
+            taskNameEl.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // Only left click
+                mouseDownTime = Date.now();
+                isLongPress = false;
+                taskNameEl.classList.add('pressing');
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    taskNameEl.classList.remove('pressing');
                     openEditTaskModal(task.id, dateStr);
+                }, 500);
+            });
+
+            taskNameEl.addEventListener('mouseup', (e) => {
+                taskNameEl.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
                 }
             });
 
-            // Mobile: long press to edit
+            taskNameEl.addEventListener('mouseleave', (e) => {
+                taskNameEl.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            });
+
+            taskNameEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Only open detail modal if it wasn't a long press
+                if (!isLongPress) {
+                    openTaskDetailModal(task.id, dateStr);
+                }
+                isLongPress = false;
+            });
+
+            // Touch events for mobile
             taskNameEl.addEventListener('touchstart', (e) => {
                 isLongPress = false;
                 taskNameEl.classList.add('pressing');
@@ -5570,14 +5812,15 @@
                     clearTimeout(longPressTimer);
                     longPressTimer = null;
                 }
-                // Prevent click if it was a long press
-                if (isLongPress) {
-                    e.preventDefault();
+                // If it wasn't a long press, open detail modal
+                if (!isLongPress) {
+                    e.preventDefault(); // Prevent click event
+                    openTaskDetailModal(task.id, dateStr);
                 }
             });
 
             taskNameEl.addEventListener('touchmove', (e) => {
-                // Cancel long press if user moves finger
+                // Cancel long press if user moves finger (scrolling)
                 taskNameEl.classList.remove('pressing');
                 if (longPressTimer) {
                     clearTimeout(longPressTimer);
@@ -6326,6 +6569,72 @@
             editingTaskDateStr = null;
         }
 
+        // Task Detail Modal Functions (Read-only view)
+        function openTaskDetailModal(taskId, dateStr) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            currentDetailTaskId = taskId;
+            currentDetailDateStr = dateStr;
+
+            // Category names for display
+            const categoryNames = {
+                general: 'General',
+                health: 'Health & Fitness',
+                learning: 'Learning',
+                creative: 'Creative',
+                wellness: 'Wellness',
+                productivity: 'Productivity',
+                social: 'Social'
+            };
+
+            // Set task name
+            taskDetailName.textContent = task.name;
+
+            // Set category
+            const category = task.category || 'general';
+            const categoryDot = taskDetailCategory.querySelector('.task-detail-category-dot');
+            const categoryName = taskDetailCategory.querySelector('.task-detail-category-name');
+            categoryDot.style.background = getCategoryColor(category);
+            categoryName.textContent = categoryNames[category] || category;
+
+            // Set task type
+            let typeLabel = 'One-time';
+            if (task.type === 'daily') {
+                typeLabel = 'Daily';
+            } else if (task.type === 'custom' && task.pattern) {
+                const patternDays = task.pattern.split(',').map(Number);
+                if (patternDays.length === 7) {
+                    typeLabel = 'Daily';
+                } else if (patternDays.length === 5 && patternDays.join(',') === '0,1,2,3,4') {
+                    typeLabel = 'Weekdays';
+                } else if (patternDays.length === 2 && patternDays.join(',') === '5,6') {
+                    typeLabel = 'Weekends';
+                } else {
+                    const dayAbbrevs = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    typeLabel = patternDays.map(d => dayAbbrevs[d]).join(', ');
+                }
+            }
+            taskDetailType.textContent = typeLabel;
+
+            // Set notes
+            if (task.notes && task.notes.trim()) {
+                taskDetailNotes.textContent = task.notes;
+                taskDetailNotes.classList.remove('empty');
+            } else {
+                taskDetailNotes.textContent = 'No notes added yet';
+                taskDetailNotes.classList.add('empty');
+            }
+
+            taskDetailModal.classList.add('active');
+        }
+
+        function closeTaskDetailModal() {
+            taskDetailModal.classList.remove('active');
+            currentDetailTaskId = null;
+            currentDetailDateStr = null;
+        }
+
         // Notes Modal Functions
         let currentNotesTaskId = null;
 
@@ -6721,6 +7030,20 @@
                 planHelpOverlay.classList.remove('active');
             });
 
+            // Task detail modal
+            taskDetailClose.addEventListener('click', closeTaskDetailModal);
+            taskDetailModal.addEventListener('click', (e) => {
+                if (e.target === taskDetailModal) {
+                    closeTaskDetailModal();
+                }
+            });
+            taskDetailEditBtn.addEventListener('click', () => {
+                const taskId = currentDetailTaskId;
+                const dateStr = currentDetailDateStr;
+                closeTaskDetailModal();
+                openEditTaskModal(taskId, dateStr);
+            });
+
             // FAB
             fabButton.addEventListener('click', () => {
                 if (createTaskModal.classList.contains('active')) {
@@ -6803,7 +7126,9 @@
             // ESC key to close modals
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
-                    if (notesModal.classList.contains('active')) {
+                    if (taskDetailModal.classList.contains('active')) {
+                        closeTaskDetailModal();
+                    } else if (notesModal.classList.contains('active')) {
                         closeNotesModal();
                     } else if (createTaskModal.classList.contains('active')) {
                         closeCreateTaskModal();
