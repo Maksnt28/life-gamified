@@ -659,8 +659,62 @@
         }
 
         .timeline-task-block.completed .task-block-name {
-            text-decoration: line-through;
-            opacity: 0.7;
+            opacity: 0.6;
+        }
+
+        .timeline-task-block .task-block-checkbox {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 18px;
+            height: 18px;
+            min-width: 16px;
+            min-height: 16px;
+            border: 2px solid #404040;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .timeline-task-block .task-block-checkbox:hover {
+            border-color: #666;
+            background: rgba(0, 0, 0, 0.6);
+            transform: scale(1.1);
+        }
+
+        .timeline-task-block .task-block-checkbox.checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .timeline-task-block .task-block-checkbox.checked::after {
+            content: '';
+            width: 7px;
+            height: 5px;
+            border-left: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            transform: rotate(-45deg);
+            margin-top: -1px;
+        }
+
+        /* For very short tasks (< 40px height), use smaller checkbox */
+        .timeline-task-block.compact .task-block-checkbox {
+            width: 16px;
+            height: 16px;
+            top: 4px;
+            right: 4px;
+        }
+
+        .timeline-task-block.compact .task-block-checkbox.checked::after {
+            width: 6px;
+            height: 4px;
         }
 
         .timeline-task-block .task-block-notes {
@@ -1281,6 +1335,44 @@
             font-size: 8px;
             color: rgba(255,255,255,0.6);
             white-space: nowrap;
+        }
+
+        .week-task-block .task-block-checkbox {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #404040;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .week-task-block .task-block-checkbox:hover {
+            border-color: #666;
+            background: rgba(0, 0, 0, 0.6);
+            transform: scale(1.15);
+        }
+
+        .week-task-block .task-block-checkbox.checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .week-task-block .task-block-checkbox.checked::after {
+            content: '';
+            width: 5px;
+            height: 3px;
+            border-left: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            transform: rotate(-45deg);
+            margin-top: -1px;
         }
 
         /* Overlapping task blocks in week - narrower columns */
@@ -7201,7 +7293,9 @@
 
             // Build content
             const timeFormatted = formatTime24Hour(task.time);
+            const checkedClass = task.completed ? ' checked' : '';
             let content = `
+                <div class="task-block-checkbox${checkedClass}"></div>
                 ${overlapWarning}
                 <div class="task-block-header">
                     <span class="task-block-time">${timeFormatted}</span>
@@ -7221,9 +7315,20 @@
 
             taskBlock.innerHTML = content;
 
-            // Click to open edit modal
+            // Checkbox toggles completion
+            const checkbox = taskBlock.querySelector('.task-block-checkbox');
+            if (checkbox) {
+                checkbox.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleTimelineTask(taskBlock, task);
+                });
+            }
+
+            // Clicking task body opens notes modal (like Plan view)
             taskBlock.addEventListener('click', (e) => {
-                openEditTaskModal(task.id, dateStr);
+                if (!e.target.closest('.task-block-checkbox')) {
+                    openNotesModal(task.id);
+                }
             });
 
             return taskBlock;
@@ -7294,7 +7399,9 @@
                 taskEl.classList.toggle('completed', isNowCompleted);
             } else if (taskEl.classList.contains('week-task-block')) {
                 // Timed task block in timeline
+                const checkbox = taskEl.querySelector('.task-block-checkbox');
                 const name = taskEl.querySelector('.task-block-name');
+                if (checkbox) checkbox.classList.toggle('checked', isNowCompleted);
                 if (name) name.classList.toggle('completed', isNowCompleted);
                 taskEl.classList.toggle('completed', isNowCompleted);
             }
@@ -7340,15 +7447,15 @@
 
             setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
 
-            // Update UI
-            const checkbox = taskEl.querySelector('.task-checkbox');
-            const taskName = taskEl.querySelector('.task-name');
-            checkbox.classList.toggle('checked', isNowCompleted);
+            // Update UI - handle both untimed tasks (.task-checkbox) and timed task blocks (.task-block-checkbox)
+            const checkbox = taskEl.querySelector('.task-checkbox') || taskEl.querySelector('.task-block-checkbox');
+            const taskName = taskEl.querySelector('.task-name') || taskEl.querySelector('.task-block-name');
+            if (checkbox) checkbox.classList.toggle('checked', isNowCompleted);
             if (taskName) taskName.classList.toggle('completed', isNowCompleted);
             taskEl.classList.toggle('completed', isNowCompleted);
 
             // Visual feedback
-            if (isNowCompleted) {
+            if (isNowCompleted && checkbox) {
                 checkbox.classList.add('completing');
                 taskEl.classList.add('completing');
                 setTimeout(() => {
@@ -7357,11 +7464,17 @@
                 }, 500);
             }
 
-            // XP popup
+            // XP popup - position in center of task element
             const popup = document.createElement('span');
             popup.className = 'xp-popup ' + (isNowCompleted ? 'gain' : 'lose');
             popup.textContent = (isNowCompleted ? '+' : '-') + '10 XP';
-            checkbox.appendChild(popup);
+            popup.style.position = 'absolute';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.pointerEvents = 'none';
+            popup.style.zIndex = '100';
+            taskEl.appendChild(popup);
             setTimeout(() => popup.remove(), 600);
 
             // Update XP
@@ -8247,25 +8360,39 @@
                 overlapWarning = '<span class="week-overlap-warning">⚠️</span>';
             }
 
-            // Only show time if block is tall enough
+            // Build content with checkbox
+            const checkedClass = isCompleted ? ' checked' : '';
             if (blockHeight >= 30) {
                 taskBlock.innerHTML = `
+                    <div class="task-block-checkbox${checkedClass}"></div>
                     ${overlapWarning}
-                    <div class="task-block-name">${task.name}</div>
+                    <div class="task-block-name">${escapeHtml(task.name)}</div>
                     <div class="task-block-time">${timeFormatted}</div>
                 `;
             } else {
                 taskBlock.innerHTML = `
+                    <div class="task-block-checkbox${checkedClass}"></div>
                     ${overlapWarning}
-                    <div class="task-block-name">${task.name}</div>
+                    <div class="task-block-name">${escapeHtml(task.name)}</div>
                 `;
             }
 
-            // Click to toggle completion
+            // Checkbox toggles completion
+            const checkbox = taskBlock.querySelector('.task-block-checkbox');
+            if (checkbox) {
+                checkbox.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleWeekTask(task.id, dateStr, taskBlock);
+                });
+            }
+
+            // Clicking task body opens notes modal (like Plan view)
             taskBlock.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                toggleWeekTask(task.id, dateStr, taskBlock);
+                if (!e.target.closest('.task-block-checkbox')) {
+                    e.stopPropagation();
+                    openNotesModal(task.id);
+                }
             });
 
             return taskBlock;
