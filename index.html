@@ -261,37 +261,6 @@
             margin-top: 0.125rem;
         }
 
-        /* Mobile Week view: Date display is tappable for navigation modal */
-        @media (max-width: 768px) {
-            body[data-view="week"] .date-display-container {
-                position: relative;
-                cursor: pointer;
-                padding: 4px 12px 4px 8px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 8px;
-                transition: background 0.15s ease;
-            }
-
-            body[data-view="week"] .date-display-container:active {
-                background: rgba(255, 255, 255, 0.1);
-            }
-
-            /* Dropdown chevron indicator */
-            body[data-view="week"] .date-display-container::after {
-                content: '';
-                position: absolute;
-                right: -2px;
-                top: 50%;
-                transform: translateY(-50%);
-                width: 0;
-                height: 0;
-                border-style: solid;
-                border-width: 4px 4px 0 4px;
-                border-color: #666 transparent transparent transparent;
-                opacity: 0.8;
-            }
-        }
-
         .today-btn {
             padding: 0.375rem 0.625rem;
             background: transparent;
@@ -1368,15 +1337,13 @@
                 overflow: hidden;
             }
 
-            /* Timeline wrapper - handles VERTICAL scroll */
+            /* Timeline wrapper - handles BOTH vertical and horizontal scroll */
             .week-timeline-wrapper {
                 flex: 1;
                 min-height: 0;
-                overflow-y: auto;
-                overflow-x: hidden;
-                overscroll-behavior-y: contain;
+                overflow: auto;
                 -webkit-overflow-scrolling: touch;
-                scroll-behavior: smooth;
+                overscroll-behavior: contain;
                 background: #0a0a0a;
                 border-radius: 8px;
                 /* Performance */
@@ -1388,72 +1355,22 @@
                 position: relative;
             }
 
-            /* Timeline grid - handles HORIZONTAL scroll */
+            /* Timeline grid - CSS grid, no scroll (wrapper handles it) */
             .week-timeline-grid {
-                display: flex;
+                display: grid;
+                grid-template-columns: repeat(7, 120px);
                 width: fit-content;
-                min-width: 100%;
-                overflow-x: auto;
-                overflow-y: visible;
-                height: auto;
-                min-height: auto;
+                min-height: 1200px; /* 24 hours × 50px */
                 border-radius: 0;
                 border: none;
                 background: transparent;
-                /* Smooth scrolling */
-                -webkit-overflow-scrolling: touch;
-                scroll-snap-type: x proximity;
-                scroll-padding: 0 20px;
-                overscroll-behavior-x: contain;
-                /* Performance */
-                will-change: scroll-position;
-                transform: translateZ(0);
-                /* Touch handling - allow both directions, browser decides based on gesture */
-                touch-action: pan-x pan-y;
-            }
-
-            /* Scroll hint gradients */
-            .week-timeline-wrapper::before,
-            .week-timeline-wrapper::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 24px;
-                pointer-events: none;
-                z-index: 30;
-                opacity: 0;
-                transition: opacity 0.2s ease;
-            }
-
-            /* Left edge fade - shows when scrolled right */
-            .week-timeline-wrapper::before {
-                left: 0;
-                background: linear-gradient(to right, rgba(0, 0, 0, 0.5), transparent);
-            }
-
-            .week-timeline-wrapper.scrolled-start::before {
-                opacity: 1;
-            }
-
-            /* Right edge fade - shows when more content to right */
-            .week-timeline-wrapper::after {
-                right: 0;
-                background: linear-gradient(to left, rgba(0, 0, 0, 0.5), transparent);
-                opacity: 1;
-            }
-
-            .week-timeline-wrapper.scrolled-end::after {
-                opacity: 0;
             }
 
             /* Day columns */
             .week-day-column {
-                flex: 0 0 120px;
-                min-width: 120px;
                 width: 120px;
+                min-width: 120px;
                 border-right: 1px solid #1a1a1a;
-                scroll-snap-align: start;
                 display: flex;
                 flex-direction: column;
                 background: #0a0a0a;
@@ -4182,91 +4099,64 @@
             }
         }
 
-        /* Week Navigation Modal (mobile only) */
-        .week-nav-modal-overlay {
+        /* Week Navigation Bottom Bar (mobile only) */
+        .week-nav-bar {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1100;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.2s ease;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 22px;
+            padding: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .week-nav-modal-overlay.active {
-            display: flex;
-            opacity: 1;
+        @media (max-width: 768px) {
+            body[data-view="week"] .week-nav-bar {
+                display: flex;
+                gap: 4px;
+            }
         }
 
-        .week-nav-modal {
-            background: #1a1a1a;
-            border-radius: 16px;
-            padding: 20px;
-            width: 280px;
-            max-width: 90vw;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            transform: scale(0.95);
-            transition: transform 0.2s ease;
-        }
-
-        .week-nav-modal-overlay.active .week-nav-modal {
-            transform: scale(1);
-        }
-
-        .week-nav-modal-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #e5e5e5;
-            text-align: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #262626;
-        }
-
-        .week-nav-modal-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .week-nav-btn {
+        .week-nav-bar-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 14px 16px;
-            background: #262626;
+            width: 44px;
+            height: 44px;
+            background: transparent;
             border: none;
-            border-radius: 10px;
-            color: #e5e5e5;
-            font-size: 15px;
+            border-radius: 18px;
+            color: #a0a0a0;
+            font-size: 18px;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.15s ease, transform 0.1s ease;
+            transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .week-nav-btn:active {
-            transform: scale(0.98);
-            background: #333;
+        .week-nav-bar-btn:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .week-nav-btn-today {
-            background: #3b82f6;
-            color: #fff;
+        .week-nav-bar-btn:hover {
+            color: #e5e5e5;
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .week-nav-btn-today:active {
-            background: #2563eb;
+        .week-nav-bar-btn.today-btn {
+            color: #3b82f6;
+            font-size: 10px;
         }
 
-        .week-nav-icon {
-            font-size: 14px;
-            opacity: 0.8;
+        .week-nav-bar-btn.today-btn:active {
+            background: rgba(59, 130, 246, 0.2);
         }
 
         /* Bottom Sheet */
@@ -5407,25 +5297,11 @@
         </div>
     </div>
 
-    <!-- Week Navigation Modal (mobile only) -->
-    <div class="week-nav-modal-overlay" id="weekNavModal">
-        <div class="week-nav-modal">
-            <div class="week-nav-modal-title" id="weekNavModalTitle">Jan 5 - 11, 2026</div>
-            <div class="week-nav-modal-buttons">
-                <button type="button" class="week-nav-btn" id="weekNavPrev">
-                    <span class="week-nav-icon">←</span>
-                    Previous Week
-                </button>
-                <button type="button" class="week-nav-btn week-nav-btn-today" id="weekNavToday">
-                    <span class="week-nav-icon">●</span>
-                    This Week
-                </button>
-                <button type="button" class="week-nav-btn" id="weekNavNext">
-                    Next Week
-                    <span class="week-nav-icon">→</span>
-                </button>
-            </div>
-        </div>
+    <!-- Week Navigation Bottom Bar (mobile only) -->
+    <div class="week-nav-bar" id="weekNavBar">
+        <button type="button" class="week-nav-bar-btn" id="weekNavPrev" aria-label="Previous week">‹</button>
+        <button type="button" class="week-nav-bar-btn today-btn" id="weekNavToday" aria-label="This week">●</button>
+        <button type="button" class="week-nav-bar-btn" id="weekNavNext" aria-label="Next week">›</button>
     </div>
 
     <!-- Notes Modal -->
@@ -5599,8 +5475,7 @@
         const confirmReset = document.getElementById('confirmReset');
         const modalTitleText = document.getElementById('modalTitleText');
         const planHelpBtn = document.getElementById('planHelpBtn');
-        const weekNavModal = document.getElementById('weekNavModal');
-        const weekNavModalTitle = document.getElementById('weekNavModalTitle');
+        const weekNavBar = document.getElementById('weekNavBar');
         const weekNavPrev = document.getElementById('weekNavPrev');
         const weekNavToday = document.getElementById('weekNavToday');
         const weekNavNext = document.getElementById('weekNavNext');
@@ -7570,35 +7445,19 @@
             // Mobile: Auto-scroll to today's column and current time
             if (isMobile) {
                 setTimeout(() => {
-                    // Horizontal scroll (on grid) to center today's column
+                    // Horizontal scroll (on wrapper) to center today's column
                     if (todayColumnIndex >= 0) {
                         const columnWidth = 120;
-                        const gridWidth = weekTimelineGrid.clientWidth;
-                        const targetScrollX = Math.max(0, (todayColumnIndex * columnWidth) - (gridWidth / 2) + (columnWidth / 2));
-                        weekTimelineGrid.scrollLeft = targetScrollX;
+                        const wrapperWidth = weekTimelineWrapper.clientWidth;
+                        const targetScrollX = Math.max(0, (todayColumnIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
+                        weekTimelineWrapper.scrollLeft = targetScrollX;
                     }
 
                     // Vertical scroll (on wrapper) to current time (or 8am if early morning)
                     const targetHour = currentHour < 6 ? 8 : currentHour;
                     const targetScrollY = Math.max(0, (targetHour * hourHeight) - 60);
                     weekTimelineWrapper.scrollTop = targetScrollY;
-
-                    // Initial check for scroll hint
-                    updateScrollHint();
                 }, 100);
-
-                // Scroll hints: show/hide edge gradients based on scroll position
-                function updateScrollHint() {
-                    const scrollLeft = weekTimelineGrid.scrollLeft;
-                    const maxScroll = weekTimelineGrid.scrollWidth - weekTimelineGrid.clientWidth;
-                    const atStart = scrollLeft > 10;
-                    const atEnd = scrollLeft >= maxScroll - 10;
-                    weekTimelineWrapper.classList.toggle('scrolled-start', atStart);
-                    weekTimelineWrapper.classList.toggle('scrolled-end', atEnd);
-                }
-
-                // Listen for horizontal scroll to update hint
-                weekTimelineGrid.addEventListener('scroll', updateScrollHint, { passive: true });
             } else {
                 // Desktop: Synchronized scrolling for all columns
                 const allTimelines = weekTimelineGrid.querySelectorAll('.week-column-timeline');
@@ -9982,69 +9841,18 @@
             planViewBtn.addEventListener('click', () => setView('plan'));
             statsViewBtn.addEventListener('click', () => setView('stats'));
 
-            // Date display tap for week navigation on mobile
-            dateDisplayContainer.addEventListener('click', (e) => {
-                // Only for Week view on mobile
-                if (currentView !== 'week' || window.innerWidth >= 768) return;
-
-                // Open week navigation modal
-                openWeekNavModal();
-            });
-
-            // Week navigation modal functions
-            function openWeekNavModal() {
-                // Update modal title with current week range
-                const weekStart = new Date(viewingDate);
-                const day = weekStart.getDay();
-                const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1);
-                weekStart.setDate(diff);
-
-                const weekEnd = new Date(weekStart);
-                weekEnd.setDate(weekStart.getDate() + 6);
-
-                const startMonth = weekStart.toLocaleDateString('en-US', { month: 'short' });
-                const endMonth = weekEnd.toLocaleDateString('en-US', { month: 'short' });
-                const startDay = weekStart.getDate();
-                const endDay = weekEnd.getDate();
-                const year = weekEnd.getFullYear();
-
-                let rangeText;
-                if (startMonth === endMonth) {
-                    rangeText = `${startMonth} ${startDay} - ${endDay}, ${year}`;
-                } else {
-                    rangeText = `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
-                }
-
-                weekNavModalTitle.textContent = rangeText;
-                weekNavModal.classList.add('active');
-            }
-
-            function closeWeekNavModal() {
-                weekNavModal.classList.remove('active');
-            }
-
-            // Week nav modal button handlers
+            // Week navigation bottom bar button handlers
             weekNavPrev.addEventListener('click', () => {
                 navigateWeek(-1);
-                closeWeekNavModal();
             });
 
             weekNavToday.addEventListener('click', () => {
                 viewingDate = new Date();
                 renderCurrentView();
-                closeWeekNavModal();
             });
 
             weekNavNext.addEventListener('click', () => {
                 navigateWeek(1);
-                closeWeekNavModal();
-            });
-
-            // Close modal when clicking overlay
-            weekNavModal.addEventListener('click', (e) => {
-                if (e.target === weekNavModal) {
-                    closeWeekNavModal();
-                }
             });
 
             // Plan view navigation
