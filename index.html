@@ -1344,15 +1344,17 @@
                 display: flex;
                 flex-direction: column;
                 gap: 0;
-                overflow: hidden;
+                overflow: visible; /* CRITICAL: Must NOT be hidden - breaks sticky positioning */
+                height: calc(100vh - 180px); /* Container needs height for flex children */
             }
 
             /* Main scroll container - THIS is the scroll parent for sticky elements */
             .week-scroll-container {
                 display: block;
-                flex: 1;
-                min-height: 0;
-                overflow: auto;
+                position: relative;
+                height: calc(100vh - 280px); /* CRITICAL: Must have explicit height for sticky to work */
+                min-height: 300px;
+                overflow: auto; /* CRITICAL: Must be auto or scroll */
                 -webkit-overflow-scrolling: touch;
                 overscroll-behavior: contain;
                 background: #0a0a0a;
@@ -1363,8 +1365,9 @@
 
             /* STICKY DAY HEADERS - sticks to top when scrolling down */
             .week-day-headers {
+                position: -webkit-sticky; /* Safari support */
                 position: sticky;
-                top: 0;
+                top: 0; /* CRITICAL: Stick to top edge */
                 z-index: 30;
                 display: grid;
                 grid-template-columns: 50px repeat(7, 1fr); /* CRITICAL: 1fr for perfect alignment */
@@ -1372,7 +1375,8 @@
                 border-bottom: 2px solid #2a2a2a;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
                 gap: 0;
-                min-width: 100%;
+                width: 100%;
+                min-height: 60px;
             }
 
             /* Corner cell - sticky both top AND left */
@@ -1497,11 +1501,10 @@
                 color: #888;
             }
 
-            /* Business hours highlighting (9 AM - 5 PM) */
+            /* Business hours highlighting (9 AM - 5 PM) - subtle emphasis */
             .week-hour-marker.business-hours {
-                color: #777;
-                border-left: 2px solid #2a4a2a;
-                background: linear-gradient(90deg, #1a1f1a 0%, #161916 100%);
+                color: #888;
+                background: linear-gradient(90deg, #1c1c1c 0%, #181818 100%);
             }
 
             /* Days grid - 7 columns using 1fr for perfect alignment */
