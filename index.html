@@ -662,6 +662,11 @@
             opacity: 0.6;
         }
 
+        .timeline-task-block.pressing {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+
         .timeline-task-block .task-block-checkbox {
             position: absolute;
             top: 6px;
@@ -1315,6 +1320,11 @@
 
         .week-task-block.completed {
             opacity: 0.5;
+        }
+
+        .week-task-block.pressing {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
         }
 
         .week-task-block .task-block-name {
@@ -5203,6 +5213,75 @@
             font-size: 0.85rem;
         }
 
+        /* Time Allocation Chart */
+        .time-allocation {
+            margin-top: 1.5rem;
+        }
+
+        .time-allocation-summary {
+            font-size: 0.8rem;
+            color: #a3a3a3;
+            margin-bottom: 1rem;
+        }
+
+        .time-allocation-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .time-allocation-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .time-category-name {
+            flex-shrink: 0;
+            min-width: 140px;
+            color: #a3a3a3;
+            font-size: 0.875rem;
+        }
+
+        .time-bar-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            min-width: 40px;
+            /* flex-grow set inline per category for proportional sizing */
+        }
+
+        .time-bar-container {
+            flex: 1;
+            height: 16px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            /* background set inline with 30% opacity category color */
+        }
+
+        .time-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .time-label {
+            flex-shrink: 0;
+            white-space: nowrap;
+            color: #e5e5e5;
+            font-size: 0.875rem;
+        }
+
+        .time-allocation-empty {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            color: #525252;
+            font-size: 0.85rem;
+        }
+
+
         /* Hide date nav in stats view */
         body[data-view="stats"] .date-nav {
             display: none;
@@ -5678,6 +5757,13 @@
                     <div class="category-breakdown-title">By Category</div>
                     <div id="categoryBreakdown"></div>
                 </div>
+
+                <!-- Time Allocation -->
+                <div class="time-allocation">
+                    <div class="category-breakdown-title">Time Allocation This Week</div>
+                    <div class="time-allocation-summary" id="timeAllocationSummary"></div>
+                    <div class="time-allocation-bars" id="timeAllocationBars"></div>
+                </div>
             </div>
 
             <!-- Achievements Section -->
@@ -6019,6 +6105,8 @@
         const weekProgressPercent = document.getElementById('weekProgressPercent');
         const weekProgressFill = document.getElementById('weekProgressFill');
         const categoryBreakdown = document.getElementById('categoryBreakdown');
+        const timeAllocationSummary = document.getElementById('timeAllocationSummary');
+        const timeAllocationBars = document.getElementById('timeAllocationBars');
         const streakAchievementsEl = document.getElementById('streakAchievements');
         const completionAchievementsEl = document.getElementById('completionAchievements');
         const streakProgressEl = document.getElementById('streakProgress');
@@ -7291,11 +7379,9 @@
                 overlapWarning = `<span class="overlap-warning" data-tooltip="${escapeHtml(tooltip)}">⚠️</span>`;
             }
 
-            // Build content
+            // Build content (no checkbox - use click/long press interaction)
             const timeFormatted = formatTime24Hour(task.time);
-            const checkedClass = task.completed ? ' checked' : '';
             let content = `
-                <div class="task-block-checkbox${checkedClass}"></div>
                 ${overlapWarning}
                 <div class="task-block-header">
                     <span class="task-block-time">${timeFormatted}</span>
@@ -7315,19 +7401,85 @@
 
             taskBlock.innerHTML = content;
 
-            // Checkbox toggles completion
-            const checkbox = taskBlock.querySelector('.task-block-checkbox');
-            if (checkbox) {
-                checkbox.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    toggleTimelineTask(taskBlock, task);
-                });
-            }
+            // Interaction: Quick click = toggle completion, Long press = view details
+            let longPressTimer = null;
+            let isLongPress = false;
 
-            // Clicking task body opens notes modal (like Plan view)
+            // Mouse events for desktop
+            taskBlock.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // Only left click
+                isLongPress = false;
+                taskBlock.classList.add('pressing');
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    taskBlock.classList.remove('pressing');
+                    openTaskDetailModal(task.id, dateStr);
+                }, 500);
+            });
+
+            taskBlock.addEventListener('mouseup', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            });
+
+            taskBlock.addEventListener('mouseleave', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            });
+
             taskBlock.addEventListener('click', (e) => {
-                if (!e.target.closest('.task-block-checkbox')) {
-                    openNotesModal(task.id);
+                e.stopPropagation();
+                // Only toggle if it wasn't a long press
+                if (!isLongPress) {
+                    toggleTimelineTask(taskBlock, task);
+                }
+                isLongPress = false;
+            });
+
+            // Touch events for mobile
+            taskBlock.addEventListener('touchstart', (e) => {
+                isLongPress = false;
+                taskBlock.classList.add('pressing');
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    taskBlock.classList.remove('pressing');
+                    openTaskDetailModal(task.id, dateStr);
+                }, 500);
+            }, { passive: true });
+
+            taskBlock.addEventListener('touchend', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                // If it wasn't a long press, toggle completion
+                if (!isLongPress) {
+                    e.preventDefault();
+                    toggleTimelineTask(taskBlock, task);
+                }
+            });
+
+            taskBlock.addEventListener('touchmove', (e) => {
+                // Cancel long press if user moves finger (scrolling)
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }, { passive: true });
+
+            taskBlock.addEventListener('touchcancel', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
                 }
             });
 
@@ -8360,38 +8512,100 @@
                 overlapWarning = '<span class="week-overlap-warning">⚠️</span>';
             }
 
-            // Build content with checkbox
-            const checkedClass = isCompleted ? ' checked' : '';
+            // Build content (no checkbox - use click/long press interaction)
             if (blockHeight >= 30) {
                 taskBlock.innerHTML = `
-                    <div class="task-block-checkbox${checkedClass}"></div>
                     ${overlapWarning}
                     <div class="task-block-name">${escapeHtml(task.name)}</div>
                     <div class="task-block-time">${timeFormatted}</div>
                 `;
             } else {
                 taskBlock.innerHTML = `
-                    <div class="task-block-checkbox${checkedClass}"></div>
                     ${overlapWarning}
                     <div class="task-block-name">${escapeHtml(task.name)}</div>
                 `;
             }
 
-            // Checkbox toggles completion
-            const checkbox = taskBlock.querySelector('.task-block-checkbox');
-            if (checkbox) {
-                checkbox.addEventListener('click', (e) => {
-                    e.stopPropagation();
+            // Interaction: Quick click = toggle completion, Long press = view details
+            let longPressTimer = null;
+            let isLongPress = false;
+
+            // Mouse events for desktop
+            taskBlock.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // Only left click
+                isLongPress = false;
+                taskBlock.classList.add('pressing');
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    taskBlock.classList.remove('pressing');
+                    openTaskDetailModal(task.id, dateStr);
+                }, 500);
+            });
+
+            taskBlock.addEventListener('mouseup', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            });
+
+            taskBlock.addEventListener('mouseleave', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            });
+
+            taskBlock.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                // Only toggle if it wasn't a long press
+                if (!isLongPress) {
+                    toggleWeekTask(task.id, dateStr, taskBlock);
+                }
+                isLongPress = false;
+            });
+
+            // Touch events for mobile
+            taskBlock.addEventListener('touchstart', (e) => {
+                isLongPress = false;
+                taskBlock.classList.add('pressing');
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    taskBlock.classList.remove('pressing');
+                    openTaskDetailModal(task.id, dateStr);
+                }, 500);
+            }, { passive: true });
+
+            taskBlock.addEventListener('touchend', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+                // If it wasn't a long press, toggle completion
+                if (!isLongPress) {
                     e.preventDefault();
                     toggleWeekTask(task.id, dateStr, taskBlock);
-                });
-            }
+                }
+            });
 
-            // Clicking task body opens notes modal (like Plan view)
-            taskBlock.addEventListener('click', (e) => {
-                if (!e.target.closest('.task-block-checkbox')) {
-                    e.stopPropagation();
-                    openNotesModal(task.id);
+            taskBlock.addEventListener('touchmove', (e) => {
+                // Cancel long press if user moves finger (scrolling)
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }, { passive: true });
+
+            taskBlock.addEventListener('touchcancel', (e) => {
+                taskBlock.classList.remove('pressing');
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
                 }
             });
 
@@ -9202,7 +9416,7 @@
                 gearBtn.addEventListener('click', () => {
                     // Capture inline input value and pass to modal
                     const taskName = inlineInput.value.trim();
-                    openCreateTaskModal(dateStr, taskName);
+                    openCreateTaskModal(dateStr, null, taskName);
                     // Clear the inline input after opening modal
                     inlineInput.value = '';
                 });
@@ -9567,6 +9781,9 @@
             // Category breakdown
             renderCategoryBreakdown(stats.categoryStats);
 
+            // Time allocation
+            renderTimeAllocation();
+
             // Achievements
             renderAchievements();
         }
@@ -9780,6 +9997,136 @@
                 `;
 
                 categoryBreakdown.appendChild(categoryEl);
+            });
+        }
+
+        // Time Allocation Functions
+        function calculateTimeAllocation(weekDates) {
+            const categoryMinutes = {};
+
+            // Category names for display
+            const categoryNames = {
+                general: 'General',
+                health: 'Health & Fitness',
+                learning: 'Learning',
+                creative: 'Creative',
+                wellness: 'Wellness',
+                productivity: 'Productivity',
+                social: 'Social'
+            };
+
+            weekDates.forEach(date => {
+                const tasksForDay = getTasksForDate(date);
+
+                tasksForDay.forEach(task => {
+                    // Only include tasks with both time and duration
+                    if (task.time && task.duration) {
+                        const category = task.category || 'general';
+
+                        if (!categoryMinutes[category]) {
+                            categoryMinutes[category] = {
+                                name: categoryNames[category] || category,
+                                color: getCategoryColor(category),
+                                totalMinutes: 0,
+                                completedMinutes: 0
+                            };
+                        }
+
+                        categoryMinutes[category].totalMinutes += task.duration;
+                        if (task.completed) {
+                            categoryMinutes[category].completedMinutes += task.duration;
+                        }
+                    }
+                });
+            });
+
+            return categoryMinutes;
+        }
+
+        function hexToRgba(hex, alpha) {
+            // Remove # if present
+            hex = hex.replace('#', '');
+
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function formatTimeAllocation(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+
+            if (hours > 0 && minutes > 0) {
+                return `${hours}h ${minutes}m`;
+            }
+            if (hours > 0) {
+                return `${hours}h`;
+            }
+            return `${minutes}m`;
+        }
+
+        function renderTimeAllocation() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const weekDates = getWeekDates(today);
+
+            const categoryMinutes = calculateTimeAllocation(weekDates);
+
+            // Convert to array and sort by total minutes (descending)
+            const categories = Object.entries(categoryMinutes)
+                .filter(([key, data]) => data.totalMinutes > 0)
+                .sort((a, b) => b[1].totalMinutes - a[1].totalMinutes);
+
+            // Handle empty state
+            if (categories.length === 0) {
+                timeAllocationSummary.textContent = '';
+                timeAllocationBars.innerHTML = '<div class="time-allocation-empty">No time-scheduled tasks this week</div>';
+                return;
+            }
+
+            // Calculate totals
+            const grandTotalMinutes = categories.reduce((sum, [key, data]) => sum + data.totalMinutes, 0);
+            const grandCompletedMinutes = categories.reduce((sum, [key, data]) => sum + data.completedMinutes, 0);
+            const totalTimeStr = formatTimeAllocation(grandTotalMinutes);
+            const completedTimeStr = formatTimeAllocation(grandCompletedMinutes);
+            const categoryCount = categories.length;
+
+            // Render summary
+            timeAllocationSummary.textContent = `${completedTimeStr} of ${totalTimeStr} completed across ${categoryCount} ${categoryCount === 1 ? 'category' : 'categories'}`;
+
+            // Find max for proportional widths (flex-grow)
+            const maxMinutes = Math.max(...categories.map(([key, data]) => data.totalMinutes));
+
+            // Render bars
+            timeAllocationBars.innerHTML = '';
+
+            categories.forEach(([key, data]) => {
+                const timeStr = formatTimeAllocation(data.totalMinutes);
+                // Completion percentage for bar fill (opaque vs transparent)
+                const completionPercent = data.totalMinutes > 0
+                    ? Math.round((data.completedMinutes / data.totalMinutes) * 100)
+                    : 0;
+                // Allocation percentage for label (category / total week time)
+                const allocationPercent = grandTotalMinutes > 0
+                    ? Math.round((data.totalMinutes / grandTotalMinutes) * 100)
+                    : 0;
+                const proportionalValue = data.totalMinutes / maxMinutes;
+
+                const row = document.createElement('div');
+                row.className = 'time-allocation-row';
+                row.innerHTML = `
+                    <div class="time-category-name">${data.name}</div>
+                    <div class="time-bar-wrapper" style="flex-grow: ${proportionalValue.toFixed(3)};">
+                        <div class="time-bar-container" style="background: ${hexToRgba(data.color, 0.3)};">
+                            <div class="time-bar-fill" style="width: ${completionPercent}%; background: ${data.color};"></div>
+                        </div>
+                        <div class="time-label">${timeStr} (${allocationPercent}%)</div>
+                    </div>
+                `;
+
+                timeAllocationBars.appendChild(row);
             });
         }
 
@@ -10045,7 +10392,7 @@
         }
 
         // Task Creation Modal
-        function openCreateTaskModal(presetDate = null, presetTime = null) {
+        function openCreateTaskModal(presetDate = null, presetTime = null, presetTaskName = null) {
             // Reset edit mode
             isEditMode = false;
             editingTaskId = null;
@@ -10063,6 +10410,11 @@
             modalTaskInput.value = '';
             modalNotesInput.value = '';
             updateNotesCharCount();
+
+            // Pre-fill task name if provided (from Plan view gear icon)
+            if (presetTaskName) {
+                modalTaskInput.value = presetTaskName;
+            }
             modalCategorySelect.value = 'general';
             categoryIndicator.style.background = getCategoryColor('general');
             modalTypeSelect.value = 'onetime';
