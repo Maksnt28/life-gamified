@@ -892,7 +892,204 @@
         }
 
         .week-view-container.active {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Week Untimed Tasks Container (above timeline) */
+        .week-untimed-container {
+            background: #0d0d0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 12px;
+            display: none;
+        }
+
+        .week-untimed-container.has-tasks {
             display: block;
+        }
+
+        .week-untimed-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .week-untimed-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a3a3a3;
+        }
+
+        .week-untimed-count {
+            font-size: 11px;
+            font-weight: 600;
+            color: #525252;
+            background: #1a1a1a;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .week-untimed-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .week-untimed-day {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .week-untimed-day.empty {
+            display: none;
+        }
+
+        .week-untimed-day-header {
+            font-size: 10px;
+            font-weight: 600;
+            color: #525252;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+
+        .week-untimed-day.today .week-untimed-day-header {
+            color: #3b82f6;
+        }
+
+        .week-untimed-day-count {
+            font-size: 9px;
+            color: #404040;
+            font-weight: normal;
+        }
+
+        .week-untimed-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            background: #141414;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .week-untimed-item:hover {
+            background: #1a1a1a;
+        }
+
+        .week-untimed-item.completed {
+            opacity: 0.5;
+        }
+
+        .week-untimed-item .item-checkbox {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #404040;
+            border-radius: 3px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .week-untimed-item .item-checkbox.checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .week-untimed-item .item-checkbox.checked::after {
+            content: '';
+            width: 6px;
+            height: 4px;
+            border-left: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            transform: rotate(-45deg);
+            margin-top: -1px;
+        }
+
+        .week-untimed-item .item-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .week-untimed-item .item-name {
+            flex: 1;
+            font-size: 12px;
+            color: #e5e5e5;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .week-untimed-item.completed .item-name {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        /* Mobile: Horizontally scrollable week with all 7 days visible */
+        @media (max-width: 768px) {
+            /* Untimed tasks - horizontal scroll matching day columns */
+            .week-untimed-container {
+                padding: 8px;
+                border-radius: 8px;
+            }
+
+            .week-untimed-header {
+                margin-bottom: 8px;
+                padding-bottom: 6px;
+            }
+
+            .week-untimed-days {
+                display: flex;
+                overflow-x: auto;
+                gap: 8px;
+                padding-bottom: 4px;
+                scroll-snap-type: x proximity;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .week-untimed-day {
+                flex: 0 0 112px;
+                min-width: 112px;
+                scroll-snap-align: start;
+            }
+
+            .week-untimed-day.empty {
+                display: flex;
+                opacity: 0.5;
+            }
+
+            .week-untimed-day-header {
+                font-size: 10px;
+            }
+
+            .week-untimed-item {
+                padding: 4px 6px;
+            }
+
+            .week-untimed-item .item-checkbox {
+                width: 12px;
+                height: 12px;
+            }
+
+            .week-untimed-item .item-dot {
+                width: 5px;
+                height: 5px;
+            }
+
+            .week-untimed-item .item-name {
+                font-size: 11px;
+            }
         }
 
         /* Week Timeline Grid - 7 columns on desktop */
@@ -1100,89 +1297,6 @@
             opacity: 0.8;
         }
 
-        /* Untimed tasks section at top of each column */
-        .week-untimed-section {
-            background: #0d0d0d;
-            border-bottom: 1px solid #1a1a1a;
-            padding: 4px;
-            display: none;
-            flex-shrink: 0;
-        }
-
-        .week-untimed-section.has-tasks {
-            display: block;
-        }
-
-        .week-untimed-task {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 4px;
-            background: #141414;
-            border-radius: 3px;
-            margin-bottom: 2px;
-            cursor: pointer;
-            font-size: 10px;
-        }
-
-        .week-untimed-task:last-child {
-            margin-bottom: 0;
-        }
-
-        .week-untimed-task:hover {
-            background: #1a1a1a;
-        }
-
-        .week-untimed-task.completed {
-            opacity: 0.5;
-        }
-
-        .week-untimed-task .mini-checkbox {
-            width: 12px;
-            height: 12px;
-            border: 1.5px solid #404040;
-            border-radius: 2px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .week-untimed-task .mini-checkbox.checked {
-            background: #3b82f6;
-            border-color: #3b82f6;
-        }
-
-        .week-untimed-task .mini-checkbox.checked::after {
-            content: '';
-            width: 5px;
-            height: 3px;
-            border-left: 1.5px solid #fff;
-            border-bottom: 1.5px solid #fff;
-            transform: rotate(-45deg);
-            margin-top: -1px;
-        }
-
-        .week-untimed-task .mini-dot {
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .week-untimed-task .mini-name {
-            flex: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #e5e5e5;
-        }
-
-        .week-untimed-task.completed .mini-name {
-            text-decoration: line-through;
-            color: #666;
-        }
-
         /* Current time indicator in week columns */
         .week-current-time {
             position: absolute;
@@ -1205,67 +1319,140 @@
             border-radius: 50%;
         }
 
-        /* Mobile: Stack columns vertically */
+        /* Mobile: Horizontally scrollable 7-day grid */
         @media (max-width: 768px) {
             .week-timeline-grid {
-                display: block;
-                height: auto;
-                max-height: none;
-                overflow-y: visible;
+                display: flex;
+                overflow-x: auto;
+                overflow-y: auto;
+                height: calc(100vh - 240px);
+                min-height: 400px;
+                border-radius: 8px;
+                scroll-snap-type: x proximity;
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
             }
 
             .week-day-column {
-                border-bottom: 1px solid #262626;
+                flex: 0 0 120px;
+                min-width: 120px;
+                width: 120px;
+                border-right: 1px solid #1a1a1a;
+                scroll-snap-align: start;
+                display: flex;
+                flex-direction: column;
             }
 
             .week-day-column:last-child {
-                border-bottom: none;
+                border-right: none;
             }
 
+            /* Sticky day headers - stick to top while scrolling vertically */
             .week-column-header {
-                position: relative;
-                padding: 10px 12px;
-                text-align: left;
+                position: sticky;
+                top: 0;
+                z-index: 20;
+                padding: 8px 4px;
+                text-align: center;
+                background: #0d0d0d;
+                border-bottom: 1px solid #1a1a1a;
+                min-height: 50px;
                 display: flex;
-                align-items: center;
-                gap: 8px;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .week-day-column.today .week-column-header {
+                background: rgba(59, 130, 246, 0.15);
             }
 
             .week-column-day-name {
-                font-size: 11px;
+                font-size: 9px;
+                letter-spacing: 0.03em;
             }
 
             .week-column-day-num {
                 font-size: 18px;
-                margin-top: 0;
+                font-weight: 700;
+                margin-top: 1px;
             }
 
+            /* Timeline area - no independent scroll, part of parent scroll */
             .week-column-timeline {
-                max-height: 300px;
-                overflow-y: auto;
+                flex: 1;
+                overflow: visible;
+                position: relative;
             }
 
+            /* Hours container - 50px per hour on mobile */
+            .week-column-hours {
+                height: 1200px; /* 24 hours × 50px */
+                position: relative;
+            }
+
+            .week-hour-row {
+                height: 50px;
+                border-bottom-color: #141414;
+            }
+
+            /* Hour labels - only show in first column, sticky left */
             .week-hour-label {
-                font-size: 10px;
-                left: 4px;
+                font-size: 8px;
+                left: 2px;
+                top: -5px;
+                color: #404040;
             }
 
+            /* Hide hour labels in all but first column */
+            .week-day-column:not(:first-child) .week-hour-label {
+                display: none;
+            }
+
+            /* First column hour labels are sticky on horizontal scroll */
+            .week-day-column:first-child {
+                position: sticky;
+                left: 0;
+                z-index: 5;
+            }
+
+            .week-day-column:first-child .week-column-header {
+                z-index: 25;
+            }
+
+            /* Tasks layer adjusted for 50px/hour */
             .week-tasks-layer {
-                left: 28px;
-                right: 6px;
+                left: 2px;
+                right: 2px;
             }
 
+            /* Task blocks - compact for mobile */
             .week-task-block {
-                font-size: 11px;
-                padding: 3px 6px;
+                font-size: 10px;
+                padding: 2px 3px;
+                min-height: 16px;
+                border-left-width: 2px;
+                border-radius: 2px;
             }
 
             .week-task-block .task-block-name {
-                font-size: 11px;
+                font-size: 9px;
+                line-height: 1.2;
             }
 
             .week-task-block .task-block-time {
-                font-size: 9px;
+                font-size: 8px;
+            }
+
+            .week-overlap-warning {
+                font-size: 7px;
+            }
+
+            /* Current time indicator */
+            .week-current-time::before {
+                width: 6px;
+                height: 6px;
+                left: -2px;
+                top: -2px;
             }
 
             /* Hide navigation arrows on mobile for Week view */
@@ -1274,10 +1461,25 @@
             }
         }
 
-        /* Very small mobile screens */
-        @media (max-width: 480px) {
-            .week-column-timeline {
-                max-height: 250px;
+        /* Very small mobile screens - narrower columns */
+        @media (max-width: 400px) {
+            .week-day-column {
+                flex: 0 0 100px;
+                min-width: 100px;
+                width: 100px;
+            }
+
+            .week-untimed-day {
+                flex: 0 0 92px;
+                min-width: 92px;
+            }
+
+            .week-column-day-num {
+                font-size: 16px;
+            }
+
+            .week-task-block .task-block-name {
+                font-size: 8px;
             }
         }
 
@@ -1296,7 +1498,7 @@
             }
         }
 
-        @media (min-width: 600px) {
+        @media (min-width: 769px) {
             .week-timeline-grid {
                 display: grid;
             }
@@ -4698,6 +4900,17 @@
 
         <!-- Week View -->
         <div class="week-view-container view-container" id="weekViewContainer">
+            <!-- Untimed tasks section (above timeline) -->
+            <div class="week-untimed-container" id="weekUntimedContainer">
+                <div class="week-untimed-header">
+                    <span class="week-untimed-title">Untimed Tasks</span>
+                    <span class="week-untimed-count" id="weekUntimedCount">0</span>
+                </div>
+                <div class="week-untimed-days" id="weekUntimedDays">
+                    <!-- Day groups rendered by JS -->
+                </div>
+            </div>
+            <!-- Timeline grid (timed tasks only) -->
             <div class="week-timeline-grid" id="weekTimelineGrid">
                 <!-- 7 day columns rendered by JS -->
             </div>
@@ -5103,6 +5316,9 @@
         const timelineUntimedTasks = document.getElementById('timelineUntimedTasks');
         const untimedCountBadge = document.getElementById('untimedCountBadge');
         const weekTimelineGrid = document.getElementById('weekTimelineGrid');
+        const weekUntimedContainer = document.getElementById('weekUntimedContainer');
+        const weekUntimedCount = document.getElementById('weekUntimedCount');
+        const weekUntimedDays = document.getElementById('weekUntimedDays');
         const monthGrid = document.getElementById('monthGrid');
         const monthList = document.getElementById('monthList');
         const dateDisplayContainer = document.getElementById('dateDisplayContainer');
@@ -6407,13 +6623,15 @@
             setTaskCompletedForDate(completionKey, completionDate, isNowCompleted);
 
             // Update UI based on element type
-            if (taskEl.classList.contains('week-untimed-task')) {
-                const checkbox = taskEl.querySelector('.mini-checkbox');
-                const name = taskEl.querySelector('.mini-name');
-                checkbox.classList.toggle('checked', isNowCompleted);
+            if (taskEl.classList.contains('week-untimed-item')) {
+                // Untimed task in separate section above grid
+                const checkbox = taskEl.querySelector('.item-checkbox');
+                const name = taskEl.querySelector('.item-name');
+                if (checkbox) checkbox.classList.toggle('checked', isNowCompleted);
                 if (name) name.classList.toggle('completed', isNowCompleted);
                 taskEl.classList.toggle('completed', isNowCompleted);
             } else if (taskEl.classList.contains('week-task-block')) {
+                // Timed task block in timeline
                 const name = taskEl.querySelector('.task-block-name');
                 if (name) name.classList.toggle('completed', isNowCompleted);
                 taskEl.classList.toggle('completed', isNowCompleted);
@@ -6939,20 +7157,92 @@
         // Week View - 7-column timeline scheduler
         function renderWeekView() {
             weekTimelineGrid.innerHTML = '';
+            weekUntimedDays.innerHTML = '';
+
             const weekDates = getWeekDates(viewingDate);
             const today = new Date();
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
 
+            // Collect all untimed tasks for the week
+            let totalUntimedCount = 0;
+            const weekUntimedData = [];
+
             weekDates.forEach((date, index) => {
                 const isToday = isSameDay(date, today);
                 const dateStr = formatDateForInput(date);
                 const tasksForDay = getTasksForDate(date);
-
-                // Separate timed and untimed tasks
-                const timedTasks = tasksForDay.filter(t => t.time);
                 const untimedTasks = tasksForDay.filter(t => !t.time);
+
+                totalUntimedCount += untimedTasks.length;
+                weekUntimedData.push({
+                    date,
+                    dateStr,
+                    isToday,
+                    dayIndex: index,
+                    untimedTasks
+                });
+            });
+
+            // Render untimed tasks section (only if there are any)
+            weekUntimedCount.textContent = totalUntimedCount;
+            if (totalUntimedCount > 0) {
+                weekUntimedContainer.classList.add('has-tasks');
+
+                weekUntimedData.forEach(({ date, dateStr, isToday, dayIndex, untimedTasks }) => {
+                    const dayGroup = document.createElement('div');
+                    dayGroup.className = 'week-untimed-day' + (isToday ? ' today' : '') + (untimedTasks.length === 0 ? ' empty' : '');
+
+                    // Day header
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'week-untimed-day-header';
+                    dayHeader.innerHTML = `${dayAbbrev[dayIndex]} <span class="week-untimed-day-count">(${untimedTasks.length})</span>`;
+                    dayGroup.appendChild(dayHeader);
+
+                    // Render untimed tasks for this day
+                    untimedTasks.forEach(task => {
+                        const isCompleted = isTaskCompletedForDate(task.id, dateStr);
+                        const categoryColor = getCategoryColor(task.category);
+
+                        const taskEl = document.createElement('div');
+                        taskEl.className = 'week-untimed-item' + (isCompleted ? ' completed' : '');
+                        taskEl.dataset.taskId = task.id;
+                        taskEl.dataset.date = dateStr;
+                        taskEl.innerHTML = `
+                            <div class="item-checkbox ${isCompleted ? 'checked' : ''}"></div>
+                            <div class="item-dot" style="background: ${categoryColor}"></div>
+                            <div class="item-name">${task.name}</div>
+                        `;
+
+                        // Click to toggle
+                        taskEl.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            toggleWeekTask(task.id, dateStr, taskEl);
+                        });
+
+                        dayGroup.appendChild(taskEl);
+                    });
+
+                    weekUntimedDays.appendChild(dayGroup);
+                });
+            } else {
+                weekUntimedContainer.classList.remove('has-tasks');
+            }
+
+            // Detect mobile for different hour heights
+            const isMobile = window.innerWidth < 768;
+            const hourHeight = isMobile ? 50 : 60;
+            let todayColumnIndex = -1;
+
+            // Render timeline columns (timed tasks only)
+            weekDates.forEach((date, index) => {
+                const isToday = isSameDay(date, today);
+                if (isToday) todayColumnIndex = index;
+
+                const dateStr = formatDateForInput(date);
+                const tasksForDay = getTasksForDate(date);
+                const timedTasks = tasksForDay.filter(t => t.time);
 
                 // Create day column
                 const dayCol = document.createElement('div');
@@ -6968,35 +7258,6 @@
                 `;
                 dayCol.appendChild(header);
 
-                // Untimed tasks section (only if there are untimed tasks)
-                const untimedSection = document.createElement('div');
-                untimedSection.className = 'week-untimed-section' + (untimedTasks.length > 0 ? ' has-tasks' : '');
-
-                untimedTasks.forEach(task => {
-                    const isCompleted = isTaskCompletedForDate(task.id, dateStr);
-                    const categoryColor = getCategoryColor(task.category);
-
-                    const taskEl = document.createElement('div');
-                    taskEl.className = 'week-untimed-task' + (isCompleted ? ' completed' : '');
-                    taskEl.dataset.taskId = task.id;
-                    taskEl.dataset.date = dateStr;
-                    taskEl.innerHTML = `
-                        <div class="mini-checkbox ${isCompleted ? 'checked' : ''}"></div>
-                        <div class="mini-dot" style="background: ${categoryColor}"></div>
-                        <div class="mini-name">${task.name}</div>
-                    `;
-
-                    // Click to toggle
-                    taskEl.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        toggleWeekTask(task.id, dateStr, taskEl);
-                    });
-
-                    untimedSection.appendChild(taskEl);
-                });
-
-                dayCol.appendChild(untimedSection);
-
                 // Timeline scroll container
                 const timelineScroll = document.createElement('div');
                 timelineScroll.className = 'week-column-timeline';
@@ -7004,12 +7265,14 @@
                 // Hours container (24 hours)
                 const hoursContainer = document.createElement('div');
                 hoursContainer.className = 'week-column-hours';
+                hoursContainer.style.height = `${24 * hourHeight}px`;
 
                 // Create 24 hour rows
                 for (let hour = 0; hour < 24; hour++) {
                     const hourRow = document.createElement('div');
                     hourRow.className = 'week-hour-row';
-                    hourRow.style.top = `${hour * 60}px`;
+                    hourRow.style.top = `${hour * hourHeight}px`;
+                    hourRow.style.height = `${hourHeight}px`;
 
                     // Only show hour labels every 2 hours for compactness
                     if (hour % 2 === 0) {
@@ -7032,7 +7295,7 @@
                 // Render timed task blocks
                 timedTasks.forEach(task => {
                     const taskOverlapData = overlapInfo.get(task.id);
-                    const taskBlock = createWeekTaskBlock(task, dateStr, taskOverlapData);
+                    const taskBlock = createWeekTaskBlock(task, dateStr, taskOverlapData, hourHeight);
                     tasksLayer.appendChild(taskBlock);
                 });
 
@@ -7040,17 +7303,11 @@
 
                 // Current time indicator (only for today)
                 if (isToday) {
-                    const currentTimePosition = currentHour * 60 + currentMinute;
+                    const currentTimePosition = (currentHour * 60 + currentMinute) * (hourHeight / 60);
                     const currentTimeIndicator = document.createElement('div');
                     currentTimeIndicator.className = 'week-current-time';
                     currentTimeIndicator.style.top = `${currentTimePosition}px`;
                     hoursContainer.appendChild(currentTimeIndicator);
-
-                    // Scroll to current time
-                    setTimeout(() => {
-                        const scrollTarget = Math.max(0, currentTimePosition - 60);
-                        timelineScroll.scrollTop = scrollTarget;
-                    }, 50);
                 }
 
                 // Click on timeline to add task at that time
@@ -7058,9 +7315,11 @@
                     if (e.target.closest('.week-task-block')) return;
 
                     const rect = hoursContainer.getBoundingClientRect();
-                    const clickY = e.clientY - rect.top + timelineScroll.scrollTop;
-                    const hour = Math.floor(clickY / 60);
-                    const minutes = Math.floor((clickY % 60) / 15) * 15;
+                    const scrollTop = isMobile ? weekTimelineGrid.scrollTop : timelineScroll.scrollTop;
+                    const clickY = e.clientY - rect.top + scrollTop;
+                    const hour = Math.floor(clickY / hourHeight);
+                    const minuteRatio = (clickY % hourHeight) / hourHeight;
+                    const minutes = Math.floor(minuteRatio * 60 / 15) * 15;
 
                     if (hour >= 0 && hour < 24) {
                         const timeStr = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
@@ -7074,8 +7333,24 @@
                 weekTimelineGrid.appendChild(dayCol);
             });
 
-            // Synchronized scrolling for all columns (desktop only)
-            if (window.innerWidth >= 768) {
+            // Mobile: Auto-scroll to today's column and current time
+            if (isMobile) {
+                setTimeout(() => {
+                    // Horizontal scroll to center today's column
+                    if (todayColumnIndex >= 0) {
+                        const columnWidth = 120;
+                        const gridWidth = weekTimelineGrid.clientWidth;
+                        const targetScrollX = Math.max(0, (todayColumnIndex * columnWidth) - (gridWidth / 2) + (columnWidth / 2));
+                        weekTimelineGrid.scrollLeft = targetScrollX;
+                    }
+
+                    // Vertical scroll to current time (or 8am if early morning)
+                    const targetHour = currentHour < 6 ? 8 : currentHour;
+                    const targetScrollY = Math.max(0, (targetHour * hourHeight) - 60);
+                    weekTimelineGrid.scrollTop = targetScrollY;
+                }, 100);
+            } else {
+                // Desktop: Synchronized scrolling for all columns
                 const allTimelines = weekTimelineGrid.querySelectorAll('.week-column-timeline');
                 let isScrolling = false;
 
@@ -7096,21 +7371,31 @@
                         });
                     });
                 });
+
+                // Scroll to current time in today's column
+                const todayColumn = weekTimelineGrid.querySelector('.week-day-column.today .week-column-timeline');
+                if (todayColumn) {
+                    setTimeout(() => {
+                        const currentTimePosition = currentHour * hourHeight + currentMinute * (hourHeight / 60);
+                        todayColumn.scrollTop = Math.max(0, currentTimePosition - 60);
+                    }, 50);
+                }
             }
         }
 
         // Create task block for week view (compact version)
-        function createWeekTaskBlock(task, dateStr, overlapData = null) {
+        function createWeekTaskBlock(task, dateStr, overlapData = null, hourHeight = 60) {
             const isCompleted = isTaskCompletedForDate(task.id, dateStr);
             const categoryColor = getCategoryColor(task.category);
 
-            // Parse time
+            // Parse time and calculate position using hourHeight
             const [hours, minutes] = task.time.split(':').map(Number);
-            const topPosition = hours * 60 + minutes;
+            const topPosition = (hours * 60 + minutes) * (hourHeight / 60);
 
-            // Calculate height based on duration
+            // Calculate height based on duration, scaled to hourHeight
             const duration = task.duration || 30;
-            const blockHeight = Math.max(duration, 20); // Minimum 20px for week view
+            const scaledHeight = duration * (hourHeight / 60);
+            const blockHeight = Math.max(scaledHeight, hourHeight < 60 ? 16 : 20); // Smaller minimum on mobile
 
             const taskBlock = document.createElement('div');
             taskBlock.dataset.taskId = task.id;
