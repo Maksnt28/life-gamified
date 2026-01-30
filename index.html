@@ -4106,20 +4106,20 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 100;
-            background: rgba(20, 20, 20, 0.9);
+            z-index: 1000;
+            background: rgba(26, 26, 26, 0.95);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-radius: 22px;
-            padding: 4px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            padding: 6px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         @media (max-width: 768px) {
             body[data-view="week"] .week-nav-bar {
                 display: flex;
-                gap: 4px;
+                gap: 8px;
             }
         }
 
@@ -4127,36 +4127,45 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             background: transparent;
             border: none;
-            border-radius: 18px;
-            color: #a0a0a0;
-            font-size: 18px;
-            font-weight: 500;
+            border-radius: 20px;
+            color: #b0b0b0;
+            font-size: 22px;
+            font-weight: 600;
             cursor: pointer;
             transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .week-nav-bar-btn:active {
-            transform: scale(0.92);
-            background: rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
         }
 
         .week-nav-bar-btn:hover {
-            color: #e5e5e5;
-            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .week-nav-bar-btn.today-btn {
+            background: rgba(59, 130, 246, 0.2);
             color: #3b82f6;
-            font-size: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            width: auto;
+            padding: 0 16px;
+            letter-spacing: 0.3px;
         }
 
         .week-nav-bar-btn.today-btn:active {
-            background: rgba(59, 130, 246, 0.2);
+            background: rgba(59, 130, 246, 0.4);
+            transform: scale(0.95);
         }
 
         /* Bottom Sheet */
@@ -5299,9 +5308,9 @@
 
     <!-- Week Navigation Bottom Bar (mobile only) -->
     <div class="week-nav-bar" id="weekNavBar">
-        <button type="button" class="week-nav-bar-btn" id="weekNavPrev" aria-label="Previous week">‹</button>
-        <button type="button" class="week-nav-bar-btn today-btn" id="weekNavToday" aria-label="This week">●</button>
-        <button type="button" class="week-nav-bar-btn" id="weekNavNext" aria-label="Next week">›</button>
+        <button type="button" class="week-nav-bar-btn" id="weekNavPrev" aria-label="Previous week">←</button>
+        <button type="button" class="week-nav-bar-btn today-btn" id="weekNavToday" aria-label="This week">Today</button>
+        <button type="button" class="week-nav-bar-btn" id="weekNavNext" aria-label="Next week">→</button>
     </div>
 
     <!-- Notes Modal -->
@@ -7585,11 +7594,53 @@
 
         // Navigate to previous/next week
         function navigateWeek(delta) {
-            viewingDate.setDate(viewingDate.getDate() + (delta * 7));
+            console.log('[Week Nav] navigateWeek called with delta:', delta);
+            console.log('[Week Nav] Current viewingDate before:', viewingDate.toISOString());
+
+            // Create a new Date object to avoid mutation issues
+            const newDate = new Date(viewingDate);
+            newDate.setDate(newDate.getDate() + (delta * 7));
+            viewingDate = newDate;
+
+            viewingMonth = viewingDate.getMonth();
+            viewingYear = viewingDate.getFullYear();
+
+            console.log('[Week Nav] New viewingDate after:', viewingDate.toISOString());
+
+            updateDateDisplay();
+            renderWeekView();
+        }
+
+        // Navigate to current week and scroll to today
+        function goToCurrentWeek() {
+            console.log('[Week Nav] goToCurrentWeek called');
+            viewingDate = new Date();
             viewingMonth = viewingDate.getMonth();
             viewingYear = viewingDate.getFullYear();
             updateDateDisplay();
             renderWeekView();
+
+            // Scroll to today's column on mobile
+            if (window.innerWidth < 768) {
+                setTimeout(() => {
+                    const today = new Date();
+                    const weekDates = getWeekDates(viewingDate);
+                    const todayIndex = weekDates.findIndex(d => isSameDay(d, today));
+
+                    if (todayIndex >= 0 && weekTimelineWrapper) {
+                        const columnWidth = 120;
+                        const wrapperWidth = weekTimelineWrapper.clientWidth;
+                        const targetScrollX = Math.max(0, (todayIndex * columnWidth) - (wrapperWidth / 2) + (columnWidth / 2));
+                        weekTimelineWrapper.scrollTo({ left: targetScrollX, behavior: 'smooth' });
+
+                        // Also scroll to current time vertically
+                        const currentHour = new Date().getHours();
+                        const targetHour = currentHour < 6 ? 8 : currentHour;
+                        const targetScrollY = Math.max(0, (targetHour * 50) - 60);
+                        weekTimelineWrapper.scrollTo({ top: targetScrollY, behavior: 'smooth' });
+                    }
+                }, 150);
+            }
         }
 
         function debounce(func, wait) {
@@ -9842,18 +9893,32 @@
             statsViewBtn.addEventListener('click', () => setView('stats'));
 
             // Week navigation bottom bar button handlers
-            weekNavPrev.addEventListener('click', () => {
-                navigateWeek(-1);
-            });
+            if (weekNavPrev) {
+                weekNavPrev.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[Week Nav] Prev button clicked');
+                    navigateWeek(-1);
+                });
+            }
 
-            weekNavToday.addEventListener('click', () => {
-                viewingDate = new Date();
-                renderCurrentView();
-            });
+            if (weekNavToday) {
+                weekNavToday.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[Week Nav] Today button clicked');
+                    goToCurrentWeek();
+                });
+            }
 
-            weekNavNext.addEventListener('click', () => {
-                navigateWeek(1);
-            });
+            if (weekNavNext) {
+                weekNavNext.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('[Week Nav] Next button clicked');
+                    navigateWeek(1);
+                });
+            }
 
             // Plan view navigation
             planPrevWeek.addEventListener('click', () => navigatePlanWeek(-1));
