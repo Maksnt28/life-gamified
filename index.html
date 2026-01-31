@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Life Gamified</title>
+
+    <!-- PWA: manifest + iOS Home Screen install support -->
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Life Gamified">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
     <style>
         *,
         *::before,
@@ -12,6 +21,75 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        /* ========== Notification / Install Banner ========== */
+        #notif-banner {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 9999;
+            background: #111;
+            border-bottom: 1px solid #222;
+            padding: 0.7rem 1rem;
+            animation: notifSlideDown 0.28s cubic-bezier(.22,.68,0,1.2);
+        }
+        @keyframes notifSlideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to   { transform: translateY(0);     opacity: 1; }
+        }
+        .notif-banner-row {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+        .notif-banner-icon { font-size: 1.3rem; flex-shrink: 0; }
+        .notif-banner-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .notif-banner-text strong {
+            font-size: 0.8rem;
+            color: #e5e5e5;
+            font-weight: 600;
+        }
+        .notif-banner-text span {
+            font-size: 0.7rem;
+            color: #666;
+            line-height: 1.35;
+        }
+        .notif-banner-btn {
+            background: #fff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 6px;
+            padding: 0.38rem 0.7rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+        }
+        .notif-banner-btn:active { opacity: 0.7; }
+        .notif-banner-close {
+            background: none;
+            border: none;
+            color: #444;
+            font-size: 1rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0.2rem 0.25rem;
+            border-radius: 4px;
+            flex-shrink: 0;
+            transition: color 0.15s;
+        }
+        .notif-banner-close:active { color: #999; }
+        /* ================================================== */
 
         body {
             min-height: 100vh;
@@ -5611,6 +5689,9 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 <body>
+    <!-- Notification / install banner (populated by JS) -->
+    <div id="notif-banner"></div>
+
     <div class="container">
         <div class="sticky-header">
             <header class="header">
@@ -11267,6 +11348,284 @@
         }
 
         init();
+
+        // ============================================================
+        // PWA + TASK REMINDER NOTIFICATIONS
+        // ============================================================
+        // How it works:
+        //   • Registers the service worker (enables offline + push)
+        //   • Shows a contextual banner guiding iPhone users through
+        //     "Add to Home Screen" → grant notification permission
+        //   • Once permission is granted, reads today's timed tasks
+        //     from localStorage and sets a setTimeout for each one
+        //   • Rescans every 5 min (in case tasks were added/completed)
+        //   • Also rescans when the tab regains focus
+        // iOS constraint: push notifications only work when the app
+        //   is installed to the Home Screen (PWA standalone mode).
+        // ============================================================
+
+        (function pwaAndNotifications() {
+
+            // --- 1. Register service worker ---
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').then(function (reg) {
+                    console.log('[SW] registered, scope:', reg.scope);
+                }).catch(function (err) {
+                    console.log('[SW] registration failed:', err);
+                });
+            }
+
+            // --- 2. Settings helpers ---
+            var NOTIF_KEY = 'lifeGamifiedNotifSettings';
+
+            function getSettings() {
+                try {
+                    var s = localStorage.getItem(NOTIF_KEY);
+                    if (s) return JSON.parse(s);
+                } catch (e) { /* ignore */ }
+                return { enabled: false, minutesBefore: 5 };
+            }
+
+            function saveSettings(s) {
+                localStorage.setItem(NOTIF_KEY, JSON.stringify(s));
+            }
+
+            // --- 3. Detect PWA install state ---
+            function isInstalled() {
+                return !!window.navigator.standalone ||
+                       window.matchMedia('(display-mode: standalone)').matches;
+            }
+
+            // --- 4. Banner UI ---
+            var banner = document.getElementById('notif-banner');
+            var bannerDismissed = false;
+
+            function renderBanner() {
+                if (!banner || bannerDismissed) return;
+
+                // Already fully set up? Hide permanently.
+                if (isInstalled() && Notification.permission === 'granted') {
+                    banner.style.display = 'none';
+                    return;
+                }
+
+                var icon, title, sub, actionHtml;
+
+                if (!isInstalled()) {
+                    // Not installed → guide to Add to Home Screen
+                    icon   = '📲';
+                    title  = 'Get task reminders';
+                    sub    = 'Tap the share button, then "Add to Home Screen."';
+                    actionHtml = '';
+                } else if (Notification.permission === 'default') {
+                    // Installed but permission not yet asked
+                    icon   = '🔔';
+                    title  = 'Enable task reminders';
+                    sub    = 'Get notified before your scheduled tasks.';
+                    actionHtml = '<button class="notif-banner-btn" id="notifEnableBtn">Enable</button>';
+                } else if (Notification.permission === 'denied') {
+                    // Permission explicitly denied
+                    icon   = '⚠️';
+                    title  = 'Notifications are blocked';
+                    sub    = 'Go to Settings → Life Gamified → Notifications.';
+                    actionHtml = '';
+                } else {
+                    banner.style.display = 'none';
+                    return;
+                }
+
+                banner.innerHTML =
+                    '<div class="notif-banner-row">' +
+                    '  <span class="notif-banner-icon">' + icon + '</span>' +
+                    '  <div class="notif-banner-text">' +
+                    '    <strong>' + title + '</strong>' +
+                    '    <span>' + sub + '</span>' +
+                    '  </div>' +
+                    '  ' + actionHtml +
+                    '  <button class="notif-banner-close" id="notifCloseBtn">✕</button>' +
+                    '</div>';
+                banner.style.display = 'flex';
+
+                // Wire up buttons (re-bind each time banner is rendered)
+                var closeBtn = document.getElementById('notifCloseBtn');
+                if (closeBtn) closeBtn.addEventListener('click', function () {
+                    bannerDismissed = true;
+                    banner.style.display = 'none';
+                });
+
+                var enableBtn = document.getElementById('notifEnableBtn');
+                if (enableBtn) enableBtn.addEventListener('click', function () {
+                    if (!('Notification' in window)) return;
+                    Notification.requestPermission().then(function (perm) {
+                        if (perm === 'granted') {
+                            var s = getSettings();
+                            s.enabled = true;
+                            saveSettings(s);
+                            startScheduler();
+                            renderBanner(); // re-render → will hide
+                            // Show confirmation using the existing undo-toast element
+                            var toast = document.getElementById('undoToast');
+                            var msg   = document.getElementById('undoToastMessage');
+                            if (toast && msg) {
+                                msg.textContent = 'Task reminders enabled ✓';
+                                toast.classList.add('visible');
+                                setTimeout(function () { toast.classList.remove('visible'); }, 2200);
+                            }
+                        } else {
+                            renderBanner(); // re-render → shows "blocked" state
+                        }
+                    });
+                });
+            }
+
+            // --- 5. Scheduler core ---
+            var activeTimers = [];
+            var rescanInterval = null;
+
+            // Mirror the app's weekday mapping: Mon=0 … Sun=6
+            function isoWeekday(date) {
+                var d = date.getDay(); // JS: Sun=0 … Sat=6
+                return d === 0 ? 6 : d - 1;
+            }
+
+            function dateKey(date) {
+                var y = date.getFullYear();
+                var m = String(date.getMonth() + 1).padStart(2, '0');
+                var d = String(date.getDate()).padStart(2, '0');
+                return y + '-' + m + '-' + d;
+            }
+
+            // Returns true if `task` should appear on `date`.
+            // Mirrors getTasksForDate() in the main app exactly.
+            function taskAppearsOn(task, date) {
+                var dateStr = dateKey(date);
+                var weekday = isoWeekday(date);
+
+                switch (task.type) {
+                    case 'daily':
+                        return true;
+
+                    case 'custom':
+                        if (!task.pattern) return false;
+                        var days = task.pattern.split(',').map(Number);
+                        return days.indexOf(weekday) !== -1;
+
+                    case 'every-n-days':
+                        if (!task.startDate || !task.repeatInterval) return false;
+                        var start   = new Date(task.startDate + 'T00:00:00');
+                        var current = new Date(dateStr + 'T00:00:00');
+                        var diff    = Math.round((current - start) / 86400000);
+                        return diff >= 0 && diff % task.repeatInterval === 0;
+
+                    case 'monthly':
+                        if (!task.monthlyDate) return false;
+                        var dom = date.getDate();
+                        var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+                        if (task.monthlyDate > lastDay) return dom === lastDay;
+                        return dom === task.monthlyDate;
+
+                    default: // 'onetime' or anything else
+                        return task.date === dateStr;
+                }
+            }
+
+            function scheduleReminders() {
+                var settings = getSettings();
+                if (!settings.enabled) return;
+                if (Notification.permission !== 'granted') return;
+
+                // Clear previous timers
+                activeTimers.forEach(function (id) { clearTimeout(id); });
+                activeTimers = [];
+
+                // Read fresh data from localStorage
+                var raw;
+                try { raw = JSON.parse(localStorage.getItem('lifeGamifiedData')); } catch (e) { return; }
+                if (!raw || !raw.tasks) return;
+
+                var now         = new Date();
+                var todayStr    = dateKey(now);
+                var completions = raw.completions || {};
+
+                raw.tasks.forEach(function (task) {
+                    // Only care about tasks that have a scheduled time
+                    if (!task.time) return;
+                    // Only care about tasks appearing today
+                    if (!taskAppearsOn(task, now)) return;
+
+                    // Check completion.  Key structure: completions[taskId][dateStr]
+                    var taskId = task.dailyId || task.id;
+                    var compDate = (task.type === 'onetime') ? task.date : todayStr;
+                    if (completions[taskId] && completions[taskId][compDate]) return;
+
+                    // Calculate reminder fire time
+                    var parts = task.time.split(':');
+                    var h = parseInt(parts[0], 10);
+                    var m = parseInt(parts[1], 10);
+
+                    var fireAt = new Date(now);
+                    fireAt.setHours(h, m - settings.minutesBefore, 0, 0);
+
+                    // If fire time already passed, skip
+                    if (fireAt <= now) return;
+
+                    var delayMs = fireAt.getTime() - now.getTime();
+
+                    var timerId = setTimeout(function () {
+                        // Re-check completion at fire time (user may have finished the task)
+                        var fresh;
+                        try { fresh = JSON.parse(localStorage.getItem('lifeGamifiedData')); } catch (e) {}
+                        var freshComp = (fresh && fresh.completions) || {};
+                        if (freshComp[taskId] && freshComp[taskId][compDate]) return; // done — skip
+
+                        var label = settings.minutesBefore > 0
+                            ? 'Starting in ' + settings.minutesBefore + ' min (' + task.time + ')'
+                            : 'Scheduled for ' + task.time;
+
+                        new Notification(task.name, {
+                            body:  label,
+                            icon:  '/icons/icon-192.png',
+                            badge: '/icons/icon-192.png',
+                            tag:   'task-' + taskId + '-' + todayStr,
+                            data:  { url: '/' }
+                        });
+                    }, delayMs);
+
+                    activeTimers.push(timerId);
+                });
+            }
+
+            function startScheduler() {
+                if (rescanInterval) return; // already running
+                scheduleReminders();
+                rescanInterval = setInterval(scheduleReminders, 300000); // every 5 min
+            }
+
+            // --- 6. Init sequence ---
+
+            // Show banner after a short delay so it doesn't block first paint
+            setTimeout(renderBanner, 1800);
+
+            // If notifications were already enabled in a previous session, start scheduling
+            var currentSettings = getSettings();
+            if (currentSettings.enabled && Notification.permission === 'granted') {
+                startScheduler();
+            }
+
+            // Rescan when tab comes back to foreground (e.g. user returns from Safari)
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) {
+                    var s = getSettings();
+                    if (s.enabled && Notification.permission === 'granted') {
+                        scheduleReminders();
+                    }
+                    // Also re-check banner in case install state changed
+                    renderBanner();
+                }
+            });
+
+        })(); // end pwaAndNotifications IIFE
+
     </script>
 </body>
 </html>
