@@ -11004,6 +11004,11 @@
                 achievements: unlockedAchievements
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            
+            // Trigger notification scheduler to pick up new/modified tasks
+            if (typeof window.triggerSchedulerRescan === 'function') {
+                window.triggerSchedulerRescan();
+            }
         }
 
         function loadData() {
@@ -11627,6 +11632,12 @@
                 rescanInterval = setInterval(scheduleReminders, 300000); // every 5 min
                 console.log('[SCHEDULER] Rescan interval set (every 5 min)');
             }
+            
+            // Expose to global scope so saveData() can trigger rescans
+            window.triggerSchedulerRescan = function() {
+                console.log('[SCHEDULER] Manual rescan triggered by saveData()');
+                scheduleReminders();
+            };
 
             // --- 6. Init sequence ---
 
