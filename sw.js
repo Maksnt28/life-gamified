@@ -6,7 +6,7 @@
 // stays fresh after every Vercel deploy.
 // ============================================================
 
-const CACHE_NAME = 'life-gamified-v1';
+const CACHE_NAME = 'life-gamified-v2';
 
 const APP_SHELL = [
     '/',
