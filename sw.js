@@ -1,121 +1,137 @@
-// ============================================================
-// Service Worker — Life Gamified
-// ============================================================
-// Strategy: cache-first for the app shell (instant load on repeat
-// visits, works offline), background-update so the cached version
-// stays fresh after every Vercel deploy.
-// ============================================================
+// Service Worker for Life Gamified PWA
+// Handles offline caching and push notifications
 
-const CACHE_NAME = 'life-gamified-v2';
+// --- Configuration ---
+// Update this version number whenever you make changes to force cache refresh
+const CACHE_NAME = 'life-gamified-v3';
 
-const APP_SHELL = [
+const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/manifest.json',
     '/icons/icon-192.png',
     '/icons/icon-512.png',
-    '/icons/icon-512-maskable.png'
+    '/icons/icon-512-maskable.png',
+    'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js'
 ];
 
-// --- INSTALL: pre-cache the app shell ---
+// --- Install Event ---
+// Fires when the service worker is first installed
 self.addEventListener('install', (event) => {
+    console.log('[SW] Installing service worker...');
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('[SW] Caching app shell…');
-            return cache.addAll(APP_SHELL);
+            console.log('[SW] Caching app shell...');
+            return cache.addAll(ASSETS_TO_CACHE);
         })
     );
-    self.skipWaiting(); // activate immediately, don't wait for other tabs
+    // Force the waiting service worker to become the active service worker
+    self.skipWaiting();
 });
 
-// --- ACTIVATE: delete any previous cache version ---
+// --- Activate Event ---
+// Fires when the service worker becomes active
 self.addEventListener('activate', (event) => {
+    console.log('[SW] Activating service worker...');
     event.waitUntil(
-        caches.keys().then((keys) =>
-            Promise.all(
-                keys
-                    .filter((k) => k !== CACHE_NAME)
-                    .map((k) => { console.log('[SW] Removing old cache:', k); return caches.delete(k); })
-            )
-        )
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('[SW] Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
     );
-    self.clients.claim(); // take over open tabs immediately
+    // Take control of all pages immediately
+    return self.clients.claim();
 });
 
-// --- FETCH: serve from cache, refresh in background ---
+// --- Fetch Event ---
+// Intercepts network requests and serves from cache when offline
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
-
-    const url = new URL(event.request.url);
-    if (url.origin !== self.location.origin) return; // ignore external
-
     event.respondWith(
-        caches.match(event.request).then((cached) => {
-            // Always kick off a network fetch to update the cache
-            const networkFetch = fetch(event.request)
-                .then((res) => {
-                    if (res.ok) {
-                        caches.open(CACHE_NAME).then((c) => c.put(event.request, res.clone()));
-                    }
-                    return res;
-                })
-                .catch(() => {}); // network failure — silent, we'll use cache
-
-            // Return cached instantly if available; otherwise wait for network
-            return cached || networkFetch;
+        caches.match(event.request).then((response) => {
+            // Return cached version if available, otherwise fetch from network
+            return response || fetch(event.request).then((fetchResponse) => {
+                // Don't cache non-GET requests or chrome-extension requests
+                if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
+                    return fetchResponse;
+                }
+                
+                // Clone the response before caching
+                return caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, fetchResponse.clone());
+                    return fetchResponse;
+                });
+            });
+        }).catch(() => {
+            // If both cache and network fail, could return a custom offline page here
+            console.log('[SW] Fetch failed for:', event.request.url);
         })
     );
 });
 
-// --- PUSH: show a notification when the browser delivers a push event ---
-// (On iOS this fires when a push arrives while the app is in the background)
+// --- Push Event ---
+// Handles incoming push notifications
 self.addEventListener('push', (event) => {
-    let title = 'Life Gamified';
-    let body  = 'Time to check your tasks!';
-    let tag   = 'life-gamified-generic';
-    let url   = '/';
-
+    console.log('[SW] Push notification received:', event);
+    
+    let notificationData = {
+        title: 'Life Gamified',
+        body: 'You have a task reminder',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        data: { url: '/' }
+    };
+    
+    // If push has data, use it
     if (event.data) {
         try {
-            const p = event.data.json();
-            title = p.title || title;
-            body  = p.body  || body;
-            tag   = p.tag   || tag;
-            url   = p.url   || url;
+            const data = event.data.json();
+            notificationData = {
+                title: data.title || notificationData.title,
+                body: data.body || notificationData.body,
+                icon: data.icon || notificationData.icon,
+                badge: data.badge || notificationData.badge,
+                data: data.data || notificationData.data
+            };
         } catch (e) {
-            body = event.data.text() || body;
+            console.log('[SW] Could not parse push data:', e);
         }
     }
-
+    
     event.waitUntil(
-        self.registration.showNotification(title, {
-            body,
-            tag,                          // same tag = replaces previous (no duplicates)
-            icon:  '/icons/icon-192.png',
-            badge: '/icons/icon-192.png',
-            data:  { url }
+        self.registration.showNotification(notificationData.title, {
+            body: notificationData.body,
+            icon: notificationData.icon,
+            badge: notificationData.badge,
+            data: notificationData.data
         })
     );
 });
 
-// --- NOTIFICATION CLICK: open / focus the app when user taps the notification ---
+// --- Notification Click Event ---
+// Handles clicks on notifications
 self.addEventListener('notificationclick', (event) => {
-    event.preventDefault();
+    console.log('[SW] Notification clicked:', event);
     event.notification.close();
-
-    const url = (event.notification.data && event.notification.data.url) || '/';
-
+    
+    // Open the app or focus existing window
     event.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-            // If app window already open, just focus it
-            for (const client of clients) {
-                if (client.url === self.location.origin + url) {
-                    client.focus();
-                    return;
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            // If app is already open, focus it
+            for (let client of clientList) {
+                if (client.url === self.registration.scope && 'focus' in client) {
+                    return client.focus();
                 }
             }
             // Otherwise open a new window
-            return self.clients.openWindow(url);
+            if (clients.openWindow) {
+                return clients.openWindow(event.notification.data?.url || '/');
+            }
         })
     );
 });
