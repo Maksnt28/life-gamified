@@ -11531,9 +11531,17 @@
             }
 
             function scheduleReminders() {
+                console.log('[SCHEDULER] scheduleReminders() called');
                 var settings = getSettings();
-                if (!settings.enabled) return;
-                if (Notification.permission !== 'granted') return;
+                console.log('[SCHEDULER] settings:', settings);
+                if (!settings.enabled) {
+                    console.log('[SCHEDULER] Exiting - not enabled');
+                    return;
+                }
+                if (Notification.permission !== 'granted') {
+                    console.log('[SCHEDULER] Exiting - permission not granted');
+                    return;
+                }
 
                 // Clear previous timers
                 activeTimers.forEach(function (id) { clearTimeout(id); });
@@ -11541,12 +11549,20 @@
 
                 // Read fresh data from localStorage
                 var raw;
-                try { raw = JSON.parse(localStorage.getItem('lifeGamifiedData')); } catch (e) { return; }
-                if (!raw || !raw.tasks) return;
+                try { raw = JSON.parse(localStorage.getItem('lifeGamifiedData')); } catch (e) { 
+                    console.log('[SCHEDULER] No task data found');
+                    return; 
+                }
+                if (!raw || !raw.tasks) {
+                    console.log('[SCHEDULER] No tasks in data');
+                    return;
+                }
 
                 var now         = new Date();
                 var todayStr    = dateKey(now);
                 var completions = raw.completions || {};
+                
+                console.log('[SCHEDULER] Processing', raw.tasks.length, 'tasks for today:', todayStr);
 
                 raw.tasks.forEach(function (task) {
                     // Only care about tasks that have a scheduled time
@@ -11573,6 +11589,7 @@
                     var delayMs = fireAt.getTime() - now.getTime();
 
                     var timerId = setTimeout(function () {
+                        console.log('[SCHEDULER] Timer fired for task:', task.name);
                         // Re-check completion at fire time (user may have finished the task)
                         var fresh;
                         try { fresh = JSON.parse(localStorage.getItem('lifeGamifiedData')); } catch (e) {}
@@ -11583,6 +11600,7 @@
                             ? 'Starting in ' + settings.minutesBefore + ' min (' + task.time + ')'
                             : 'Scheduled for ' + task.time;
 
+                        console.log('[SCHEDULER] Showing notification:', task.name, '-', label);
                         new Notification(task.name, {
                             body:  label,
                             icon:  '/icons/icon-192.png',
@@ -11593,13 +11611,21 @@
                     }, delayMs);
 
                     activeTimers.push(timerId);
+                    console.log('[SCHEDULER] Timer set for', task.name, 'at', fireAt.toLocaleTimeString(), '(in', Math.round(delayMs/1000), 'seconds)');
                 });
+                
+                console.log('[SCHEDULER] Total timers set:', activeTimers.length);
             }
 
             function startScheduler() {
-                if (rescanInterval) return; // already running
+                console.log('[SCHEDULER] startScheduler() called');
+                if (rescanInterval) {
+                    console.log('[SCHEDULER] Already running, skipping');
+                    return; // already running
+                }
                 scheduleReminders();
                 rescanInterval = setInterval(scheduleReminders, 300000); // every 5 min
+                console.log('[SCHEDULER] Rescan interval set (every 5 min)');
             }
 
             // --- 6. Init sequence ---
@@ -11608,9 +11634,19 @@
             setTimeout(renderBanner, 1800);
 
             // If notifications were already enabled in a previous session, start scheduling
+            console.log('[NOTIF INIT] Checking if scheduler should start...');
             var currentSettings = getSettings();
+            console.log('[NOTIF INIT] currentSettings:', currentSettings);
+            console.log('[NOTIF INIT] currentSettings.enabled:', currentSettings.enabled);
+            console.log('[NOTIF INIT] Notification.permission:', Notification.permission);
+            console.log('[NOTIF INIT] Both conditions true?', currentSettings.enabled && Notification.permission === 'granted');
+            
             if (currentSettings.enabled && Notification.permission === 'granted') {
+                console.log('[NOTIF INIT] ✓ Starting scheduler NOW!');
                 startScheduler();
+                console.log('[NOTIF INIT] ✓ Scheduler started!');
+            } else {
+                console.log('[NOTIF INIT] ✗ Scheduler NOT started. Reason:', !currentSettings.enabled ? 'enabled=false' : 'permission not granted');
             }
 
             // Rescan when tab comes back to foreground (e.g. user returns from Safari)
