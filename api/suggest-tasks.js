@@ -50,6 +50,13 @@ Return ONLY the JSON array, no other text.`;
         ? `Here are my current tasks:\n${taskSummary}\n\nSuggest 3 new tasks that would complement my routine.`
         : 'I have no tasks yet. Suggest 3 starter tasks to help me build good habits.';
 
+    console.log('=== API Request Debug ===');
+    console.log('System prompt length:', systemPrompt.length);
+    console.log('User message length:', userMessage.length);
+    console.log('Number of tasks sent:', currentTasks.length);
+    console.log('Estimated input tokens:', Math.ceil((systemPrompt.length + userMessage.length) / 4));
+    console.log('========================');
+
     try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
