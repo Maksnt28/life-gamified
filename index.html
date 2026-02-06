@@ -5685,17 +5685,180 @@
                 padding: 1rem 1rem 0;
             }
         }
+        /* ========== Auth Screen ========== */
+        #auth-container {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 1rem;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+        .auth-card h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.35rem;
+        }
+        .auth-card .auth-subtitle {
+            font-size: 0.8rem;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+        .auth-input {
+            display: block;
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #fff;
+            font-family: inherit;
+            margin-bottom: 0.75rem;
+            min-height: 44px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .auth-input:focus {
+            border-color: #444;
+        }
+        .auth-input::placeholder {
+            color: #444;
+        }
+        .auth-submit {
+            display: block;
+            width: 100%;
+            background: #fff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            min-height: 44px;
+            margin-top: 0.5rem;
+            transition: opacity 0.15s;
+        }
+        .auth-submit:active {
+            opacity: 0.7;
+        }
+        .auth-submit:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .auth-toggle {
+            margin-top: 1.25rem;
+            font-size: 0.78rem;
+            color: #555;
+            cursor: pointer;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-toggle span {
+            color: #fff;
+            font-weight: 500;
+            margin-left: 0.3rem;
+        }
+        #auth-error {
+            display: none;
+            background: rgba(255, 60, 60, 0.08);
+            border: 1px solid rgba(255, 60, 60, 0.2);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.78rem;
+            color: #ff4444;
+            text-align: left;
+        }
+        /* Sign-out button in header */
+        .header-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 0.25rem;
+        }
+        .header-top-row .app-title {
+            margin-bottom: 0;
+        }
+        #sign-out-btn {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: 1px solid #222;
+            border-radius: 6px;
+            color: #555;
+            font-size: 0.65rem;
+            font-family: inherit;
+            padding: 0.3rem 0.55rem;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+        }
+        #sign-out-btn:active {
+            color: #fff;
+            border-color: #444;
+        }
+        @media (hover: hover) {
+            #sign-out-btn:hover {
+                color: #fff;
+                border-color: #444;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 <body>
+    <!-- Auth Screen -->
+    <div id="auth-container">
+        <div class="auth-card">
+            <h1>Life Gamified</h1>
+            <p class="auth-subtitle">Turn your daily habits into an adventure</p>
+            <div id="auth-error"></div>
+            <form id="auth-form" autocomplete="on">
+                <input class="auth-input" type="email" id="auth-email" placeholder="Email" required autocomplete="email">
+                <input class="auth-input" type="password" id="auth-password" placeholder="Password" required minlength="6" autocomplete="current-password">
+                <button class="auth-submit" type="submit" id="auth-submit-btn">Sign In</button>
+            </form>
+            <div class="auth-toggle" id="auth-toggle">
+                Don't have an account?<span>Sign up</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification / install banner (populated by JS) -->
     <div id="notif-banner"></div>
 
-    <div class="container">
+    <div class="container" id="app-container" style="display: none;">
         <div class="sticky-header">
             <header class="header">
-                <h1 class="app-title">Life Gamified</h1>
+                <div class="header-top-row">
+                    <h1 class="app-title">Life Gamified</h1>
+                    <button type="button" id="sign-out-btn">Sign Out</button>
+                </div>
                 <p class="app-subtitle">Turn your daily habits into an adventure</p>
                 <div class="level-container">
                     <div class="level-info">
@@ -11674,6 +11837,137 @@
 
         })(); // end pwaAndNotifications IIFE
 
+    </script>
+
+    <!-- Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+        import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+        import { signUp, signIn, signOut, getCurrentUser, onAuthStateChange } from './auth.js';
+
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        const authForm = document.getElementById('auth-form');
+        const authEmail = document.getElementById('auth-email');
+        const authPassword = document.getElementById('auth-password');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const authError = document.getElementById('auth-error');
+        const authToggle = document.getElementById('auth-toggle');
+        const signOutBtn = document.getElementById('sign-out-btn');
+
+        let isSignUpMode = false;
+
+        function showApp() {
+            authContainer.style.display = 'none';
+            appContainer.style.display = '';
+            console.log('[auth-ui] App shown');
+        }
+
+        function showAuth() {
+            authContainer.style.display = '';
+            appContainer.style.display = 'none';
+            console.log('[auth-ui] Auth screen shown');
+        }
+
+        function showError(msg) {
+            authError.textContent = msg;
+            authError.style.display = 'block';
+        }
+
+        function clearError() {
+            authError.textContent = '';
+            authError.style.display = 'none';
+        }
+
+        // Toggle between sign-in and sign-up
+        authToggle.addEventListener('click', () => {
+            isSignUpMode = !isSignUpMode;
+            clearError();
+            if (isSignUpMode) {
+                authSubmitBtn.textContent = 'Sign Up';
+                authToggle.innerHTML = 'Already have an account?<span>Sign in</span>';
+                authPassword.setAttribute('autocomplete', 'new-password');
+            } else {
+                authSubmitBtn.textContent = 'Sign In';
+                authToggle.innerHTML = "Don't have an account?<span>Sign up</span>";
+                authPassword.setAttribute('autocomplete', 'current-password');
+            }
+        });
+
+        // Handle form submission
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearError();
+
+            const email = authEmail.value.trim();
+            const password = authPassword.value;
+
+            if (!email || !password) {
+                showError('Please enter both email and password.');
+                return;
+            }
+
+            authSubmitBtn.disabled = true;
+            authSubmitBtn.textContent = isSignUpMode ? 'Signing up...' : 'Signing in...';
+
+            const { data, error } = isSignUpMode
+                ? await signUp(email, password)
+                : await signIn(email, password);
+
+            authSubmitBtn.disabled = false;
+            authSubmitBtn.textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
+
+            if (error) {
+                showError(error.message);
+                return;
+            }
+
+            // If sign-up requires email confirmation
+            if (isSignUpMode && data?.user && !data.session) {
+                showError('Check your email to confirm your account, then sign in.');
+                isSignUpMode = false;
+                authSubmitBtn.textContent = 'Sign In';
+                authToggle.innerHTML = "Don't have an account?<span>Sign up</span>";
+                authPassword.setAttribute('autocomplete', 'current-password');
+                return;
+            }
+
+            showApp();
+        });
+
+        // Sign-out button
+        signOutBtn.addEventListener('click', async () => {
+            const { error } = await signOut();
+            if (error) {
+                console.log('[auth-ui] Sign out error:', error.message);
+            }
+            showAuth();
+            authEmail.value = '';
+            authPassword.value = '';
+            clearError();
+        });
+
+        // Listen for auth state changes
+        onAuthStateChange((event, session) => {
+            console.log('[auth-ui] Auth state change:', event);
+            if (event === 'SIGNED_IN' && session) {
+                showApp();
+            } else if (event === 'SIGNED_OUT') {
+                showAuth();
+            }
+        });
+
+        // Check if user is already logged in on page load
+        (async () => {
+            const user = await getCurrentUser();
+            if (user) {
+                console.log('[auth-ui] User already logged in:', user.id);
+                showApp();
+            } else {
+                console.log('[auth-ui] No active session, showing auth screen');
+                showAuth();
+            }
+        })();
     </script>
 </body>
 </html>
