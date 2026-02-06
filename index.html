@@ -3220,6 +3220,378 @@
             }
         }
 
+        /* AI Ideas FAB */
+        .ai-fab {
+            position: fixed;
+            bottom: calc(1.5rem + 56px + 12px);
+            right: 1.5rem;
+            width: 48px;
+            height: 48px;
+            background: #1a1a1a;
+            border: 1px solid #262626;
+            border-radius: 50%;
+            color: #d4d4d4;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (hover: hover) {
+            .ai-fab:hover {
+                border-color: #3b82f6;
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+                color: #ffffff;
+            }
+        }
+
+        .ai-fab:active {
+            transform: scale(0.92);
+        }
+
+        .ai-fab svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .ai-fab-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: #3b82f6;
+            border-radius: 9px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .ai-fab-badge:empty,
+        .ai-fab-badge[data-count="0"] {
+            display: none;
+        }
+
+        /* AI Suggestions Modal */
+        .ai-modal {
+            position: relative;
+            background: #141414;
+            border: 1px solid #262626;
+            border-radius: 16px;
+            width: 95vw;
+            max-width: 420px;
+            max-height: 85vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            animation: modalSlide 0.2s ease;
+            box-sizing: border-box;
+            margin: auto;
+        }
+
+        @media (min-width: 600px) {
+            .ai-modal {
+                width: 480px;
+                max-width: 480px;
+            }
+        }
+
+        .ai-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #262626;
+        }
+
+        .ai-modal-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-modal-title svg {
+            width: 18px;
+            height: 18px;
+            stroke: #3b82f6;
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .ai-modal-close {
+            background: none;
+            border: none;
+            color: #525252;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .ai-modal-body {
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ai-suggestion-card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 14px 16px;
+            transition: border-color 0.15s ease, opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .ai-suggestion-card.added {
+            opacity: 0;
+            transform: translateX(40px);
+            pointer-events: none;
+        }
+
+        .ai-suggestion-name {
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .ai-suggestion-reason {
+            font-size: 0.8125rem;
+            color: #737373;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .ai-suggestion-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .ai-suggestion-badges {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .ai-suggestion-category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.6875rem;
+            color: #999;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 3px 8px;
+            border-radius: 8px;
+        }
+
+        .ai-suggestion-category-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .ai-suggestion-type-badge {
+            font-size: 0.6875rem;
+            color: #525252;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 3px 8px;
+            border-radius: 8px;
+        }
+
+        .ai-suggestion-xp {
+            font-size: 0.6875rem;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+
+        .ai-suggestion-add-btn {
+            background: transparent;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            color: #d4d4d4;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (hover: hover) {
+            .ai-suggestion-add-btn:hover {
+                background: #3b82f6;
+                border-color: #3b82f6;
+                color: #ffffff;
+            }
+        }
+
+        .ai-suggestion-add-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ai-suggestion-add-btn.added {
+            background: transparent;
+            border-color: #22c55e;
+            color: #22c55e;
+            pointer-events: none;
+        }
+
+        .ai-modal-footer {
+            padding: 0.875rem 1.25rem;
+            border-top: 1px solid #262626;
+            display: flex;
+            gap: 8px;
+        }
+
+        .ai-modal-generate-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: #3b82f6;
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (hover: hover) {
+            .ai-modal-generate-btn:hover {
+                background: #2563eb;
+            }
+        }
+
+        .ai-modal-generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .ai-modal-close-btn {
+            padding: 0.75rem 1.25rem;
+            background: #1a1a1a;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            color: #d4d4d4;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (hover: hover) {
+            .ai-modal-close-btn:hover {
+                background: #262626;
+            }
+        }
+
+        .ai-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            gap: 12px;
+        }
+
+        .ai-loading-spinner {
+            width: 28px;
+            height: 28px;
+            border: 2.5px solid #262626;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: aiSpinnerRotate 0.7s linear infinite;
+        }
+
+        @keyframes aiSpinnerRotate {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-loading-text {
+            font-size: 0.8125rem;
+            color: #525252;
+        }
+
+        .ai-error {
+            text-align: center;
+            padding: 1.5rem 1rem;
+        }
+
+        .ai-error-text {
+            font-size: 0.875rem;
+            color: #737373;
+            margin-bottom: 12px;
+        }
+
+        .ai-error-retry {
+            background: transparent;
+            border: 1px solid #262626;
+            border-radius: 8px;
+            color: #d4d4d4;
+            font-size: 0.8125rem;
+            padding: 8px 16px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ai-empty {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #525252;
+            font-size: 0.875rem;
+        }
+
+        .ai-added-toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: rgba(34, 197, 94, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 6px;
+            padding: 6px 14px;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            color: #22c55e;
+            white-space: nowrap;
+        }
+
+        .ai-added-toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
         /* Modal Overlay */
         .modal-overlay {
             display: none;
@@ -5366,7 +5738,8 @@
         }
 
         /* Hide FAB in stats view */
-        body[data-view="stats"] .fab {
+        body[data-view="stats"] .fab,
+        body[data-view="stats"] .ai-fab {
             display: none;
         }
 
@@ -6083,6 +6456,12 @@
         </div>
     </div>
 
+    <!-- AI Ideas FAB -->
+    <button type="button" class="ai-fab" id="aiFabButton" aria-label="AI task suggestions">
+        <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>
+        <span class="ai-fab-badge" id="aiFabBadge" data-count="0"></span>
+    </button>
+
     <!-- FAB -->
     <button type="button" class="fab" id="fabButton">+</button>
 
@@ -6241,6 +6620,25 @@
         </div>
     </div>
 
+    <!-- AI Suggestions Modal -->
+    <div class="modal-overlay" id="aiSuggestModal">
+        <div class="ai-modal">
+            <div class="ai-modal-header">
+                <span class="ai-modal-title">
+                    <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z" stroke="currentColor" fill="none" stroke-width="1.5"/></svg>
+                    AI Ideas
+                </span>
+                <button type="button" class="ai-modal-close" id="aiModalCloseBtn">&times;</button>
+            </div>
+            <div class="ai-modal-body" id="aiModalBody">
+            </div>
+            <div class="ai-modal-footer">
+                <button type="button" class="ai-modal-generate-btn" id="aiGenerateBtn">Generate New Ideas</button>
+                <button type="button" class="ai-modal-close-btn" id="aiCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Week Navigation Bottom Bar (mobile only) -->
     <div class="week-nav-bar" id="weekNavBar">
         <button type="button" class="week-nav-bar-btn" id="weekNavPrev" aria-label="Previous week">←</button>
@@ -6316,6 +6714,9 @@
         <button type="button" class="undo-toast-btn" id="undoToastBtn">Undo</button>
     </div>
 
+    <!-- AI Task Added Toast -->
+    <div class="ai-added-toast" id="aiAddedToast">Task added +10 XP</div>
+
     <script>
         // DOM Elements
         const currentLevelEl = document.getElementById('currentLevel');
@@ -6379,6 +6780,14 @@
         const dateBadgeDay = document.getElementById('dateBadgeDay');
         const dateBadgeWeekday = document.getElementById('dateBadgeWeekday');
         const fabButton = document.getElementById('fabButton');
+        const aiFabButton = document.getElementById('aiFabButton');
+        const aiFabBadge = document.getElementById('aiFabBadge');
+        const aiSuggestModal = document.getElementById('aiSuggestModal');
+        const aiModalBody = document.getElementById('aiModalBody');
+        const aiGenerateBtn = document.getElementById('aiGenerateBtn');
+        const aiCloseBtn = document.getElementById('aiCloseBtn');
+        const aiModalCloseBtn = document.getElementById('aiModalCloseBtn');
+        const aiAddedToast = document.getElementById('aiAddedToast');
         const createTaskModal = document.getElementById('createTaskModal');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
         const modalTaskInput = document.getElementById('modalTaskInput');
@@ -6481,6 +6890,7 @@
         function getStorageKey() { return currentUserId ? 'lifeGamifiedData_' + currentUserId : 'lifeGamifiedData'; }
         function getViewStorageKey() { return currentUserId ? 'lifeGamifiedView_' + currentUserId : 'lifeGamifiedView'; }
         function getLevelStorageKey() { return currentUserId ? 'lifeGamifiedLevel_' + currentUserId : 'lifeGamifiedLevel'; }
+        function getAiStatsKey() { return currentUserId ? 'lifeGamifiedAiStats_' + currentUserId : 'lifeGamifiedAiStats'; }
         // Keep legacy constants pointing to functions for any remaining references
         const STORAGE_KEY = 'lifeGamifiedData';
         const VIEW_STORAGE_KEY = 'lifeGamifiedView';
@@ -10782,6 +11192,195 @@
             editingTaskDateStr = null;
         }
 
+        // === AI Task Suggestions ===
+
+        function getAiStats() {
+            try {
+                const raw = localStorage.getItem(getAiStatsKey());
+                return raw ? JSON.parse(raw) : { tasksAdded: 0 };
+            } catch (e) {
+                return { tasksAdded: 0 };
+            }
+        }
+
+        function saveAiStats(stats) {
+            localStorage.setItem(getAiStatsKey(), JSON.stringify(stats));
+        }
+
+        function updateAiFabBadge() {
+            const stats = getAiStats();
+            const count = stats.tasksAdded || 0;
+            aiFabBadge.textContent = count > 0 ? count : '';
+            aiFabBadge.setAttribute('data-count', count);
+        }
+
+        function openAiSuggestModal() {
+            aiSuggestModal.classList.add('active');
+            document.body.classList.add('modal-open');
+            fetchAiSuggestions();
+        }
+
+        function closeAiSuggestModal() {
+            aiSuggestModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
+
+        function renderAiLoading() {
+            aiModalBody.innerHTML = '<div class="ai-loading"><div class="ai-loading-spinner"></div><div class="ai-loading-text">Thinking of ideas...</div></div>';
+            aiGenerateBtn.disabled = true;
+        }
+
+        function renderAiError(message) {
+            aiModalBody.innerHTML = '<div class="ai-error"><div class="ai-error-text">' + (message || 'Could not load suggestions. Please try again.') + '</div><button type="button" class="ai-error-retry" id="aiRetryBtn">Try Again</button></div>';
+            aiGenerateBtn.disabled = false;
+            const retryBtn = document.getElementById('aiRetryBtn');
+            if (retryBtn) retryBtn.addEventListener('click', fetchAiSuggestions);
+        }
+
+        function renderAiEmpty() {
+            aiModalBody.innerHTML = '<div class="ai-empty">No suggestions available right now. Try generating new ideas.</div>';
+            aiGenerateBtn.disabled = false;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        let aiSuggestionsCache = [];
+
+        function renderAiSuggestions(suggestions) {
+            if (!suggestions || suggestions.length === 0) {
+                renderAiEmpty();
+                return;
+            }
+
+            const categoryNames = {
+                general: 'General', health: 'Health', learning: 'Learning',
+                creative: 'Creative', wellness: 'Wellness', productivity: 'Productivity', social: 'Social'
+            };
+            const typeLabels = { onetime: 'One-time', daily: 'Daily' };
+
+            aiModalBody.innerHTML = suggestions.map(function(s, i) {
+                return '<div class="ai-suggestion-card" id="aiCard' + i + '">' +
+                    '<div class="ai-suggestion-name">' + escapeHtml(s.name) + '</div>' +
+                    '<div class="ai-suggestion-reason">' + escapeHtml(s.reason) + '</div>' +
+                    '<div class="ai-suggestion-meta">' +
+                        '<div class="ai-suggestion-badges">' +
+                            '<span class="ai-suggestion-category-badge"><span class="ai-suggestion-category-dot" style="background: ' + getCategoryColor(s.category) + '"></span>' + (categoryNames[s.category] || 'General') + '</span>' +
+                            '<span class="ai-suggestion-type-badge">' + (typeLabels[s.type] || 'One-time') + '</span>' +
+                            '<span class="ai-suggestion-xp">+10 XP</span>' +
+                        '</div>' +
+                        '<button type="button" class="ai-suggestion-add-btn" data-ai-index="' + i + '">Add Task</button>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+
+            aiGenerateBtn.disabled = false;
+
+            // Attach click listeners to add buttons
+            aiModalBody.querySelectorAll('.ai-suggestion-add-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    addAiSuggestion(parseInt(btn.getAttribute('data-ai-index')));
+                });
+            });
+        }
+
+        async function fetchAiSuggestions() {
+            renderAiLoading();
+
+            const taskSummary = tasks.map(function(t) {
+                return { name: t.name, category: t.category || 'general', type: t.type, pattern: t.pattern || undefined };
+            });
+
+            try {
+                const response = await fetch('/api/suggest-tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        currentTasks: taskSummary,
+                        activeView: currentView,
+                        todayDate: formatDateForInput(new Date()),
+                        categories: Object.keys(CATEGORY_COLORS)
+                    })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(function() { return {}; });
+                    throw new Error(errData.error || 'Request failed');
+                }
+
+                const data = await response.json();
+                aiSuggestionsCache = data.suggestions || [];
+                renderAiSuggestions(aiSuggestionsCache);
+            } catch (err) {
+                console.error('AI suggestions error:', err);
+                if (err.message === 'Failed to fetch') {
+                    renderAiError('No internet connection. Check your network and try again.');
+                } else {
+                    renderAiError('AI suggestions unavailable right now. Try again in a moment.');
+                }
+            }
+        }
+
+        function addAiSuggestion(index) {
+            const suggestion = aiSuggestionsCache[index];
+            if (!suggestion) return;
+
+            const taskId = 'task-' + (++taskIdCounter);
+            const newTask = {
+                id: taskId,
+                name: suggestion.name,
+                type: suggestion.type || 'onetime',
+                category: suggestion.category || 'general'
+            };
+
+            if (newTask.type === 'daily') {
+                newTask.dailyId = 'daily-' + (++dailyTaskCounter);
+                newTask.pattern = 'daily';
+            } else {
+                newTask.date = formatDateForInput(viewingDate);
+            }
+
+            tasks.push(newTask);
+            saveData();
+
+            // Update AI stats
+            const stats = getAiStats();
+            stats.tasksAdded = (stats.tasksAdded || 0) + 1;
+            saveAiStats(stats);
+            updateAiFabBadge();
+
+            // Visual feedback: animate card out
+            const card = document.getElementById('aiCard' + index);
+            if (card) {
+                const addBtn = card.querySelector('.ai-suggestion-add-btn');
+                if (addBtn) {
+                    addBtn.textContent = 'Added';
+                    addBtn.classList.add('added');
+                }
+                setTimeout(function() {
+                    card.classList.add('added');
+                    setTimeout(function() { card.remove(); }, 300);
+                }, 400);
+            }
+
+            showAiAddedToast();
+
+            // Re-render the current view to show the new task
+            renderCurrentView();
+        }
+
+        let aiToastTimeout = null;
+        function showAiAddedToast() {
+            if (aiToastTimeout) clearTimeout(aiToastTimeout);
+            aiAddedToast.classList.add('visible');
+            aiToastTimeout = setTimeout(function() {
+                aiAddedToast.classList.remove('visible');
+            }, 2000);
+        }
+
         // Task Detail Modal Functions (Read-only view)
         function openTaskDetailModal(taskId, dateStr) {
             const task = tasks.find(t => t.id === taskId);
@@ -11363,6 +11962,25 @@
                 }
             });
 
+            // AI FAB
+            aiFabButton.addEventListener('click', () => {
+                if (aiSuggestModal.classList.contains('active')) {
+                    closeAiSuggestModal();
+                } else {
+                    openAiSuggestModal();
+                }
+            });
+
+            // AI Modal close handlers
+            aiModalCloseBtn.addEventListener('click', closeAiSuggestModal);
+            aiCloseBtn.addEventListener('click', closeAiSuggestModal);
+            aiSuggestModal.addEventListener('click', (e) => {
+                if (e.target === aiSuggestModal) closeAiSuggestModal();
+            });
+
+            // AI Generate new ideas
+            aiGenerateBtn.addEventListener('click', fetchAiSuggestions);
+
             // Modal
             modalCloseBtn.addEventListener('click', closeCreateTaskModal);
             createTaskModal.addEventListener('click', (e) => {
@@ -11546,6 +12164,7 @@
             setupEventListeners();
             loadView();
             updateDateDisplay();
+            updateAiFabBadge();
         }
 
         init();
