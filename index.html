@@ -3460,6 +3460,16 @@
             pointer-events: none;
         }
 
+        .ai-modal-stats {
+            padding: 0.5rem 1.25rem;
+            border-top: 1px solid #1a1a1a;
+            font-size: 0.7rem;
+            color: #525252;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+        }
+
         .ai-modal-footer {
             padding: 0.875rem 1.25rem;
             border-top: 1px solid #262626;
@@ -6632,6 +6642,7 @@
             </div>
             <div class="ai-modal-body" id="aiModalBody">
             </div>
+            <div class="ai-modal-stats" id="aiModalStats"></div>
             <div class="ai-modal-footer">
                 <button type="button" class="ai-modal-generate-btn" id="aiGenerateBtn">Generate New Ideas</button>
                 <button type="button" class="ai-modal-close-btn" id="aiCloseBtn">Close</button>
@@ -6784,6 +6795,7 @@
         const aiFabBadge = document.getElementById('aiFabBadge');
         const aiSuggestModal = document.getElementById('aiSuggestModal');
         const aiModalBody = document.getElementById('aiModalBody');
+        const aiModalStats = document.getElementById('aiModalStats');
         const aiGenerateBtn = document.getElementById('aiGenerateBtn');
         const aiCloseBtn = document.getElementById('aiCloseBtn');
         const aiModalCloseBtn = document.getElementById('aiModalCloseBtn');
@@ -11197,9 +11209,9 @@
         function getAiStats() {
             try {
                 const raw = localStorage.getItem(getAiStatsKey());
-                return raw ? JSON.parse(raw) : { tasksAdded: 0 };
+                return raw ? JSON.parse(raw) : { tasksAdded: 0, inputTokens: 0, outputTokens: 0, requestCount: 0 };
             } catch (e) {
-                return { tasksAdded: 0 };
+                return { tasksAdded: 0, inputTokens: 0, outputTokens: 0, requestCount: 0 };
             }
         }
 
@@ -11214,9 +11226,38 @@
             aiFabBadge.setAttribute('data-count', count);
         }
 
+        function trackTokenUsage(usage) {
+            if (!usage) return;
+            const stats = getAiStats();
+            stats.inputTokens = (stats.inputTokens || 0) + (usage.input_tokens || 0);
+            stats.outputTokens = (stats.outputTokens || 0) + (usage.output_tokens || 0);
+            stats.requestCount = (stats.requestCount || 0) + 1;
+            saveAiStats(stats);
+            renderAiModalStats();
+        }
+
+        function renderAiModalStats() {
+            const stats = getAiStats();
+            if (!stats.requestCount) {
+                aiModalStats.innerHTML = '';
+                return;
+            }
+            const totalTokens = (stats.inputTokens || 0) + (stats.outputTokens || 0);
+            const costUsd = ((stats.inputTokens || 0) * 0.80 + (stats.outputTokens || 0) * 4) / 1000000;
+            const budgetUsd = 5;
+            const avgCost = costUsd / stats.requestCount;
+            const remaining = avgCost > 0 ? Math.floor((budgetUsd - costUsd) / avgCost) : '---';
+            aiModalStats.innerHTML =
+                '<span>API calls: ' + stats.requestCount + '</span>' +
+                '<span>Tokens: ~' + totalTokens.toLocaleString() + '</span>' +
+                '<span>Cost: $' + costUsd.toFixed(4) + '</span>' +
+                '<span>~' + remaining + ' requests left</span>';
+        }
+
         function openAiSuggestModal() {
             aiSuggestModal.classList.add('active');
             document.body.classList.add('modal-open');
+            renderAiModalStats();
             fetchAiSuggestions();
         }
 
@@ -11302,6 +11343,7 @@
 
                 const data = await response.json();
                 aiSuggestionsCache = data.suggestions || [];
+                trackTokenUsage(data.usage);
                 renderAiSuggestions(aiSuggestionsCache);
             } catch (err) {
                 console.error('AI suggestions error:', err);

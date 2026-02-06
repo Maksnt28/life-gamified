@@ -14,7 +14,19 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'currentTasks array is required' });
     }
 
-    const taskSummary = currentTasks.map(t => `- ${t.name}`).join('\n');
+    // Cap at 15 tasks
+    let sanitizedTasks = currentTasks.slice(0, 15);
+    if (currentTasks.length > 15) {
+        console.warn('[SW] Too many tasks sent (' + currentTasks.length + '), truncating to 15');
+    }
+
+    // Truncate long task names
+    sanitizedTasks = sanitizedTasks.map(t => {
+        const name = String(t.name || '');
+        return { name: name.length > 200 ? name.slice(0, 197) + '...' : name };
+    });
+
+    const taskSummary = sanitizedTasks.map(t => `- ${t.name}`).join('\n');
 
     const systemPrompt = `Generate 3-5 actionable task suggestions based on the user's existing tasks. Consider their current focus and suggest complementary next steps.
 
@@ -23,16 +35,23 @@ Return ONLY a valid JSON array with no markdown, no explanation:
 
 Be specific and practical.`;
 
-    const userMessage = currentTasks.length > 0
+    const userMessage = sanitizedTasks.length > 0
         ? `My tasks:\n${taskSummary}`
         : 'I have no tasks yet. Suggest starter habits.';
+
+    const estimatedTokens = Math.ceil((systemPrompt.length + userMessage.length) / 4);
 
     console.log('=== API Request Debug ===');
     console.log('System prompt length:', systemPrompt.length);
     console.log('User message length:', userMessage.length);
-    console.log('Number of tasks sent:', currentTasks.length);
-    console.log('Estimated input tokens:', Math.ceil((systemPrompt.length + userMessage.length) / 4));
+    console.log('Number of tasks sent:', sanitizedTasks.length);
+    console.log('Estimated input tokens:', estimatedTokens);
     console.log('========================');
+
+    if (estimatedTokens > 500) {
+        console.error('[SW] Request too large:', estimatedTokens, 'estimated tokens');
+        return res.status(400).json({ error: 'Request too large, please reduce task count' });
+    }
 
     try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -44,7 +63,8 @@ Be specific and practical.`;
             },
             body: JSON.stringify({
                 model: 'claude-haiku-4-5-20251001',
-                max_tokens: 512,
+                max_tokens: 200,
+                temperature: 0.7,
                 system: systemPrompt,
                 messages: [{ role: 'user', content: userMessage }]
             })
@@ -79,7 +99,12 @@ Be specific and practical.`;
             estimatedPoints: Math.min(50, Math.max(10, parseInt(s.estimatedPoints) || 10))
         }));
 
-        return res.status(200).json({ suggestions });
+        const usage = data.usage ? {
+            input_tokens: data.usage.input_tokens || 0,
+            output_tokens: data.usage.output_tokens || 0
+        } : null;
+
+        return res.status(200).json({ suggestions, usage });
     } catch (err) {
         console.error('suggest-tasks error:', err);
         return res.status(500).json({ error: 'Internal server error' });
