@@ -11256,21 +11256,13 @@
                 return;
             }
 
-            const categoryNames = {
-                general: 'General', health: 'Health', learning: 'Learning',
-                creative: 'Creative', wellness: 'Wellness', productivity: 'Productivity', social: 'Social'
-            };
-            const typeLabels = { onetime: 'One-time', daily: 'Daily' };
-
             aiModalBody.innerHTML = suggestions.map(function(s, i) {
                 return '<div class="ai-suggestion-card" id="aiCard' + i + '">' +
-                    '<div class="ai-suggestion-name">' + escapeHtml(s.name) + '</div>' +
-                    '<div class="ai-suggestion-reason">' + escapeHtml(s.reason) + '</div>' +
+                    '<div class="ai-suggestion-name">' + escapeHtml(s.text) + '</div>' +
                     '<div class="ai-suggestion-meta">' +
                         '<div class="ai-suggestion-badges">' +
-                            '<span class="ai-suggestion-category-badge"><span class="ai-suggestion-category-dot" style="background: ' + getCategoryColor(s.category) + '"></span>' + (categoryNames[s.category] || 'General') + '</span>' +
-                            '<span class="ai-suggestion-type-badge">' + (typeLabels[s.type] || 'One-time') + '</span>' +
-                            '<span class="ai-suggestion-xp">+10 XP</span>' +
+                            '<span class="ai-suggestion-type-badge">' + escapeHtml(s.suggestedView) + '</span>' +
+                            '<span class="ai-suggestion-xp">+' + s.estimatedPoints + ' XP</span>' +
                         '</div>' +
                         '<button type="button" class="ai-suggestion-add-btn" data-ai-index="' + i + '">Add Task</button>' +
                     '</div>' +
@@ -11291,7 +11283,7 @@
             renderAiLoading();
 
             const taskSummary = tasks.map(function(t) {
-                return { name: t.name, category: t.category || 'general', type: t.type, pattern: t.pattern || undefined };
+                return { name: t.name };
             });
 
             try {
@@ -11299,10 +11291,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        currentTasks: taskSummary,
-                        activeView: currentView,
-                        todayDate: formatDateForInput(new Date()),
-                        categories: Object.keys(CATEGORY_COLORS)
+                        currentTasks: taskSummary
                     })
                 });
 
@@ -11331,17 +11320,12 @@
             const taskId = 'task-' + (++taskIdCounter);
             const newTask = {
                 id: taskId,
-                name: suggestion.name,
-                type: suggestion.type || 'onetime',
-                category: suggestion.category || 'general'
+                name: suggestion.text,
+                type: 'onetime',
+                category: 'general'
             };
 
-            if (newTask.type === 'daily') {
-                newTask.dailyId = 'daily-' + (++dailyTaskCounter);
-                newTask.pattern = 'daily';
-            } else {
-                newTask.date = formatDateForInput(viewingDate);
-            }
+            newTask.date = formatDateForInput(viewingDate);
 
             tasks.push(newTask);
             saveData();

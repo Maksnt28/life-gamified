@@ -14,41 +14,18 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'currentTasks array is required' });
     }
 
-    const taskSummary = currentTasks.map(t => {
-        let typeLabel = t.type;
-        if (t.type === 'custom' && t.pattern) {
-            const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            typeLabel = t.pattern.split(',').map(d => dayNames[parseInt(d)]).join(', ');
-        }
-        return `- ${t.name} (${t.category}, ${typeLabel})`;
-    }).join('\n');
+    const taskSummary = currentTasks.map(t => `- ${t.name}`).join('\n');
 
-    const categoryList = (categories || [
-        'general', 'health', 'learning', 'creative', 'wellness', 'productivity', 'social'
-    ]).join(', ');
+    const systemPrompt = `Generate 3-5 actionable task suggestions based on the user's existing tasks. Consider their current focus and suggest complementary next steps.
 
-    const systemPrompt = `You are a personal productivity assistant for a gamified task manager app.
-The user earns 10 XP per completed task. Suggest tasks that are:
-- Actionable and specific (not vague like "be productive")
-- Complementary to their existing habits (fill gaps in their routine)
-- Varied across different categories
-- Achievable in a single session (not multi-day projects)
+Return ONLY a valid JSON array with no markdown, no explanation:
+[{"text":"task description","suggestedView":"Day/Week/Month","estimatedPoints":10-50}]
 
-Available categories: ${categoryList}
-Available task types: onetime, daily
-Today's date: ${todayDate || new Date().toISOString().split('T')[0]}
-
-Respond with a JSON array of exactly 3 task suggestions. Each object must have:
-- "name": string (the task description, concise, imperative form)
-- "category": string (one of the available categories)
-- "type": string (one of: onetime, daily)
-- "reason": string (one short sentence explaining why this task is suggested)
-
-Return ONLY the JSON array, no other text.`;
+Be specific and practical.`;
 
     const userMessage = currentTasks.length > 0
-        ? `Here are my current tasks:\n${taskSummary}\n\nSuggest 3 new tasks that would complement my routine.`
-        : 'I have no tasks yet. Suggest 3 starter tasks to help me build good habits.';
+        ? `My tasks:\n${taskSummary}`
+        : 'I have no tasks yet. Suggest starter habits.';
 
     console.log('=== API Request Debug ===');
     console.log('System prompt length:', systemPrompt.length);
@@ -94,16 +71,12 @@ Return ONLY the JSON array, no other text.`;
             }
         }
 
-        const validCategories = new Set(categories || [
-            'general', 'health', 'learning', 'creative', 'wellness', 'productivity', 'social'
-        ]);
-        const validTypes = new Set(['onetime', 'daily']);
+        const validViews = new Set(['Day', 'Week', 'Month']);
 
         suggestions = suggestions.slice(0, 5).map(s => ({
-            name: String(s.name || '').slice(0, 100),
-            category: validCategories.has(s.category) ? s.category : 'general',
-            type: validTypes.has(s.type) ? s.type : 'onetime',
-            reason: String(s.reason || '').slice(0, 150)
+            text: String(s.text || '').slice(0, 100),
+            suggestedView: validViews.has(s.suggestedView) ? s.suggestedView : 'Day',
+            estimatedPoints: Math.min(50, Math.max(10, parseInt(s.estimatedPoints) || 10))
         }));
 
         return res.status(200).json({ suggestions });
