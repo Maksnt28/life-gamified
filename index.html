@@ -6476,14 +6476,19 @@
         let touchEndY = 0;
         const SWIPE_THRESHOLD = 50;
 
-        // Constants
+        // Constants — storage keys are user-scoped so each account has its own data
+        let currentUserId = null;
+        function getStorageKey() { return currentUserId ? 'lifeGamifiedData_' + currentUserId : 'lifeGamifiedData'; }
+        function getViewStorageKey() { return currentUserId ? 'lifeGamifiedView_' + currentUserId : 'lifeGamifiedView'; }
+        function getLevelStorageKey() { return currentUserId ? 'lifeGamifiedLevel_' + currentUserId : 'lifeGamifiedLevel'; }
+        // Keep legacy constants pointing to functions for any remaining references
         const STORAGE_KEY = 'lifeGamifiedData';
         const VIEW_STORAGE_KEY = 'lifeGamifiedView';
         const LEVEL_STORAGE_KEY = 'lifeGamifiedLevel';
         const XP_PER_LEVEL = 100;
 
         // Level tracking for celebrations
-        let previousLevel = parseInt(localStorage.getItem(LEVEL_STORAGE_KEY)) || 1;
+        let previousLevel = parseInt(localStorage.getItem(getLevelStorageKey())) || 1;
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         const dayAbbrev = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -6688,7 +6693,7 @@
             if (level > previousLevel) {
                 celebrateLevelUp(level);
                 previousLevel = level;
-                localStorage.setItem(LEVEL_STORAGE_KEY, level.toString());
+                localStorage.setItem(getLevelStorageKey(), level.toString());
             }
 
             currentLevelEl.textContent = level;
@@ -7072,7 +7077,7 @@
 
                 renderViewContent(view);
                 lastRenderedView = view;
-                localStorage.setItem(VIEW_STORAGE_KEY, view);
+                localStorage.setItem(getViewStorageKey(), view);
                 return;
             }
 
@@ -7119,7 +7124,7 @@
                 }, 200);
 
                 lastRenderedView = view;
-                localStorage.setItem(VIEW_STORAGE_KEY, view);
+                localStorage.setItem(getViewStorageKey(), view);
             }, 200);
         }
 
@@ -11166,7 +11171,7 @@
                 completions: taskCompletions,
                 achievements: unlockedAchievements
             };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem(getStorageKey(), JSON.stringify(data));
             
             // Trigger notification scheduler to pick up new/modified tasks
             if (typeof window.triggerSchedulerRescan === 'function') {
@@ -11175,7 +11180,7 @@
         }
 
         function loadData() {
-            const savedData = localStorage.getItem(STORAGE_KEY);
+            const savedData = localStorage.getItem(getStorageKey());
             if (!savedData) return;
 
             try {
@@ -11210,7 +11215,7 @@
                 // Sync previousLevel to prevent false celebration on load
                 const currentLevel = getLevel(totalXp);
                 previousLevel = currentLevel;
-                localStorage.setItem(LEVEL_STORAGE_KEY, currentLevel.toString());
+                localStorage.setItem(getLevelStorageKey(), currentLevel.toString());
                 updateLevelDisplay();
             } catch (e) {
                 console.error('Error loading saved data:', e);
@@ -11262,7 +11267,7 @@
         }
 
         function loadView() {
-            const savedView = localStorage.getItem(VIEW_STORAGE_KEY);
+            const savedView = localStorage.getItem(getViewStorageKey());
             const isMobile = window.innerWidth < 600;
 
             if (savedView) {
@@ -11507,9 +11512,37 @@
             }
         }
 
+        // Reset in-memory state to defaults (used on sign-out)
+        function resetAppState() {
+            tasks = [];
+            taskCompletions = {};
+            unlockedAchievements = {};
+            totalXp = 0;
+            dailyTaskCounter = 0;
+            taskIdCounter = 0;
+            previousLevel = 1;
+            updateLevelDisplay();
+            renderCurrentView();
+        }
+
+        // Expose auth-related hooks on window so the auth module can call them
+        window.appSetUserId = function(userId) {
+            currentUserId = userId;
+            console.log('[app] User ID set to:', userId);
+        };
+        window.appLoadUserData = function() {
+            loadData();
+            loadView();
+            updateDateDisplay();
+            renderCurrentView();
+        };
+        window.appResetState = function() {
+            resetAppState();
+        };
+
         // Initialize
         function init() {
-            loadData();
+            // loadData() will be called by the auth module once user is known
             setupEventListeners();
             loadView();
             updateDateDisplay();
@@ -11545,18 +11578,18 @@
             }
 
             // --- 2. Settings helpers ---
-            var NOTIF_KEY = 'lifeGamifiedNotifSettings';
+            function getNotifKey() { return currentUserId ? 'lifeGamifiedNotifSettings_' + currentUserId : 'lifeGamifiedNotifSettings'; }
 
             function getSettings() {
                 try {
-                    var s = localStorage.getItem(NOTIF_KEY);
+                    var s = localStorage.getItem(getNotifKey());
                     if (s) return JSON.parse(s);
                 } catch (e) { /* ignore */ }
                 return { enabled: false, minutesBefore: 5 };
             }
 
             function saveSettings(s) {
-                localStorage.setItem(NOTIF_KEY, JSON.stringify(s));
+                localStorage.setItem(getNotifKey(), JSON.stringify(s));
             }
 
             // --- 3. Detect PWA install state ---
@@ -11717,7 +11750,7 @@
 
                 // Read fresh data from localStorage
                 var raw;
-                try { raw = JSON.parse(localStorage.getItem('lifeGamifiedData')); } catch (e) { 
+                try { raw = JSON.parse(localStorage.getItem(getStorageKey())); } catch (e) {
                     console.log('[SCHEDULER] No task data found');
                     return; 
                 }
@@ -11760,7 +11793,7 @@
                         console.log('[SCHEDULER] Timer fired for task:', task.name);
                         // Re-check completion at fire time (user may have finished the task)
                         var fresh;
-                        try { fresh = JSON.parse(localStorage.getItem('lifeGamifiedData')); } catch (e) {}
+                        try { fresh = JSON.parse(localStorage.getItem(getStorageKey())); } catch (e) {}
                         var freshComp = (fresh && fresh.completions) || {};
                         if (freshComp[taskId] && freshComp[taskId][compDate]) return; // done — skip
 
@@ -11856,13 +11889,19 @@
 
         let isSignUpMode = false;
 
-        function showApp() {
+        function showApp(userId) {
+            if (userId) {
+                window.appSetUserId(userId);
+                window.appLoadUserData();
+            }
             authContainer.style.display = 'none';
             appContainer.style.display = '';
-            console.log('[auth-ui] App shown');
+            console.log('[auth-ui] App shown for user:', userId);
         }
 
         function showAuth() {
+            window.appSetUserId(null);
+            window.appResetState();
             authContainer.style.display = '';
             appContainer.style.display = 'none';
             console.log('[auth-ui] Auth screen shown');
@@ -11931,7 +11970,7 @@
                 return;
             }
 
-            showApp();
+            showApp(data.user.id);
         });
 
         // Sign-out button
@@ -11949,8 +11988,8 @@
         // Listen for auth state changes
         onAuthStateChange((event, session) => {
             console.log('[auth-ui] Auth state change:', event);
-            if (event === 'SIGNED_IN' && session) {
-                showApp();
+            if (event === 'SIGNED_IN' && session?.user) {
+                showApp(session.user.id);
             } else if (event === 'SIGNED_OUT') {
                 showAuth();
             }
@@ -11961,10 +12000,12 @@
             const user = await getCurrentUser();
             if (user) {
                 console.log('[auth-ui] User already logged in:', user.id);
-                showApp();
+                showApp(user.id);
             } else {
                 console.log('[auth-ui] No active session, showing auth screen');
-                showAuth();
+                // Don't call showAuth() here to avoid resetting state before it's loaded
+                authContainer.style.display = '';
+                appContainer.style.display = 'none';
             }
         })();
     </script>
