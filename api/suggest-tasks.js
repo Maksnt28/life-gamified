@@ -1,3 +1,26 @@
+const PRIMARY_MODEL = 'claude-haiku-4-5-20251001';
+const FALLBACK_MODEL = 'claude-sonnet-4-5-20250929';
+
+async function callClaude(apiKey, model, systemPrompt, userMessage) {
+    console.log('[API] Calling Claude with model:', model);
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+            model,
+            max_tokens: 200,
+            temperature: 0.7,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userMessage }]
+        })
+    });
+    return response;
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -5,10 +28,13 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
+        console.error('[API] ANTHROPIC_API_KEY is not set');
         return res.status(500).json({ error: 'API key not configured' });
     }
 
-    const { currentTasks, activeView, todayDate, categories } = req.body;
+    console.log('[API] Key exists:', !!apiKey, '| Key prefix:', apiKey.slice(0, 7) + '...');
+
+    const { currentTasks } = req.body;
 
     if (!currentTasks || !Array.isArray(currentTasks)) {
         return res.status(400).json({ error: 'currentTasks array is required' });
@@ -17,7 +43,7 @@ export default async function handler(req, res) {
     // Cap at 15 tasks
     let sanitizedTasks = currentTasks.slice(0, 15);
     if (currentTasks.length > 15) {
-        console.warn('[SW] Too many tasks sent (' + currentTasks.length + '), truncating to 15');
+        console.warn('[API] Too many tasks sent (' + currentTasks.length + '), truncating to 15');
     }
 
     // Truncate long task names
@@ -41,39 +67,44 @@ Be specific and practical.`;
 
     const estimatedTokens = Math.ceil((systemPrompt.length + userMessage.length) / 4);
 
-    console.log('=== API Request Debug ===');
-    console.log('System prompt length:', systemPrompt.length);
-    console.log('User message length:', userMessage.length);
-    console.log('Number of tasks sent:', sanitizedTasks.length);
-    console.log('Estimated input tokens:', estimatedTokens);
-    console.log('========================');
+    console.log('[API] Tasks:', sanitizedTasks.length, '| Est. tokens:', estimatedTokens);
 
     if (estimatedTokens > 500) {
-        console.error('[SW] Request too large:', estimatedTokens, 'estimated tokens');
+        console.error('[API] Request too large:', estimatedTokens, 'estimated tokens');
         return res.status(400).json({ error: 'Request too large, please reduce task count' });
     }
 
     try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify({
-                model: 'claude-haiku-4-5-20251001',
-                max_tokens: 200,
-                temperature: 0.7,
-                system: systemPrompt,
-                messages: [{ role: 'user', content: userMessage }]
-            })
-        });
+        let response = await callClaude(apiKey, PRIMARY_MODEL, systemPrompt, userMessage);
+
+        // Fallback to Sonnet if Haiku fails with 404 or model error
+        if (!response.ok && (response.status === 404 || response.status === 400)) {
+            const errorText = await response.text();
+            console.warn('[API] Primary model failed (' + response.status + '):', errorText);
+            console.warn('[API] Retrying with fallback model:', FALLBACK_MODEL);
+            response = await callClaude(apiKey, FALLBACK_MODEL, systemPrompt, userMessage);
+        }
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Anthropic API error:', response.status, errorText);
-            return res.status(502).json({ error: 'AI service temporarily unavailable' });
+            let errorDetail;
+            try { errorDetail = JSON.parse(errorText); } catch (_) { errorDetail = { raw: errorText }; }
+
+            console.error('[API] Claude error:', response.status, JSON.stringify(errorDetail));
+
+            const statusMessages = {
+                401: 'API authentication failed',
+                403: 'API authentication failed',
+                404: 'AI model unavailable - check configuration',
+                429: 'Rate limit exceeded - try again in a moment',
+                529: 'AI service overloaded - try again in a moment'
+            };
+
+            const clientMessage = statusMessages[response.status]
+                || errorDetail?.error?.message
+                || 'AI service temporarily unavailable';
+
+            return res.status(502).json({ error: clientMessage });
         }
 
         const data = await response.json();
@@ -87,6 +118,7 @@ Be specific and practical.`;
             if (match) {
                 suggestions = JSON.parse(match[0]);
             } else {
+                console.error('[API] Unparseable response:', content.slice(0, 200));
                 return res.status(502).json({ error: 'Could not parse AI response' });
             }
         }
@@ -104,9 +136,10 @@ Be specific and practical.`;
             output_tokens: data.usage.output_tokens || 0
         } : null;
 
+        console.log('[API] Success:', suggestions.length, 'suggestions |', JSON.stringify(usage));
         return res.status(200).json({ suggestions, usage });
     } catch (err) {
-        console.error('suggest-tasks error:', err);
+        console.error('[API] Unexpected error:', err.message, err.stack);
         return res.status(500).json({ error: 'Internal server error' });
     }
 }

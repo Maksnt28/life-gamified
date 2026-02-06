@@ -11350,7 +11350,7 @@
                 if (err.message === 'Failed to fetch') {
                     renderAiError('No internet connection. Check your network and try again.');
                 } else {
-                    renderAiError('AI suggestions unavailable right now. Try again in a moment.');
+                    renderAiError(err.message || 'AI suggestions unavailable right now. Try again in a moment.');
                 }
             }
         }
