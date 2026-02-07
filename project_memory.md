@@ -632,3 +632,51 @@ PWA + Notifications milestone COMPLETE for desktop. iPhone functional with known
 ### Key Learning
 **Project memory question answered:** Context does NOT carry over automatically between conversations. Must manually update project_memory.md after significant sessions. Update after: major features, architectural decisions, bug discoveries, or long sessions.
 
+## Session 20 Changes (Supabase Authentication)
+Date: February 6, 2026
+
+### Features Implemented
+- ✅ Supabase authentication (email/password)
+- ✅ Login/signup screen with mode toggle
+- ✅ User-scoped data storage (tasks, categories, userLevel)
+- ✅ Sign-out functionality
+- ✅ Auth state management (auto-login on page load)
+
+### Architecture Patterns Established
+- **Configuration pattern**: config.js for API credentials (public keys, safe to commit)
+- **Module pattern**: auth.js as reusable authentication module
+- **Error handling pattern**: All auth functions return {data, error}
+- **Data scoping pattern**: localStorage keys prefixed with userId
+
+### Files Added
+- config.js - Supabase credentials (now safe to commit - public keys only)
+- config.example.js - Template for other developers
+- auth.js - Authentication module with 5 core functions
+- .gitignore - Updated to NOT ignore config.js (public keys are safe)
+
+### Technical Implementation
+- Supabase client via CDN (v2)
+- ES modules for clean imports
+- User ID from getCurrentUser() used to scope all localStorage keys
+- Format: keyName_${userId} for all user-specific data
+- Auth state listener triggers loadData() on sign-in
+- Sign-out clears UI but preserves data in localStorage
+
+### Git/GitHub Setup Completed
+- SSH key generated and added to GitHub
+- First successful push from terminal via Claude Code
+- Vercel auto-deployment working correctly
+
+### Testing Completed
+- [x] Sign up new user
+- [x] Sign in existing user
+- [x] Sign out functionality
+- [x] Data isolation between users
+- [x] Tasks scoped per user
+- [x] Email confirmation redirect configured
+
+### Next Steps (Session 21)
+- Migrate from localStorage to Supabase database
+- Enable true multi-device sync
+- Real-time updates across devices
+- Consider adding 'Forgot Password' flow

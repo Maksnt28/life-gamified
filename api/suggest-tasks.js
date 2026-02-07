@@ -57,7 +57,9 @@ export default async function handler(req, res) {
     const systemPrompt = `Generate 3-5 actionable task suggestions based on the user's existing tasks. Consider their current focus and suggest complementary next steps.
 
 Return ONLY a valid JSON array with no markdown, no explanation:
-[{"text":"task description","suggestedView":"Day/Week/Month","estimatedPoints":10-50}]
+[{"text":"task description","suggestedView":"Day/Week/Month","estimatedPoints":10-50,"category":"General/Health & Fitness/Learning/Creative/Wellness/Productivity/Social"}]
+
+Category guide: exercise/nutrition→Health & Fitness, reading/courses→Learning, writing/design/music→Creative, meditation/journaling→Wellness, planning/organization→Productivity, calls/events→Social, other→General.
 
 Be specific and practical.`;
 
@@ -124,12 +126,35 @@ Be specific and practical.`;
         }
 
         const validViews = new Set(['Day', 'Week', 'Month']);
+        const categoryMap = {
+            'general': 'general',
+            'health & fitness': 'health',
+            'health': 'health',
+            'learning': 'learning',
+            'personal development': 'learning',
+            'creative': 'creative',
+            'wellness': 'wellness',
+            'productivity': 'productivity',
+            'social': 'social',
+            'finance': 'general',
+            'household': 'general',
+            'work': 'productivity',
+            'other': 'general'
+        };
 
-        suggestions = suggestions.slice(0, 5).map(s => ({
-            text: String(s.text || '').slice(0, 100),
-            suggestedView: validViews.has(s.suggestedView) ? s.suggestedView : 'Day',
-            estimatedPoints: Math.min(50, Math.max(10, parseInt(s.estimatedPoints) || 10))
-        }));
+        suggestions = suggestions.slice(0, 5).map(s => {
+            const rawCategory = String(s.category || '').toLowerCase().trim();
+            const category = categoryMap[rawCategory];
+            if (!category && rawCategory) {
+                console.warn('[API] Unknown category "' + s.category + '", defaulting to general');
+            }
+            return {
+                text: String(s.text || '').slice(0, 100),
+                suggestedView: validViews.has(s.suggestedView) ? s.suggestedView : 'Day',
+                estimatedPoints: Math.min(50, Math.max(10, parseInt(s.estimatedPoints) || 10)),
+                category: category || 'general'
+            };
+        });
 
         const usage = data.usage ? {
             input_tokens: data.usage.input_tokens || 0,

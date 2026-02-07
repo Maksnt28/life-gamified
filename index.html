@@ -11266,8 +11266,8 @@
             document.body.classList.remove('modal-open');
         }
 
-        function renderAiLoading() {
-            aiModalBody.innerHTML = '<div class="ai-loading"><div class="ai-loading-spinner"></div><div class="ai-loading-text">Thinking of ideas...</div></div>';
+        function renderAiLoading(message) {
+            aiModalBody.innerHTML = '<div class="ai-loading"><div class="ai-loading-spinner"></div><div class="ai-loading-text">' + (message || 'Generating ideas...') + '</div></div>';
             aiGenerateBtn.disabled = true;
         }
 
@@ -11297,11 +11297,16 @@
                 return;
             }
 
+            var catNames = { general: 'General', health: 'Health & Fitness', learning: 'Learning', creative: 'Creative', wellness: 'Wellness', productivity: 'Productivity', social: 'Social' };
+
             aiModalBody.innerHTML = suggestions.map(function(s, i) {
+                var catColor = getCategoryColor(s.category);
+                var catLabel = catNames[s.category] || 'General';
                 return '<div class="ai-suggestion-card" id="aiCard' + i + '">' +
                     '<div class="ai-suggestion-name">' + escapeHtml(s.text) + '</div>' +
                     '<div class="ai-suggestion-meta">' +
                         '<div class="ai-suggestion-badges">' +
+                            '<span class="ai-suggestion-category-badge"><span class="ai-suggestion-category-dot" style="background:' + catColor + '"></span>' + escapeHtml(catLabel) + '</span>' +
                             '<span class="ai-suggestion-type-badge">' + escapeHtml(s.suggestedView) + '</span>' +
                             '<span class="ai-suggestion-xp">+' + s.estimatedPoints + ' XP</span>' +
                         '</div>' +
@@ -11321,36 +11326,86 @@
         }
 
         async function fetchAiSuggestions() {
-            renderAiLoading();
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const startTime = Date.now();
+
+            if (isMobile) {
+                console.log('[AI] Mobile device:', navigator.userAgent);
+                if (navigator.connection) {
+                    console.log('[AI] Network:', navigator.connection.effectiveType, '| Downlink:', navigator.connection.downlink + 'Mbps');
+                }
+                renderAiLoading('Generating ideas... this may take a moment on mobile');
+            } else {
+                renderAiLoading();
+            }
 
             const taskSummary = tasks.map(function(t) {
                 return { name: t.name };
             });
 
-            try {
-                const response = await fetch('/api/suggest-tasks', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        currentTasks: taskSummary
-                    })
-                });
+            const maxRetries = isMobile ? 3 : 1;
+            const retryDelays = [0, 2000, 5000];
 
-                if (!response.ok) {
-                    const errData = await response.json().catch(function() { return {}; });
-                    throw new Error(errData.error || 'Request failed');
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                if (attempt > 1) {
+                    renderAiLoading('Retrying... (attempt ' + attempt + ' of ' + maxRetries + ')');
+                    await new Promise(function(r) { setTimeout(r, retryDelays[attempt - 1]); });
                 }
 
-                const data = await response.json();
-                aiSuggestionsCache = data.suggestions || [];
-                trackTokenUsage(data.usage);
-                renderAiSuggestions(aiSuggestionsCache);
-            } catch (err) {
-                console.error('AI suggestions error:', err);
-                if (err.message === 'Failed to fetch') {
-                    renderAiError('No internet connection. Check your network and try again.');
-                } else {
-                    renderAiError(err.message || 'AI suggestions unavailable right now. Try again in a moment.');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+
+                // Progressive loading messages
+                const loadingTimers = [];
+                loadingTimers.push(setTimeout(function() {
+                    const el = document.querySelector('.ai-loading-text');
+                    if (el) el.textContent = 'Still working...' + (isMobile ? ' mobile networks can be slow' : '');
+                }, 5000));
+                loadingTimers.push(setTimeout(function() {
+                    const el = document.querySelector('.ai-loading-text');
+                    if (el) el.textContent = 'Almost there...';
+                }, 10000));
+
+                try {
+                    const response = await fetch('/api/suggest-tasks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ currentTasks: taskSummary }),
+                        signal: controller.signal
+                    });
+
+                    clearTimeout(timeoutId);
+                    loadingTimers.forEach(clearTimeout);
+
+                    const duration = Date.now() - startTime;
+                    console.log('[AI] Response in ' + duration + 'ms (attempt ' + attempt + ')');
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(function() { return {}; });
+                        throw new Error(errData.error || 'Request failed');
+                    }
+
+                    const data = await response.json();
+                    aiSuggestionsCache = data.suggestions || [];
+                    trackTokenUsage(data.usage);
+                    renderAiSuggestions(aiSuggestionsCache);
+                    return;
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    loadingTimers.forEach(clearTimeout);
+
+                    const duration = Date.now() - startTime;
+                    console.error('[AI] Error (attempt ' + attempt + ', ' + duration + 'ms):', err.name, err.message);
+
+                    if (attempt === maxRetries) {
+                        if (err.name === 'AbortError') {
+                            renderAiError('Request timed out. ' + (isMobile ? 'Mobile networks can be slow — try on WiFi or try again.' : 'Please try again.'));
+                        } else if (err.message === 'Failed to fetch') {
+                            renderAiError('No internet connection. Check your network and try again.');
+                        } else {
+                            renderAiError(err.message || 'AI suggestions unavailable right now. Try again in a moment.');
+                        }
+                    }
                 }
             }
         }
@@ -11364,7 +11419,7 @@
                 id: taskId,
                 name: suggestion.text,
                 type: 'onetime',
-                category: 'general'
+                category: suggestion.category || 'general'
             };
 
             newTask.date = formatDateForInput(viewingDate);

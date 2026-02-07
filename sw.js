@@ -3,7 +3,7 @@
 
 // --- Configuration ---
 // Update this version number whenever you make changes to force cache refresh
-const CACHE_NAME = 'life-gamified-v9';
+const CACHE_NAME = 'life-gamified-v11';
 
 const ASSETS_TO_CACHE = [
     '/',
