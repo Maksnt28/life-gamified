@@ -143,46 +143,51 @@ Be specific and practical.`;
         }
 
         const data = await response.json();
-        const content = data.content?.[0]?.text;
 
-        if (!content) {
-            console.error('[API] No text content in response:', JSON.stringify(data).slice(0, 300));
-            return res.status(502).json({ error: 'Empty AI response', suggestions: [] });
+        console.log('[API] Full response structure:', JSON.stringify(data).slice(0, 500));
+
+        // Extract text from Claude's response structure
+        let aiText;
+        if (data.content && Array.isArray(data.content) && data.content[0]) {
+            aiText = data.content[0].text;
+        } else {
+            console.error('[API] Unexpected response structure:', JSON.stringify(data).slice(0, 300));
+            return res.status(500).json({ error: 'Invalid API response structure', suggestions: [] });
         }
 
-        console.log('[API] Raw AI response:', content.slice(0, 300));
+        console.log('[API] Raw AI text:', aiText);
 
-        // Strip markdown code blocks if present
-        const cleanContent = content
-            .replace(/```json\s*/gi, '')
+        // Clean the text - remove markdown code blocks if present
+        const cleanedText = aiText
+            .replace(/```json\s*/g, '')
             .replace(/```\s*/g, '')
             .trim();
 
+        console.log('[API] Cleaned text:', cleanedText);
+
+        // Parse JSON directly - no regex fallback
         let suggestions;
         try {
-            suggestions = JSON.parse(cleanContent);
-        } catch (parseErr) {
-            // Try to extract JSON array from response
-            const match = cleanContent.match(/\[[\s\S]*\]/);
-            if (match) {
-                try {
-                    suggestions = JSON.parse(match[0]);
-                } catch (innerErr) {
-                    console.error('[API] JSON extraction also failed:', innerErr.message);
-                    console.error('[API] Cleaned content:', cleanContent.slice(0, 300));
-                    return res.status(502).json({ error: 'Could not parse AI response', suggestions: [] });
-                }
-            } else {
-                console.error('[API] No JSON array found in response:', cleanContent.slice(0, 300));
-                return res.status(502).json({ error: 'Could not parse AI response', suggestions: [] });
-            }
+            suggestions = JSON.parse(cleanedText);
+            console.log('[API] Successfully parsed JSON');
+        } catch (parseError) {
+            console.error('[API] JSON parse failed:', parseError.message);
+            console.error('[API] Text that failed to parse:', cleanedText);
+            return res.status(500).json({
+                error: 'Could not parse AI response as JSON',
+                suggestions: []
+            });
         }
 
+        // Validate it's an array
         if (!Array.isArray(suggestions)) {
-            console.error('[API] AI returned non-array:', typeof suggestions);
-            return res.status(502).json({ error: 'Invalid suggestions format', suggestions: [] });
+            console.error('[API] Parsed JSON is not an array:', typeof suggestions);
+            return res.status(500).json({ error: 'AI response is not an array', suggestions: [] });
         }
 
+        console.log('[API] Valid array with ' + suggestions.length + ' suggestions');
+
+        // Validate and normalize each suggestion
         const validViews = new Set(['Day', 'Week', 'Month']);
         const categoryMap = {
             'general': 'general',
@@ -200,8 +205,14 @@ Be specific and practical.`;
             'other': 'general'
         };
 
-        suggestions = suggestions
-            .filter(s => s && s.text && String(s.text).trim().length > 0)
+        const validatedSuggestions = suggestions
+            .filter(s => {
+                if (!s || !s.text || typeof s.text !== 'string') {
+                    console.warn('[API] Skipping suggestion without text:', JSON.stringify(s));
+                    return false;
+                }
+                return true;
+            })
             .slice(0, 5)
             .map(s => {
                 const rawCategory = String(s.category || '').toLowerCase().trim();
@@ -210,20 +221,19 @@ Be specific and practical.`;
                     console.warn('[API] Unknown category "' + s.category + '", defaulting to general');
                 }
                 return {
-                    text: String(s.text || '').slice(0, 100),
+                    text: String(s.text).trim().slice(0, 100),
                     suggestedView: validViews.has(s.suggestedView) ? s.suggestedView : 'Day',
-                    estimatedPoints: Math.min(50, Math.max(10, parseInt(s.estimatedPoints) || 10)),
+                    estimatedPoints: Math.min(50, Math.max(10, Number(s.estimatedPoints) || 20)),
                     category: category || 'general'
                 };
             });
 
-        const usage = data.usage ? {
-            input_tokens: data.usage.input_tokens || 0,
-            output_tokens: data.usage.output_tokens || 0
-        } : null;
+        console.log('[API] Returning ' + validatedSuggestions.length + ' validated suggestions');
 
-        console.log('[API] Success:', suggestions.length, 'suggestions |', JSON.stringify(usage));
-        return res.status(200).json({ suggestions, usage });
+        return res.status(200).json({
+            suggestions: validatedSuggestions,
+            usage: data.usage || {}
+        });
     } catch (err) {
         console.error('[API] Unexpected error:', err.name, err.message, err.stack);
 
