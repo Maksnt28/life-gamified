@@ -3,25 +3,48 @@ const FALLBACK_MODEL = 'claude-sonnet-4-5-20250929';
 
 async function callClaude(apiKey, model, systemPrompt, userMessage) {
     console.log('[API] Calling Claude with model:', model);
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-            model,
-            max_tokens: 200,
-            temperature: 0.7,
-            system: systemPrompt,
-            messages: [{ role: 'user', content: userMessage }]
-        })
-    });
-    return response;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify({
+                model,
+                max_tokens: 200,
+                temperature: 0.7,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userMessage }]
+            }),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+            console.error('[API] Claude API timeout after 8s for model:', model);
+        }
+        throw err;
+    }
 }
 
 export default async function handler(req, res) {
+    // CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -29,7 +52,7 @@ export default async function handler(req, res) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
         console.error('[API] ANTHROPIC_API_KEY is not set');
-        return res.status(500).json({ error: 'API key not configured' });
+        return res.status(500).json({ error: 'API key not configured', suggestions: [] });
     }
 
     console.log('[API] Key exists:', !!apiKey, '| Key prefix:', apiKey.slice(0, 7) + '...');
@@ -37,7 +60,7 @@ export default async function handler(req, res) {
     const { currentTasks } = req.body;
 
     if (!currentTasks || !Array.isArray(currentTasks)) {
-        return res.status(400).json({ error: 'currentTasks array is required' });
+        return res.status(400).json({ error: 'currentTasks array is required', suggestions: [] });
     }
 
     // Cap at 15 tasks
@@ -73,11 +96,21 @@ Be specific and practical.`;
 
     if (estimatedTokens > 500) {
         console.error('[API] Request too large:', estimatedTokens, 'estimated tokens');
-        return res.status(400).json({ error: 'Request too large, please reduce task count' });
+        return res.status(400).json({ error: 'Request too large, please reduce task count', suggestions: [] });
     }
 
     try {
-        let response = await callClaude(apiKey, PRIMARY_MODEL, systemPrompt, userMessage);
+        let response;
+        try {
+            response = await callClaude(apiKey, PRIMARY_MODEL, systemPrompt, userMessage);
+        } catch (err) {
+            if (err.name === 'AbortError') {
+                console.warn('[API] Primary model timed out, trying fallback:', FALLBACK_MODEL);
+                response = await callClaude(apiKey, FALLBACK_MODEL, systemPrompt, userMessage);
+            } else {
+                throw err;
+            }
+        }
 
         // Fallback to Sonnet if Haiku fails with 404 or model error
         if (!response.ok && (response.status === 404 || response.status === 400)) {
@@ -106,23 +139,48 @@ Be specific and practical.`;
                 || errorDetail?.error?.message
                 || 'AI service temporarily unavailable';
 
-            return res.status(502).json({ error: clientMessage });
+            return res.status(502).json({ error: clientMessage, suggestions: [] });
         }
 
         const data = await response.json();
-        const content = data.content?.[0]?.text || '[]';
+        const content = data.content?.[0]?.text;
+
+        if (!content) {
+            console.error('[API] No text content in response:', JSON.stringify(data).slice(0, 300));
+            return res.status(502).json({ error: 'Empty AI response', suggestions: [] });
+        }
+
+        console.log('[API] Raw AI response:', content.slice(0, 300));
+
+        // Strip markdown code blocks if present
+        const cleanContent = content
+            .replace(/```json\s*/gi, '')
+            .replace(/```\s*/g, '')
+            .trim();
 
         let suggestions;
         try {
-            suggestions = JSON.parse(content);
+            suggestions = JSON.parse(cleanContent);
         } catch (parseErr) {
-            const match = content.match(/\[[\s\S]*\]/);
+            // Try to extract JSON array from response
+            const match = cleanContent.match(/\[[\s\S]*\]/);
             if (match) {
-                suggestions = JSON.parse(match[0]);
+                try {
+                    suggestions = JSON.parse(match[0]);
+                } catch (innerErr) {
+                    console.error('[API] JSON extraction also failed:', innerErr.message);
+                    console.error('[API] Cleaned content:', cleanContent.slice(0, 300));
+                    return res.status(502).json({ error: 'Could not parse AI response', suggestions: [] });
+                }
             } else {
-                console.error('[API] Unparseable response:', content.slice(0, 200));
-                return res.status(502).json({ error: 'Could not parse AI response' });
+                console.error('[API] No JSON array found in response:', cleanContent.slice(0, 300));
+                return res.status(502).json({ error: 'Could not parse AI response', suggestions: [] });
             }
+        }
+
+        if (!Array.isArray(suggestions)) {
+            console.error('[API] AI returned non-array:', typeof suggestions);
+            return res.status(502).json({ error: 'Invalid suggestions format', suggestions: [] });
         }
 
         const validViews = new Set(['Day', 'Week', 'Month']);
@@ -142,19 +200,22 @@ Be specific and practical.`;
             'other': 'general'
         };
 
-        suggestions = suggestions.slice(0, 5).map(s => {
-            const rawCategory = String(s.category || '').toLowerCase().trim();
-            const category = categoryMap[rawCategory];
-            if (!category && rawCategory) {
-                console.warn('[API] Unknown category "' + s.category + '", defaulting to general');
-            }
-            return {
-                text: String(s.text || '').slice(0, 100),
-                suggestedView: validViews.has(s.suggestedView) ? s.suggestedView : 'Day',
-                estimatedPoints: Math.min(50, Math.max(10, parseInt(s.estimatedPoints) || 10)),
-                category: category || 'general'
-            };
-        });
+        suggestions = suggestions
+            .filter(s => s && s.text && String(s.text).trim().length > 0)
+            .slice(0, 5)
+            .map(s => {
+                const rawCategory = String(s.category || '').toLowerCase().trim();
+                const category = categoryMap[rawCategory];
+                if (!category && rawCategory) {
+                    console.warn('[API] Unknown category "' + s.category + '", defaulting to general');
+                }
+                return {
+                    text: String(s.text || '').slice(0, 100),
+                    suggestedView: validViews.has(s.suggestedView) ? s.suggestedView : 'Day',
+                    estimatedPoints: Math.min(50, Math.max(10, parseInt(s.estimatedPoints) || 10)),
+                    category: category || 'general'
+                };
+            });
 
         const usage = data.usage ? {
             input_tokens: data.usage.input_tokens || 0,
@@ -164,7 +225,12 @@ Be specific and practical.`;
         console.log('[API] Success:', suggestions.length, 'suggestions |', JSON.stringify(usage));
         return res.status(200).json({ suggestions, usage });
     } catch (err) {
-        console.error('[API] Unexpected error:', err.message, err.stack);
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error('[API] Unexpected error:', err.name, err.message, err.stack);
+
+        if (err.name === 'AbortError') {
+            return res.status(504).json({ error: 'AI request timed out - try again', suggestions: [] });
+        }
+
+        return res.status(500).json({ error: 'Internal server error', suggestions: [] });
     }
 }
